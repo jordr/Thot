@@ -1,0 +1,24 @@
+@use dokuwiki
+@TITLE=Thot Manual
+@AUTHORS=H. Cassé <hugues.casse@laposte.net>
+@VERSION=0.1
+
+====== chapitre 1 ======
+
+===== section 1 =====
+
+@@ Just a comment !
+Ceci est <sub>un</sub> essai.
+Encore //un// ici !
+
+===== section 2 =====
+
+1er <del>par</del>
+suite **du** premier
+@MYDEF=coucou
+
+====== chapitre 2 ======
+
+2ème par @(MYDEF)
+ICI: http://www.ici.fr/home.html
+
