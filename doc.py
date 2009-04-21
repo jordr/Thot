@@ -56,6 +56,33 @@ class Node:
 		pass
 
 
+class Block(Node):
+	content = None
+	
+	def __init__(self):
+		self.content = []
+	
+	def add(self, line):
+		self.content.append(line)
+
+	def dump(self, tab):
+		self.dumpHead(tab)
+		for line in self.content:
+			print tab + "  " + line
+		print tab + ")"
+
+
+class CodeBlock(Block):
+	lang = None
+
+	def __init__(self, lang):
+		Block.__init__(self)
+		self.lang = lang
+
+	def dumpHead(self, tab):
+		print tab + "code(" + self.lang + ","
+
+
 class Container(Node):
 	"""A container is an item containing other items."""
 	content = None

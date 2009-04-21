@@ -77,6 +77,24 @@ for smiley in SMILEYS.keys():
 	SMILEYS_RE = SMILEYS_RE + escape_re(smiley)
 
 
+
+### code parse ###
+END_CODE = re.compile("^\s*<\/code>\s*")
+class CodeParser:
+	block = None
+	
+	def __init__(self, man, kind):
+		man.pushParser(self)
+		self.block = doc.CodeBlock(kind)
+
+	def parse(self, man, line):
+		if END_CODE.match(line):
+			man.popParser()
+			man.item.onPar(man, self.block)
+		else:
+			self.block.add(line)
+
+
 ### word processing ###
 def handleStyle(handler, style):
 	handler.item.onStyle(handler, doc.Style(style))
@@ -102,16 +120,16 @@ def handleEntity(man, match):
 	man.item.onWord(man, glyph)
 
 WORDS = [
-	(lambda handler, match: handleStyle(handler, "bold"), "\*\*"),
-	(lambda handler, match: handleStyle(handler, "italic"), "\/\/"),
-	(lambda handler, match: handleStyle(handler, "underline"), "__"),
-	(lambda handler, match: handleStyle(handler, "monospace"), "''"),
-	(lambda handler, match: handleOpenStyle(handler, "subscript"), "<sub>"),
-	(lambda handler, match: handleCloseStyle(handler, "subscript"), "<\/sub>"),	
-	(lambda handler, match: handleOpenStyle(handler, "superscript"), "<sup>"),
-	(lambda handler, match: handleCloseStyle(handler, "superscript"), "<\/sup>"),	
-	(lambda handler, match: handleOpenStyle(handler, "deleted"), "<del>"),
-	(lambda handler, match: handleCloseStyle(handler, "deleted"), "<\/del>"),	
+	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
+	(lambda man, match: handleStyle(man, "italic"), "\/\/"),
+	(lambda man, match: handleStyle(man, "underline"), "__"),
+	(lambda man, match: handleStyle(man, "monospace"), "''"),
+	(lambda man, match: handleOpenStyle(man, "subscript"), "<sub>"),
+	(lambda man, match: handleCloseStyle(man, "subscript"), "<\/sub>"),	
+	(lambda man, match: handleOpenStyle(man, "superscript"), "<sup>"),
+	(lambda man, match: handleCloseStyle(man, "superscript"), "<\/sup>"),	
+	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
+	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),	
 	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
 	(handleSmiley, SMILEYS_RE),
 	(handleEntity, ENTITIES_RE),
@@ -130,12 +148,15 @@ def handleList(man, kind, match):
 	man.item.onListItem(man, kind, computeDepth(match.group(1)))
 	parser.handleText(man, match.group(3))
 
+def handleCode(man, match):
+	CodeParser(man, match.group(1))
 
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
 	(handleNewPar, re.compile("^$")),
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
-	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)\*(.*)"))
+	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)\*(.*)")),
+	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*"))
 ]
 
 def init(handler):
