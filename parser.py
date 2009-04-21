@@ -31,11 +31,16 @@ def handleText(handler, line):
 	while match:
 		idx = int(match.lastgroup[1:])
 		fun, re = handler.words[idx]
-		handler.item.onWord(handler, doc.Word(line[:match.start()]))
+		word = line[:match.start()]
+		if word:
+			handler.item.onWord(handler, doc.Word(word))
 		line = line[match.end():]
 		fun(handler, match)
 		match = handler.words_re.search(line)
-	handler.item.onWord(handler, doc.Word(line))
+	
+	# end of line
+	if line:
+		handler.item.onWord(handler, doc.Word(line))
 
 
 ############### Line Parsing ######################
@@ -71,7 +76,7 @@ class DefaultParser:
 			handleText(handler, line)
 
 
-class Handler:
+class Manager:
 	item = None
 	items = None
 	parser = None
@@ -113,5 +118,6 @@ class Handler:
 				line = line[0:-1]
 			self.parser.parse(self, line)
 		self.item.onEnd(self)
+		self.doc.clean()
 
 

@@ -8,7 +8,7 @@
 ===== section 1 =====
 
 @@ Just a comment !
-Ceci est <sub>un</sub> essai.
+Ceci \\ est <sub>un</sub> essai.
 Encore //un// ici !
 
 ===== section 2 =====
@@ -16,6 +16,16 @@ Encore //un// ici !
 1er <del>par</del>
 suite **du** premier
 @MYDEF=coucou
+
+encore 1
+
+  * ici
+  * la
+    * 1
+    * 2
+  * trois
+
+Et voila :-) voila -> dfd.
 
 ====== chapitre 2 ======
 

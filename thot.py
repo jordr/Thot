@@ -17,7 +17,8 @@ def onError(text):
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.1"
 env["THOT_ENCODING"] = locale.getpreferredencoding()
-env["THOT_USE_PATH"] = os.getcwd() + "/mods/"
+env["THOT_BASE"] = os.getcwd() + "/"
+env["THOT_USE_PATH"] = env["THOT_BASE"] + "mods/"
 env["THOT_DATE"] = str(datetime.datetime.today())
 
 # Parse argument
@@ -41,9 +42,9 @@ else:
 
 # Parse the file
 document = doc.Document(env)
-handler = parser.Handler(document)
-handler.parse(input)
-document.dump()
+man = parser.Manager(document)
+man.parse(input)
+document.dump("")
 
 # Output the result
 #out_name = env["THOT_OUT_TYPE"]
