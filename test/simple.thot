@@ -3,39 +3,69 @@
 @AUTHORS=H. Cassé <hugues.casse@laposte.net>
 @VERSION=0.1
 
+introduction
+
 ====== chapitre 1 ======
 
-===== section 1 =====
+introduction chapitre 1
 
-@@ Just a comment !
-Ceci \\ est <sub>un</sub> essai.
-Encore //un// ici !
+===== section 1.1 =====
 
-===== section 2 =====
+text 1.1
 
-1er <del>par</del>
-suite **du** premier
-@MYDEF=coucou
+===== section 1.2 =====
 
-encore 1
+texte 1.2
 
-  * ici
-  * la
-    * 1
-    * 2
-  * trois
-
-Et voila :-) voila -> dfd.
+texte 1.2 b
 
 ====== chapitre 2 ======
 
-2ème par @(MYDEF)
-ICI: http://www.ici.fr/home.html
+===== section 2.1 =====
 
-<code c++>
-int x;
-int y;
+  * item 1
+  * item 2
+  * item 3
+
+===== section 2.2 =====
+
+  - item 1
+  - item 2
+  - item 3
+
+====== chapitre 3 ======
+
+  * item a
+  * item b
+    * item b1
+    * item b2
+    * item b3
+  * item c
+
+====== Word tests ======
+
+It's a test for word level tags.
+
+There is **bold** here and //italic// here.
+
+Now, <sub>subscript</sub> here !
+
+First, an URL http://www.google.fr here.
+
+====== Link tests ======
+
+A mail link ici@labas.fr ok ?
+
+An internal linl [[wiki:internal]] here !
+
+A link with label [[ici.html|ICI]] et la.
+
+====== code tests ======
+
+And now, a piece of code
+
+<code python>
+print "Hello, world !"
 </code>
 
-Et voila !!!
-
+And an image {{here.jpg}}.

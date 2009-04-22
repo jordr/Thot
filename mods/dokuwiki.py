@@ -81,43 +81,67 @@ for smiley in SMILEYS.keys():
 ### code parse ###
 END_CODE = re.compile("^\s*<\/code>\s*")
 class CodeParser:
+	old = None
 	block = None
 	
 	def __init__(self, man, kind):
-		man.pushParser(self)
+		self.old = man.getParser()
+		man.setParser(self)
 		self.block = doc.CodeBlock(kind)
 
 	def parse(self, man, line):
 		if END_CODE.match(line):
-			man.popParser()
-			man.item.onPar(man, self.block)
+			man.setParser(self.old)
+			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 		else:
 			self.block.add(line)
 
 
 ### word processing ###
-def handleStyle(handler, style):
-	handler.item.onStyle(handler, doc.Style(style))
+def processLink(man, target, text):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_LINK, doc.Link(target)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, text))
+	man.send(doc.CloseEvent(doc.L_WORD, doc.ID_END_LINK, "link"))
 
-def handleURL(handler, match):
-	handler.item.onWord(handler, doc.URL(match.group(0)))
+def handleStyle(man, style):
+	man.send(doc.StyleEvent(style))
 
-def handleOpenStyle(handler, style):
-	handler.item.onStyle(handler, doc.OpenStyle(style))
+def handleOpenStyle(man, style):
+	man.send(doc.OpenStyleEvent(style))
 	
-def handleCloseStyle(handler, style):
-	handler.item.onStyle(handler, doc.CloseStyle(style))
+def handleCloseStyle(man, style):
+	man.send(doc.CloseStyleEvent(style))
+
+def handleURL(man, match):
+	processLink(man, match.group(0), doc.Word(match.group(0)))
+
+def handleEMail(man, match):
+	processLink(man, "mailto:" + match.group(0), doc.Word(match.group(0)))
 
 def handleLineBreak(man, match):
-	man.item.onWord(man, doc.LineBreak())
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.LineBreak()))
 
 def handleSmiley(man, match):
 	image = doc.Image(man.doc.getVar("THOT_BASE") + SMILEYS[match.group(0)])
-	man.item.onWord(man, image)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, image))
 
 def handleEntity(man, match):
 	glyph = doc.Glyph(ENTITIES[match.group(0)])
-	man.item.onWord(man, glyph)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, glyph))
+
+def handleLink(man, match):
+	target = match.group('target')
+	label = match.group('label')
+	if not label:
+		label = target
+	processLink(man, target, doc.Word(label))
+
+def handleImage(man, match):
+	image = match.group("image")
+	#width = match.group("image_width")
+	#height = match.group("image_height")
+	#label = match.group("imahe_label")
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Image(image)))
 
 WORDS = [
 	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
@@ -131,21 +155,28 @@ WORDS = [
 	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
 	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),	
 	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
+	(handleEMail, "([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])"),
+	(handleLink, "\[\[(?P<target>[^\]|]*)(\|(?P<label>[^\]]*))?\]\]"),
+	(handleImage, "{{(?P<image>[^}]+)}}"),
 	(handleSmiley, SMILEYS_RE),
 	(handleEntity, ENTITIES_RE),
 	(handleLineBreak, "\\\\\\\\")
 ]
 
 ### lines processing ###
-def handleNewPar(handler, match):
-	handler.item.onPar(handler, doc.Par())
+def handleNewPar(man, match):
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, doc.Par()))
 
-def handleHeader(handler, match):
-	handler.item.onHeader(handler,
-		doc.Header(6 - len(match.group(1)), match.group(2)))
+def handleHeader(man, match):
+	level = 6 - len(match.group(1))
+	title = match.group(2)
+	man.send(doc.ObjectEvent(doc.L_HEAD, doc.ID_NEW, doc.Header(level)))
+	parser.handleText(man, title)
+	man.send(doc.Event(doc.L_HEAD, doc.ID_TITLE))
 
 def handleList(man, kind, match):
-	man.item.onListItem(man, kind, computeDepth(match.group(1)))
+	depth = computeDepth(match.group(1))
+	man.send(doc.ItemEvent(kind, depth))
 	parser.handleText(man, match.group(3))
 
 def handleCode(man, match):
@@ -155,20 +186,10 @@ LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
 	(handleNewPar, re.compile("^$")),
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
-	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)\*(.*)")),
+	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
 	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*"))
 ]
 
-def init(handler):
-
-	handler.lines = []
-	for line in parser.INITIAL_LINES:
-		handler.lines.append(line)
-	handler.lines.extend(LINES)
-	
-	handler.words = []
-	for word in parser.INITIAL_WORDS:
-		handler.words.append(word)
-	handler.words.extend(WORDS)
-	handler.words_re = None
+def init(man):
+	man.setSyntax(LINES, WORDS)
 
