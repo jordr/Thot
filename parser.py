@@ -101,20 +101,20 @@ class Manager:
 		return item
 	
 	def send(self, event):
-		print "send(" + str(event) + ")"
+		#print "send(" + str(event) + ")"
 		self.item.onEvent(self, event)
 	
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
-		print "push(" + str(item) + ")"
+		#print "push(" + str(item) + ")"
 	
 	def pop(self):
-		print "pop(" + str(self.item) + ") to " + str(self.items[-1])
+		#print "pop(" + str(self.item) + ") to " + str(self.items[-1])
 		self.item = self.items.pop()
 	
 	def forward(self, event):
-		print "forward(" + str(event) + ")"
+		#print "forward(" + str(event) + ")"
 		self.pop()
 		self.send(event)
 	

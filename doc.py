@@ -279,7 +279,6 @@ class Link(Container):
 		self.ref = ref
 	
 	def onEvent(self, man, event):
-		print "-> " + str(event)
 		if event.level is not L_WORD:
 			man.forward(event)
 		elif event.id is ID_END_LINK:
@@ -457,7 +456,10 @@ class Document(Container):
 			self.add(man, event.make())	
 	
 	def getVar(self, name):
-		return self.env[name]
+		if self.env.has_key(name):
+			return self.env[name]
+		else:
+			return None
 	
 	def setVar(self, name, val):
 		self.env[name] = val
