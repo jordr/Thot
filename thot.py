@@ -43,19 +43,20 @@ if args == []:
 else:
 	input = file(args[0])
 	env["THOT_FILE"] = args[0]
-for d in options.defines:
-	p = d.find('=')
-	if p == -1:
-		onError('-D' + d + ' must follow syntax -Didentifier=value')
-	else:
-		env[d[:p]] = d[p+1:]
+if options.defines:
+	for d in options.defines:
+		p = d.find('=')
+		if p == -1:
+			onError('-D' + d + ' must follow syntax -Didentifier=value')
+		else:
+			env[d[:p]] = d[p+1:]
 
 
 # Parse the file
 document = doc.Document(env)
 man = parser.Manager(document)
 man.parse(input)
-document.dump("")
+#document.dump("")
 
 # Output the result
 out_name = env["THOT_OUT_TYPE"]

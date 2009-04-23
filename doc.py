@@ -152,6 +152,18 @@ class Node:
 		
 	def clean(self):
 		pass
+	
+	def getTitleLevel(self):
+		return -1
+	
+	def genTitle(self, gen):
+		return None
+	
+	def getContent(self):
+		return []
+	
+	def gen(self, gen):
+		pass
 
 
 class Container(Node):
@@ -189,6 +201,13 @@ class Container(Node):
 			item.dump(tab + "  ")
 		print tab + ")"
 
+	def getContent(self):
+		return self.content
+	
+	def gen(self, gen):
+		for item in self.content:
+			item.gen(gen)
+
 
 # Word family
 class Word(Node):
@@ -200,6 +219,9 @@ class Word(Node):
 	def dump(self, tab):
 		print(tab + "word(" + self.text + ")")
 
+	def gen(self, gen):
+		gen.genText(self.text)
+
 
 class Image(Node):
 	path = None
@@ -209,6 +231,9 @@ class Image(Node):
 	
 	def dump(self, tab):
 		print tab + "image(" + self.path + ")"
+
+	def gen(self, gen):
+		gen.genImage(self.path)
 
 
 class Glyph(Node):
@@ -220,11 +245,17 @@ class Glyph(Node):
 	def dump(self, tab):
 		print tab + "glyph(" + str(self.code) + ")"
 
+	def gen(self, gen):
+		gen.genGlyph(self.code)
+
 
 class LineBreak(Node):
 	
 	def dump(self, tab):
 		print tab + "linebreak"
+	
+	def gen(self, gen):
+		gen.genLibeBreak()
 
 
 # Style family
@@ -248,6 +279,11 @@ class Style(Container):
 	def dumpHead(self, tab):
 		print tab + "style(" + self.style + ","
 
+	def gen(self, gen):
+		gen.genStyleBegin(self.style)
+		Container.gen(self, gen)
+		gen.genStyleEnd(self.style)
+
 
 class OpenStyle(Container):
 	style = None
@@ -270,6 +306,12 @@ class OpenStyle(Container):
 		print tab + "style(" + self.style + ","
 
 
+	def gen(self, gen):
+		gen.genStyleBegin(self.style)
+		Container.gen(self, gen)
+		gen.genStyleEnd(self.style)
+
+
 class Link(Container):
 	"""A link in a text."""
 	ref = None
@@ -289,6 +331,11 @@ class Link(Container):
 	def dumpHead(self, tab):
 		print tab + "link(" + self.ref + ","
 
+	def gen(self, gen):
+		gen.genLinkBegin(self.ref)
+		Container.gen(self, gen)
+		gen.genLinkEnd(self.ref)
+
 
 # Par family
 class Par(Container):
@@ -306,6 +353,11 @@ class Par(Container):
 	
 	def dumpHead(self, tab):
 		print tab + "par("
+	
+	def gen(self, gen):
+		gen.genParBegin()
+		Container.gen(self, gen)
+		gen.genParEnd()
 
 
 class Quote(Par):
@@ -395,6 +447,14 @@ class List(Container):
 	def dumpHead(self, tab):
 		print tab + "list(" + self.kind + "," + str(self.depth) + ", "
 
+	def gen(self, gen):
+		gen.genListBegin(self.kind)
+		for item in self.getContent():
+			gen.genListItemBegin(self.kind)
+			item.gen(gen)
+			gen.genListItemEnd(self.kind)
+		gen.genListEnd(self.kind)
+
 
 # main family
 class Header(Container):
@@ -435,6 +495,23 @@ class Header(Container):
 
 	def isEmpty(self):
 		return False
+	
+	def getTitleLevel(self):
+		return self.level
+	
+	def genTitle(self, gen):
+		for item in self.title.getContent():
+			item.gen(gen)
+	
+	def gen(self, gen):
+		gen.genHeaderBegin(self.level)
+		gen.genHeaderTitleBegin(self.level)
+		self.genTitle(gen)
+		gen.genHeaderTitleEnd(self.level)
+		gen.genHeaderBodyBegin(self.level)
+		Container.gen(self, gen)
+		gen.genHeaderBodyEnd(self.level)
+		gen.genHeaderEnd(self.level)
 
 
 class Document(Container):
@@ -468,4 +545,4 @@ class Document(Container):
 		for k in iter(self.env):
 			print k + "=" + self.env[k]
 		print tab + "document("
-	
+		

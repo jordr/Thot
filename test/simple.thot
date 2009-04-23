@@ -2,6 +2,7 @@
 @TITLE=Thot Manual
 @AUTHORS=H. Cassé <hugues.casse@laposte.net>
 @VERSION=0.1
+@LANG=en_EN
 
 introduction
 
@@ -69,3 +70,13 @@ print "Hello, world !"
 </code>
 
 And an image {{here.jpg}}.
+
+====== symbols and images ======
+
+Equivallence <=> ca marche ?
+
+Un smiley :-) ???
+
+Ume image !!!
+
+{{../pix/thot5.gif}}

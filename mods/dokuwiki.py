@@ -122,7 +122,7 @@ def handleLineBreak(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.LineBreak()))
 
 def handleSmiley(man, match):
-	image = doc.Image(man.doc.getVar("THOT_BASE") + SMILEYS[match.group(0)])
+	image = doc.Image(man.doc.getVar("THOT_BASE") + "smileys/" + SMILEYS[match.group(0)])
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, image))
 
 def handleEntity(man, match):
