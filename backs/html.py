@@ -27,7 +27,7 @@ import highlight
 #	THOT_OUT_PATH:	HTML out file
 #	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
 #	THOT_ENCODING: charset for the document
-#	HTML_STYLE: CSS style to use (':' separated)
+#	HTML_STYLES: CSS styles to use (':' separated)
 
 LISTS = {
 	'ul': ('<ul>', '<li>', '</li>', '</ul>'),

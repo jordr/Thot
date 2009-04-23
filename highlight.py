@@ -161,15 +161,19 @@ def genCode(gen, lang, text):
 	lang -- code language
 	lines -- lines of the code"""
 	if lang in LANGS and gen.getType() in BACKS:
-		process = subprocess.Popen(
-			['highlight -f --syntax=' + lang],
-			stdin = subprocess.PIPE,
-			stdout = subprocess.PIPE,
-			close_fds = True,
-			shell = True
-			)
-		res, _ = process.communicate(text)
-		gen.genVerbatim(res)
+		try:
+			process = subprocess.Popen(
+				['highlight -f --syntax=' + lang],
+				stdin = subprocess.PIPE,
+				stdout = subprocess.PIPE,
+				close_fds = True,
+				shell = True
+				)
+			res, _ = process.communicate(text)
+			gen.genVerbatim(res)
+		except OSError, e:
+			sys.stderr.write("ERROR: can not call 'highlight'\n")
+			sys.exit(1)
 	else:
 		if lang not in LANGS and lang not in unsupported:
 			sys.stderr.write('WARNING: ' + lang + ' unsupported highglight language\n')
@@ -186,15 +190,19 @@ class Feature(doc.Feature):
 		if gen.getType() in CSS_BACKS:
 			
 			# build the CSS file
-			css = gen.getFriendFile('highlight', '.css')
-			process = subprocess.Popen(
-				['highlight -f --syntax=c --style-outfile=' + css],
-				stdin = subprocess.PIPE,
-				stdout = subprocess.PIPE,
-				close_fds = True,
-				shell = True
-			)
-			_ = process.communicate("")
+			try:
+				css = gen.getFriendFile('highlight', '.css')
+				process = subprocess.Popen(
+					['highlight -f --syntax=c --style-outfile=' + css],
+					stdin = subprocess.PIPE,
+					stdout = subprocess.PIPE,
+					close_fds = True,
+					shell = True
+				)
+				_ = process.communicate("")
+			except OSError, e:
+				sys.stderr.write("ERROR: can not call 'highlight'\n")
+				sys.exit(1)
 			
 			# add the file to the style
 			styles = gen.doc.getVar('HTML_STYLES')
