@@ -7,6 +7,7 @@ import locale
 import sys
 import optparse
 import datetime
+import os.path
 
 # Error handling
 def onError(text):
@@ -17,7 +18,7 @@ def onError(text):
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.1"
 env["THOT_ENCODING"] = locale.getpreferredencoding()
-env["THOT_BASE"] = os.getcwd() + "/"
+env["THOT_BASE"] = os.path.dirname(os.path.abspath(__file__)) + '/'
 env["THOT_USE_PATH"] = env["THOT_BASE"] + "mods/"
 env["THOT_DATE"] = str(datetime.datetime.today())
 

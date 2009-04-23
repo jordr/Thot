@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 # levels
 L_DOC=0
 L_HEAD=1
@@ -163,6 +162,8 @@ class Node:
 		return []
 	
 	def gen(self, gen):
+		"""Method to perform document generation.
+		gen -- used generator."""
 		pass
 
 
@@ -391,17 +392,6 @@ class Block(Node):
 		print tab + ")"
 
 
-class CodeBlock(Block):
-	lang = None
-
-	def __init__(self, lang):
-		Block.__init__(self)
-		self.lang = lang
-
-	def dumpHead(self, tab):
-		print tab + "code(" + self.lang + ","
-
-
 # List family
 class ListItem(Container):
 	"""Description of a list item."""
@@ -514,14 +504,24 @@ class Header(Container):
 		gen.genHeaderEnd(self.level)
 
 
+class Feature:
+	"""A feature allows to add special services at generation time.
+	Feature method are called at generation time."""
+	
+	def prepare(self, gen):
+		pass
+
+
 class Document(Container):
 	"""This is the top object of the document, containing the headings
 	and also the configuration environment."""
 	env = None
+	features = None
 
 	def __init__(self, env):
 		Container.__init__(self)
 		self.env = env
+		self.features = []
 
 	def onEvent(self, man, event):
 		if event.level is L_WORD:
@@ -545,4 +545,12 @@ class Document(Container):
 		for k in iter(self.env):
 			print k + "=" + self.env[k]
 		print tab + "document("
-		
+
+	def addFeature(self, feature):
+		"""Add a feature to the document."""
+		if feature not in self.features:
+			self.features.append(feature)
+ 
+ 	def pregen(self, gen):
+ 		for feature in self.features:
+ 			feature.prepare(gen)

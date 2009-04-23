@@ -18,6 +18,7 @@ import sys
 import os
 import cgi
 import i18n
+import highlight
 
 # supported variables
 #	TITLE: title of the document
@@ -26,7 +27,7 @@ import i18n
 #	THOT_OUT_PATH:	HTML out file
 #	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
 #	THOT_ENCODING: charset for the document
-#	HTML_STYLE: CSS style to use
+#	HTML_STYLE: CSS style to use (':' separated)
 
 LISTS = {
 	'ul': ('<ul>', '<li>', '</li>', '</ul>'),
@@ -60,12 +61,20 @@ class Generator:
 	trans = None
 	doc = None
 	counters = None
+	path = None
 	
-	def __init__(self, out, doc):
+	def __init__(self, path, out, doc):
 		self.out = out
 		self.doc = doc
-		self.trans = i18n.getTranslator(self.doc)
+		self.path = path
+		self.trans  = i18n.getTranslator(self.doc)
 		self.resetCounters()
+	
+	def getType(self):
+		return 'html'
+	
+	def getFriendFile(self, id, suf):
+		return self.path + "-" + id + suf
 	
 	def resetCounters(self):
 		self.counters = {
@@ -83,6 +92,18 @@ class Generator:
 		for i in xrange(1, num + 1):
 			res = res + '.' + str(self.counters[str(i)])
 		return res
+	
+	def genCode(self, lang, lines):
+		self.out.write('<pre class="code">\n')
+		text = lines[0]
+		for line in lines[1:]:
+			text = text + '\n' + line
+		highlight.genCode(self, lang, text)
+		self.out.write('</pre>\n')
+	
+	def genVerbatim(self, line):
+		self.out.write(line)
+		self.out.write('\n')
 	
 	def genText(self, text):
 		self.out.write(cgi.escape(text))
@@ -176,9 +197,10 @@ class Generator:
 		self.out.write('	<meta name="AUTHOR" content="' + cgi.escape(self.doc.getVar('AUTHORS'), True) + '">\n')
 		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
 		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('THOT_ENCODING'), True) + '">\n')
-		style = self.doc.getVar("HTML_STYLE")
-		if style:
-			self.out.write('	<link rel="stylesheet" type="text/css" href="' + style + '">')
+		styles = self.doc.getVar("HTML_STYLES")
+		if styles:
+			for style in styles.split(':'):
+				self.out.write('	<link rel="stylesheet" type="text/css" href="' + style + '">')
 		self.out.write("</head>\n<body>\n")
 	
 	def genTitle(self):
@@ -227,6 +249,7 @@ class Generator:
 		self.out.write('	</div>\n')
 	
 	def run(self):
+		self.doc.pregen(self)
 		self.genHeader()
 		self.genTitle()
 		self.genContent()
@@ -236,22 +259,30 @@ class Generator:
 
 def output(doc):
 	out = None
+	path = None
 
 	# open the output file
 	out_name = doc.getVar("THOT_OUT_PATH")
 	if out_name:
 		out = open(out_name, "w")
+		if out_name.endswith('.html'):
+			path = out_name[:-5]
+		else:
+			path = out_name
 	else:
 		in_name = doc.getVar("THOT_FILE")
 		if not in_name or in_name == "<stdin>":
 			out = sys.stdout
+			path = "stdin"
 		else:
 			if in_name.endswith(".thot"):
 				out_name = in_name[:-5] + ".html"
+				path = in_name[:-5]
 			else:
 				out_name = in_name + ".html"
+				path = out_name
 			out = open(out_name, "w")
 
 	# generate output
-	gen = Generator(out, doc)
+	gen = Generator(path, out, doc)
 	gen.run()

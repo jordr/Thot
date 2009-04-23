@@ -65,11 +65,19 @@ A link with label [[ici.html|ICI]] et la.
 
 And now, a piece of code
 
-<code python>
+<code py>
 print "Hello, world !"
 </code>
 
-And an image {{here.jpg}}.
+And now some C
+<code c>
+#include <stdio.h>
+
+int main(void) {
+	printf("Hello, world !\n");
+}
+</code>
+
 
 ====== symbols and images ======
 
