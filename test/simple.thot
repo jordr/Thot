@@ -89,6 +89,13 @@ Ume image !!!
 
 {{../pix/thot5.gif}}
 
+{{../pix/thot5.gif?16|16xN}}		16 x N
+
+{{../pix/thot5.gif?x16|Nx16}}	N x 16
+
+{{../pix/thot5.gif?16x16|16x16}}	16 x 16
+
+
 ====== tables ======
 
 This is a table:

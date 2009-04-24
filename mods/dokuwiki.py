@@ -155,10 +155,15 @@ def handleLink(man, match):
 
 def handleImage(man, match):
 	image = match.group("image")
-	#width = match.group("image_width")
-	#height = match.group("image_height")
-	#label = match.group("imahe_label")
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Image(image)))
+	width = match.group("image_width")
+	if width <> None:
+		width = int(width)
+	height = match.group("image_height")
+	if height <> None:
+		height = int(height)
+	label = match.group("image_label")
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW,
+		doc.Image(image, width, height, label)))
 
 WORDS = [
 	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
@@ -174,7 +179,7 @@ WORDS = [
 	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
 	(handleEMail, "([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])"),
 	(handleLink, "\[\[(?P<target>[^\]|]*)(\|(?P<label>[^\]]*))?\]\]"),
-	(handleImage, "{{(?P<image>[^}]+)}}"),
+	(handleImage, "{{(?P<image>[^}?]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?\s*(\|(?P<image_label>[^}]*))?}}"),
 	(handleSmiley, SMILEYS_RE),
 	(handleEntity, ENTITIES_RE),
 	(handleLineBreak, "\\\\\\\\")
@@ -201,7 +206,6 @@ def handleCode(man, match):
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):
-	print "ROW: " + match.group()
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, doc.Table()))
 	row = match.group(1)
 	object = None
