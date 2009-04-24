@@ -19,6 +19,7 @@ import os
 import cgi
 import i18n
 import highlight
+import doc
 
 # supported variables
 #	TITLE: title of the document
@@ -62,20 +63,37 @@ class Generator:
 	doc = None
 	counters = None
 	path = None
+	files = None
 	
 	def __init__(self, path, out, doc):
 		self.out = out
 		self.doc = doc
 		self.path = path
 		self.trans  = i18n.getTranslator(self.doc)
+		self.files = { }
 		self.resetCounters()
 	
 	def getType(self):
 		return 'html'
 	
-	def getFriendFile(self, id, suf):
-		return self.path + "-" + id + suf
-	
+	def getFriendFile(self, path):
+		"""Get the path of a file to add to the current generation."""
+		dir, file = os.path.split(path)
+		if not self.files.has_key(file):
+			self.files[file] = [dir]
+			return self.path + "-" + file
+		else:
+			paths = self.files[file]
+			pos = paths.find(path)
+			if pos == 0:
+				return self.path + "-" + file
+			else:
+				if pos == -1:
+					pos = len(paths)
+					paths.append(dir)
+				root, ext = os.path.splitext(self.path + "-" + file)
+				return root + "-" + str(pos) + ext
+
 	def resetCounters(self):
 		self.counters = {
 			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
@@ -92,7 +110,19 @@ class Generator:
 		for i in xrange(1, num + 1):
 			res = res + '.' + str(self.counters[str(i)])
 		return res
+
+	def genTableBegin(self):
+		self.out.write('<table>\n')
+
+	def genTableEnd(self):
+		self.out.write('</table>\n')		
 	
+	def genTableRowBegin(self):
+		self.out.write('<tr>\n')
+
+	def genTableRowEnd(self):
+		self.out.write('</tr>\n')
+
 	def genCode(self, lang, lines):
 		self.out.write('<pre class="code">\n')
 		text = lines[0]
@@ -100,6 +130,27 @@ class Generator:
 			text = text + '\n' + line
 		highlight.genCode(self, lang, text)
 		self.out.write('</pre>\n')
+
+	def genTableCellBegin(self, kind, align, span):
+		if kind == doc.TAB_HEADER:
+			self.out.write('<th')
+		else:
+			self.out.write('<td')
+		if align == doc.TAB_LEFT:
+			self.out.write(' align="left"')
+		elif align == doc.TAB_RIGHT:
+			self.out.write(' align="right"')
+		else:
+			self.out.write(' align="center"')
+		if span <> 1:
+			self.out.write(' colspan="' + str(span) + '"')
+		self.out.write('>')
+
+	def genTableCellEnd(self, kind, align, span):
+		if kind == doc.TAB_HEADER:
+			self.out.write('</th>\n')
+		else:
+			self.out.write('</td>\n')
 	
 	def genVerbatim(self, line):
 		self.out.write(line)

@@ -32,7 +32,7 @@ ID_END_ITEM = "end_item"
 
 ID_NEW_ROW = "new_row"
 ID_END_ROW = "end_row"
-ID_NEW_CALL = "new_cell"
+ID_NEW_CELL = "new_cell"
 ID_END_CELL = "end_cell"
 
 ID_NEW_STYLE = "new_style"	# TypedEvent
@@ -446,6 +446,91 @@ class List(Container):
 		gen.genListEnd(self.kind)
 
 
+# Table
+TAB_CENTER = 0
+TAB_LEFT = -1
+TAB_RIGHT = 1
+TAB_NORMAL = 0
+TAB_HEADER = 1
+
+TABLE_KINDS = [ 'normal', 'header' ]
+TABLE_ALIGNS = [ 'left', 'center', 'right' ]
+
+class Cell(Par):
+	kind = None
+	align = None
+	spand = None
+	
+	def __init__(self, kind, align = TAB_CENTER, span = 1):
+		Par.__init__(self)
+		self.kind = kind
+		self.align = align
+		self.span = span
+
+	def gen(self, gen):
+		gen.genTableCellBegin(self.kind, self.align, self.span)
+		Par.gen(self, gen)
+		gen.genTableCellEnd(self.kind, self.align, self.span)
+	
+	def isEmpty(self):
+		return False
+
+	def dumpHead(self, tab):
+		print tab + 'cell(' + TABLE_KINDS[self.kind] + ', ' + TABLE_ALIGNS[self.align + 1] + ', ' + str(self.span) + ','
+
+
+class Row(Container):
+	
+	def __init__(self):
+		Container.__init__(self)
+
+	def onEvent(self, man, event):
+		if event.id is ID_NEW_CELL:
+			self.add(man, event.make())
+		elif event.id is ID_END_CELL:
+			pass	
+		elif event.id is ID_END_ROW:
+			man.pop()
+		else:
+			man.forward(event)
+
+	def gen(self, gen):
+		gen.genTableRowBegin()
+		Container.gen(self, gen)
+		gen.genTableRowEnd()
+
+	def isEmpty(self):
+		return False
+
+	def dumpHead(self, tab):
+		print tab + 'row('
+
+
+class Table(Container):
+
+	def __init__(self):
+		Container.__init__(self)
+	
+	def onEvent(self, man, event):
+		if event.id is ID_NEW_CELL:
+			self.add(man, Row())
+			man.send(event)
+		elif event.id is ID_NEW_ROW:
+			self.add(man, Row())
+		else:
+			man.forward(event)
+
+	def gen(self, gen):
+		gen.genTableBegin()
+		Container.gen(self, gen)
+		gen.genTableEnd()
+
+	def isEmpty(self):
+		return False
+
+	def dumpHead(self, tab):
+		print tab + 'table('
+
 # main family
 class Header(Container):
 	level = None
@@ -502,6 +587,9 @@ class Header(Container):
 		Container.gen(self, gen)
 		gen.genHeaderBodyEnd(self.level)
 		gen.genHeaderEnd(self.level)
+
+	def isEmpty(self):
+		return False
 
 
 class Feature:

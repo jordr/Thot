@@ -191,7 +191,7 @@ class Feature(doc.Feature):
 			
 			# build the CSS file
 			try:
-				css = gen.getFriendFile('highlight', '.css')
+				css = gen.getFriendFile('/highlight/highlight.css')
 				process = subprocess.Popen(
 					['highlight -f --syntax=c --style-outfile=' + css],
 					stdin = subprocess.PIPE,

@@ -199,12 +199,67 @@ def handleList(man, kind, match):
 def handleCode(man, match):
 	CodeParser(man, match.group(1))
 
+TABLE_SEP = re.compile('\^|\|')
+def handleRow(man, match):
+	print "ROW: " + match.group()
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, doc.Table()))
+	row = match.group(1)
+	object = None
+	while row:
+		
+		# look kind
+		if row[0] == '^':
+			kind = doc.TAB_HEADER
+		else:
+			kind = doc.TAB_NORMAL
+		
+		# find end
+		match = TABLE_SEP.search(row, 1)
+		if match:
+			last = match.start()
+		else:
+			last = len(row)
+		cell = row[1:last]
+		row = row[last:]
+		
+		# dump object if required
+		if cell == '' and object:
+			object.span += 1
+			continue
+		if object:
+			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))
+			parser.handleText(man, text)
+
+		# strip and find align
+		total = len(cell)
+		cell = cell.lstrip()
+		left = total - len(cell)
+		total = len(cell)
+		cell = cell.rstrip()
+		right = total - len(cell)
+		if left < right:
+			align = doc.TAB_LEFT
+		elif left > right:
+			align = doc.TAB_RIGHT
+		else:
+			align = doc.TAB_CENTER
+		
+		# generate cell
+		object = doc.Cell(kind, align, 1)
+		text = cell
+
+	# dump final object
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))
+	parser.handleText(man, text)
+
+
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
 	(handleNewPar, re.compile("^$")),
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
 	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
-	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*"))
+	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*")),
+	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$"))
 ]
 
 def init(man):

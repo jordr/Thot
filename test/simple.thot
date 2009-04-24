@@ -88,3 +88,27 @@ Un smiley :-) ???
 Ume image !!!
 
 {{../pix/thot5.gif}}
+
+====== tables ======
+
+This is a table:
+
+^ col 1 ^ col 2 ^ col 3 ^
+| item 1 | item 2 | item 3 |
+| center |left | right|
+
+Another table:
+
+^ col 1 ^ col 2 ^
+^ line 1 | val 1 |
+^ line 2 | val 3 |
+^ line 3 | val 3 |
+^ line 4 | val 4 |
+
+Now, we test spanning:
+
+^ col 1 ^ col 2 ^ col 3 ^
+| val 1 | val 2 | val 3 |
+| val a || val b |
+| val a | val b ||
+| val |||
