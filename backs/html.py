@@ -123,7 +123,7 @@ class Generator:
 		self.out.write('<div class="foonotes">\n')
 		for note in self.footnotes:
 			self.out.write('<p class="footnote>\n')
-			self.out.write('%d. ' % num)
+			self.out.write('<span class="footnumber">%d</span> ' % num)
 			num = num + 1
 			for item in note:
 				item.gen(self)

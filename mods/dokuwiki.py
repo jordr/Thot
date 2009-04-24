@@ -14,6 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TODO
+#
+# quoted paragraphs
+# > ... > text
+#
+# unparsed words
+# text %% protected %% unprotected
+#
+# file
+# <file>
+#	text
+# </file>
+#
+# unparsed paragraph
+# <nowiki>
+#	text
+# </nowiki>
+# 
+
 import parser
 import doc
 import re
