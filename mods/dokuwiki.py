@@ -125,7 +125,10 @@ def handleStyle(man, style):
 
 def handleOpenStyle(man, style):
 	man.send(doc.OpenStyleEvent(style))
-	
+
+def handleFootNote(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE, doc.FootNote()))
+
 def handleCloseStyle(man, style):
 	man.send(doc.CloseStyleEvent(style))
 
@@ -175,7 +178,9 @@ WORDS = [
 	(lambda man, match: handleOpenStyle(man, "superscript"), "<sup>"),
 	(lambda man, match: handleCloseStyle(man, "superscript"), "<\/sup>"),	
 	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
-	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),	
+	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),
+	(handleFootNote, '\(\('),
+	(lambda man, match: handleCloseStyle(man, "footnote"), "\)\)"),
 	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
 	(handleEMail, "([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])"),
 	(handleLink, "\[\[(?P<target>[^\]|]*)(\|(?P<label>[^\]]*))?\]\]"),

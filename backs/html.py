@@ -64,6 +64,7 @@ class Generator:
 	counters = None
 	path = None
 	files = None
+	footnotes = None
 	
 	def __init__(self, path, out, doc):
 		self.out = out
@@ -72,7 +73,8 @@ class Generator:
 		self.trans  = i18n.getTranslator(self.doc)
 		self.files = { }
 		self.resetCounters()
-	
+		self.footnotes = []
+
 	def getType(self):
 		return 'html'
 	
@@ -110,6 +112,23 @@ class Generator:
 		for i in xrange(1, num + 1):
 			res = res + '.' + str(self.counters[str(i)])
 		return res
+
+	def genFootNote(self, note):
+		self.footnotes.append(note)
+		cnt = len(self.footnotes)
+		self.out.write('<a class="footnumber" href="#footnote-%d">%d</a>' % (cnt, cnt))
+
+	def genFootNotes(self):
+		num = 1
+		self.out.write('<div class="foonotes">\n')
+		for note in self.footnotes:
+			self.out.write('<p class="footnote>\n')
+			self.out.write('%d. ' % num)
+			num = num + 1
+			for item in note:
+				item.gen(self)
+			self.out.write('</p>\n')
+		self.out.write('</div>')
 
 	def genTableBegin(self):
 		self.out.write('<table>\n')
@@ -261,7 +280,8 @@ class Generator:
 	def genBody(self):
 		self.resetCounters()
 		self.doc.gen(self)
-	
+		self.genFootNotes()
+
 	def genFooter(self):
 		self.out.write("</body>\n</html>\n")
 	

@@ -317,6 +317,21 @@ class OpenStyle(Container):
 		gen.genStyleEnd(self.style)
 
 
+class FootNote(OpenStyle):
+	
+	def __init__(self):
+		OpenStyle.__init__(self, 'footnote')
+	
+	def dumpHead(self, tab):
+		print '%sfootnote(' % tab
+	
+	def isEmpty(self):
+		return False
+	
+	def gen(self, gen):
+		gen.genFootNote(self.content)
+
+
 class Link(Container):
 	"""A link in a text."""
 	ref = None
