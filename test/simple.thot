@@ -144,3 +144,10 @@ Non parsed word %%her **and** % here %%.
 An horizontal line below:
 ---------------
 
+Now, some indented non-parsed block
+  word 1
+  word 2 **too bad **
+  <code>
+  final word
+
+Ended now !

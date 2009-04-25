@@ -18,8 +18,6 @@
 #
 # quoted paragraphs
 # > ... > text
-#
-# indented paragraph
 # 
 
 import parser
@@ -122,13 +120,13 @@ class FileBlock(doc.Block):
 			thot.onError('%s back-end is not supported by file block')
 
 
-class NoWikiBlock(doc.Block):
+class NonParsedBlock(doc.Block):
 	
 	def __init__(self):
 		doc.Block.__init__(self)
 	
 	def dumpHead(self, tab):
-		print "%sblock.nowiki(" % tab
+		print "%sblock.nonparsed(" % tab
 	
 	def gen(self, gen):
 		type = gen.getType()
@@ -138,7 +136,7 @@ class NoWikiBlock(doc.Block):
 				gen.genText(line + "\n")
 			gen.genVerbatim('</>\n')
 		else:
-			thot.onError('%s back-end is not supported by nowiki block')
+			thot.onError('%s back-end is not supported by non-parsed block')
 
 
 ### code parse ###
@@ -162,6 +160,27 @@ class BlockParser:
 			man.setParser(self.old)
 		else:
 			self.block.add(line)
+
+
+INDENT_RE = re.compile("  \s*(.*)$")
+class IdentParser:
+	old = None
+	block = None
+	
+	def __init__(self, man, match):
+		self.old = man.getParser()
+		man.setParser(self)
+		self.block = NonParsedBlock()
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
+		self.block.add(match.group(1))
+	
+	def parse(self, man, line):
+		match = INDENT_RE.match(line)
+		if match:
+			self.block.add(match.group(1))
+		else:
+			man.setParser(self.old)
+			self.old.parse(man, line)
 
 
 ### word processing ###
@@ -267,7 +286,7 @@ def handleFile(man, match):
 	BlockParser(man, FileBlock(), END_FILE)
 
 def handleNoWiki(man, match):
-	BlockParser(man, NoWikiBlock(), END_NOWIKI)
+	BlockParser(man, NonParsedBlock(), END_NOWIKI)
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):
@@ -324,6 +343,9 @@ def handleRow(man, match):
 def handleHLine(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, doc.HorizontalLine()))
 
+def handleIdent(man, match):
+	IdentParser(man, match)
+
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
 	(handleNewPar, re.compile("^$")),
@@ -333,7 +355,8 @@ LINES = [
 	(handleFile, re.compile("^\s*<file>\s*")),
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
-	(handleHLine, re.compile("^-----*\s*$"))
+	(handleHLine, re.compile("^-----*\s*$")),
+	(handleIdent, INDENT_RE)
 ]
 
 def init(man):
