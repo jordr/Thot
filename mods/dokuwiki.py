@@ -18,6 +18,8 @@
 #
 # quoted paragraphs
 # > ... > text
+#
+# indented paragraph
 # 
 
 import parser
@@ -319,6 +321,8 @@ def handleRow(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))
 	parser.handleText(man, text)
 
+def handleHLine(man, match):
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, doc.HorizontalLine()))
 
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
@@ -328,7 +332,8 @@ LINES = [
 	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*")),
 	(handleFile, re.compile("^\s*<file>\s*")),
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
-	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$"))
+	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
+	(handleHLine, re.compile("^-----*\s*$"))
 ]
 
 def init(man):

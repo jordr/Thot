@@ -554,6 +554,16 @@ class Table(Container):
 		print tab + 'table('
 
 # main family
+class HorizontalLine(Node):
+	"""A simple horizontal line."""
+
+	def dump(self, tab):
+		print "%shorizontal-line()" % tab
+
+	def gen(self, gen):
+		gen.genHorizontalLine()
+
+
 class Header(Container):
 	level = None
 	title = None

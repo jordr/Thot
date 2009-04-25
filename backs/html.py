@@ -122,8 +122,8 @@ class Generator:
 		num = 1
 		self.out.write('<div class="foonotes">\n')
 		for note in self.footnotes:
-			self.out.write('<p class="footnote>\n')
-			self.out.write('<span class="footnumber">%d</span> ' % num)
+			self.out.write('<p class="footnote">\n')
+			self.out.write('<a class="footnumber" name="footnote-%d">%d</a> ' % (num, num))
 			num = num + 1
 			for item in note:
 				item.gen(self)
@@ -162,6 +162,9 @@ class Generator:
 			self.out.write('</th>\n')
 		else:
 			self.out.write('</td>\n')
+	
+	def genHorizontalLine(self):
+		self.out.write('<hr/>')
 	
 	def genVerbatim(self, line):
 		self.out.write(line)
