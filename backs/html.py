@@ -29,6 +29,7 @@ import doc
 #	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
 #	THOT_ENCODING: charset for the document
 #	HTML_STYLES: CSS styles to use (':' separated)
+#	HTML_SHORT_ICON: short icon for HTML file
 
 LISTS = {
 	'ul': ('<ul>', '<li>', '</li>', '</ul>'),
@@ -120,7 +121,7 @@ class Generator:
 
 	def genFootNotes(self):
 		num = 1
-		self.out.write('<div class="foonotes">\n')
+		self.out.write('<div class="footnotes">\n')
 		for note in self.footnotes:
 			self.out.write('<p class="footnote">\n')
 			self.out.write('<a class="footnumber" name="footnote-%d">%d</a> ' % (num, num))
@@ -275,19 +276,26 @@ class Generator:
 		if styles:
 			for style in styles.split(':'):
 				self.out.write('	<link rel="stylesheet" type="text/css" href="' + style + '">')
-		self.out.write("</head>\n<body>\n")
+		short_icon = self.doc.getVar('HTML_SHORT_ICON')
+		if short_icon:
+			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
+		self.out.write('</head>\n<body>\n<div class="main">\n')
 	
 	def genTitle(self):
-		self.out.write('	<h1 class="title">' + cgi.escape(self.doc.getVar('TITLE')) + '</h1>\n')
-		self.out.write('	<h1 class="authors">' + cgi.escape(self.doc.getVar('AUTHORS')) + '</h1>\n')
+		self.out.write('<div class="header">\n')
+		self.out.write('	<div class="title">' + cgi.escape(self.doc.getVar('TITLE')) + '</div>\n')
+		self.out.write('	<div class="authors">' + cgi.escape(self.doc.getVar('AUTHORS')) + '</div>\n')
+		self.out.write('</div>')
 	
 	def genBody(self):
+		self.out.write('<div class="page">\n')
 		self.resetCounters()
 		self.doc.gen(self)
 		self.genFootNotes()
+		self.out.write('</div>\n')
 
 	def genFooter(self):
-		self.out.write("</body>\n</html>\n")
+		self.out.write("</div>\n</body>\n</html>\n")
 	
 	def genContentItem(self, content):
 		
@@ -301,7 +309,7 @@ class Generator:
 			return
 		
 		# generate the content
-		self.out.write('		<ul>\n')
+		self.out.write('		<ul class="toc">\n')
 		for item in content:
 			level = item.getTitleLevel()
 			if level == -1:
@@ -318,8 +326,8 @@ class Generator:
 
 	def genContent(self):
 		self.resetCounters()
-		self.out.write('	<div class="content">\n')
-		self.out.write('		<h1><a name="content"/>' + cgi.escape(self.trans.get('Content')) + '</h1>\n')
+		self.out.write('	<div class="toc">\n')
+		self.out.write('		<h1><a name="toc"/>' + cgi.escape(self.trans.get('Table of content')) + '</h1>\n')
 		self.genContentItem(self.doc.getContent())
 		self.out.write('	</div>\n')
 	
