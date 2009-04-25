@@ -11,7 +11,7 @@ import os.path
 
 # Error handling
 def onError(text):
-	print ("ERROR:" + text + "\n")
+	sys.stderr.write("ERROR: %s\n" % text)
 	sys.exit(1)
 
 # Prepare environment
@@ -25,7 +25,7 @@ env["THOT_DATE"] = str(datetime.datetime.today())
 # Prepare arguments
 oparser = optparse.OptionParser()
 oparser.add_option("-t", "--type", action="store", dest="out_type",
-	default="xml", help="output type (xml, html, latex, ...)")
+	default="html", help="output type (xml, html, latex, ...)")
 oparser.add_option("-o", "--out", action="store", dest="out_path",
 	help="output path")
 oparser.add_option("-D", "--define", action="append", dest="defines",
@@ -61,5 +61,8 @@ man.parse(input)
 
 # Output the result
 out_name = env["THOT_OUT_TYPE"]
-out_driver = imp.load_source(out_name, document.env["THOT_BASE"] + "backs/" + out_name + ".py")
-out_driver.output(document)
+try:
+	out_driver = imp.load_source(out_name, document.env["THOT_BASE"] + "backs/" + out_name + ".py")
+	out_driver.output(document)
+except Exception, e:
+	onError('error during %s back-end load: %s' % (out_name, str(e)))
