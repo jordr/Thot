@@ -18,9 +18,6 @@
 #
 # quoted paragraphs
 # > ... > text
-#
-# unparsed words
-# text %% protected %% unprotected
 # 
 
 import parser
@@ -156,11 +153,11 @@ class BlockParser:
 		man.setParser(self)
 		self.block = block
 		self.re = re
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 
 	def parse(self, man, line):
 		if self.re.match(line):
 			man.setParser(self.old)
-			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 		else:
 			self.block.add(line)
 
@@ -219,6 +216,9 @@ def handleImage(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW,
 		doc.Image(image, width, height, label)))
 
+def handleNonParsed(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('nonparsed')[:-2])))
+
 WORDS = [
 	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
 	(lambda man, match: handleStyle(man, "italic"), "\/\/"),
@@ -238,7 +238,8 @@ WORDS = [
 	(handleImage, "{{(?P<image>[^}?]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?\s*(\|(?P<image_label>[^}]*))?}}"),
 	(handleSmiley, SMILEYS_RE),
 	(handleEntity, ENTITIES_RE),
-	(handleLineBreak, "\\\\\\\\")
+	(handleLineBreak, "\\\\\\\\"),
+	(handleNonParsed, "%%(?P<nonparsed>([^%]*%)*)%")
 ]
 
 ### lines processing ###
@@ -264,7 +265,6 @@ def handleFile(man, match):
 	BlockParser(man, FileBlock(), END_FILE)
 
 def handleNoWiki(man, match):
-	print "nowiki"
 	BlockParser(man, NoWikiBlock(), END_NOWIKI)
 
 TABLE_SEP = re.compile('\^|\|')
