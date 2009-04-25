@@ -227,4 +227,19 @@ class CodeBlock(doc.Block):
 		print tab + "code(" + self.lang + ","
 
 	def gen(self, gen):
-		gen.genCode(self.lang, self.content)
+		
+		# aggregate code
+		text = ""
+		for line in self.content:
+			if text <> "":
+				text += '\n'
+			text += line
+		
+		# generate the code
+		type = gen.getType()
+		if type == 'html':
+			gen.genVerbatim('<pre class="code">\n')
+			genCode(gen, self.lang, text)
+			gen.genVerbatim('</pre>')
+		else:
+			thot.onError('backend %s unsupported for code block' % type)

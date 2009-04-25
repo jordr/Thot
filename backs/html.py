@@ -142,14 +142,6 @@ class Generator:
 	def genTableRowEnd(self):
 		self.out.write('</tr>\n')
 
-	def genCode(self, lang, lines):
-		self.out.write('<pre class="code">\n')
-		text = lines[0]
-		for line in lines[1:]:
-			text = text + '\n' + line
-		highlight.genCode(self, lang, text)
-		self.out.write('</pre>\n')
-
 	def genTableCellBegin(self, kind, align, span):
 		if kind == doc.TAB_HEADER:
 			self.out.write('<th')
