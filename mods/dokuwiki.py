@@ -14,12 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# TODO
-#
-# quoted paragraphs
-# > ... > text
-# 
-
 import parser
 import doc
 import re
@@ -346,6 +340,10 @@ def handleHLine(man, match):
 def handleIdent(man, match):
 	IdentParser(man, match)
 
+def handleQuote(man, match):
+	man.send(doc.QuoteEvent(len(match.group(1))))
+	parser.handleText(man, match.group(2))
+
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
 	(handleNewPar, re.compile("^$")),
@@ -356,7 +354,8 @@ LINES = [
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
 	(handleHLine, re.compile("^-----*\s*$")),
-	(handleIdent, INDENT_RE)
+	(handleIdent, INDENT_RE),
+	(handleQuote, re.compile("^(>+)(.*)$"))
 ]
 
 def init(man):

@@ -130,6 +130,16 @@ class Generator:
 			self.out.write('</p>\n')
 		self.out.write('</div>')
 
+	def genQuoteBegin(self, level):
+		for i in range(0, level):
+			self.out.write('<blockquote>')
+		self.out.write('\n')
+
+	def genQuoteEnd(self, level):
+		for i in range(0, level):
+			self.out.write('</blockquote>')
+		self.out.write('\n')
+
 	def genTableBegin(self):
 		self.out.write('<table>\n')
 

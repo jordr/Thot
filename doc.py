@@ -42,7 +42,7 @@ ID_NEW_LINK = "new_link"	# ObjectEvent
 ID_END_LINK = "end_link"
 
 ID_NEW_QUOTE = "new_quote"
-UD_END_QUOTE = "end_quote"
+ID_END_QUOTE = "end_quote"
 
 
 # supported events
@@ -132,9 +132,18 @@ class ItemEvent(TypedEvent):
 	
 	def make(self):
 		return List(self.type, self.depth)
-
-
+		
+class QuoteEvent(Event):
+	"""An event designing a quoted text."""
+	depth = None
 	
+	def __init__(self, depth):
+		Event.__init__(self, L_PAR, ID_NEW_QUOTE)
+		self.depth = depth
+	
+	def make(self):
+		return Quote(self.depth)
+
 
 # nodes
 class Node:
@@ -381,18 +390,31 @@ class Par(Container):
 
 
 class Quote(Par):
+	"""A quoted paragraph."""
+	level = None
 	
-	def __init__(self):
+	def __init__(self, level):
 		Par.__init__(self)
+		self.level = level
 	
 	def onEvent(self, man, event):
 		if event.id is ID_END_QUOTE:
 			man.pop()
-		elif event.id is not ID_NEW_QUOTE:
+		elif event.id is ID_NEW_QUOTE:
+			if event.level == self.level:
+				pass
+			else:
+				man.forward(event)
+		else:
 			Par.onEvent(self, man, event)
-	
+		
 	def dumpHead(self, tab):
 		print tab + "quote("
+
+	def gen(self, gen):
+		gen.genQuoteBegin(self.level)
+		Container.gen(self, gen)
+		gen.genQuoteEnd(self.level)
 
 
 class Block(Node):
@@ -584,15 +606,14 @@ class Header(Container):
 				man.send(event)
 		elif event.level is L_PAR:
 			self.add(man, event.make())
-		elif event.level is L_HEAD:
-			if event.id is ID_TITLE:
-				self.do_title = False
-			elif event.object.level <= self.level:
-				man.forward(event)
-			else:
-				self.add(man, event.make())
-		else:
+		elif event.level is not L_HEAD:
 			man.forward(event)
+		elif event.id is ID_TITLE:
+			self.do_title = False
+		elif event.object.level <= self.level:
+			man.forward(event)
+		else:
+			self.add(man, event.make())
 
 	def dumpHead(self, tab):
 		print tab + "header" + str(self.level) + "("
