@@ -410,6 +410,9 @@ class Block(Node):
 			print tab + "  " + line
 		print tab + ")"
 
+	def isEmpty(self):
+		return False
+
 
 # List family
 class ListItem(Container):

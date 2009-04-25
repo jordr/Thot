@@ -165,7 +165,6 @@ class Generator:
 	
 	def genVerbatim(self, line):
 		self.out.write(line)
-		self.out.write('\n')
 	
 	def genText(self, text):
 		self.out.write(cgi.escape(text))

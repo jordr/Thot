@@ -21,16 +21,6 @@
 #
 # unparsed words
 # text %% protected %% unprotected
-#
-# file
-# <file>
-#	text
-# </file>
-#
-# unparsed paragraph
-# <nowiki>
-#	text
-# </nowiki>
 # 
 
 import parser
@@ -113,20 +103,62 @@ for smiley in SMILEYS.keys():
 	SMILEYS_RE = SMILEYS_RE + escape_re(smiley)
 
 
+### specific blocks ###
+class FileBlock(doc.Block):
+	
+	def __init__(self):
+		doc.Block.__init__(self)
+	
+	def dumpHead(self, tab):
+		print "%sblock.file(" % tab
+	
+	def gen(self, gen):
+		type = gen.getType()
+		if type == 'html':
+			gen.genVerbatim('<pre class="file">\n')
+			for line in self.content:
+				gen.genText(line + "\n")
+			gen.genVerbatim('</pre>\n')
+		else:
+			thot.onError('%s back-end is not supported by file block')
+
+
+class NoWikiBlock(doc.Block):
+	
+	def __init__(self):
+		doc.Block.__init__(self)
+	
+	def dumpHead(self, tab):
+		print "%sblock.nowiki(" % tab
+	
+	def gen(self, gen):
+		type = gen.getType()
+		if type == 'html':
+			gen.genVerbatim('<p>\n')
+			for line in self.content:
+				gen.genText(line + "\n")
+			gen.genVerbatim('</>\n')
+		else:
+			thot.onError('%s back-end is not supported by nowiki block')
+
 
 ### code parse ###
-END_CODE = re.compile("^\s*<\/code>\s*")
-class CodeParser:
+END_CODE = re.compile("^\s*<\/code>\s*$")
+END_FILE = re.compile("^\s*<\/file>\s*$")
+END_NOWIKI = re.compile("^\s*<\/nowiki>\s*$")
+class BlockParser:
 	old = None
 	block = None
+	re = None
 	
-	def __init__(self, man, kind):
+	def __init__(self, man, block, re):
 		self.old = man.getParser()
 		man.setParser(self)
-		self.block = highlight.CodeBlock(man, kind)
+		self.block = block
+		self.re = re
 
 	def parse(self, man, line):
-		if END_CODE.match(line):
+		if self.re.match(line):
 			man.setParser(self.old)
 			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 		else:
@@ -226,7 +258,14 @@ def handleList(man, kind, match):
 	parser.handleText(man, match.group(3))
 
 def handleCode(man, match):
-	CodeParser(man, match.group(1))
+	BlockParser(man, highlight.CodeBlock(man, match.group(1)), END_CODE)
+
+def handleFile(man, match):
+	BlockParser(man, FileBlock(), END_FILE)
+
+def handleNoWiki(man, match):
+	print "nowiki"
+	BlockParser(man, NoWikiBlock(), END_NOWIKI)
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):
@@ -287,6 +326,8 @@ LINES = [
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
 	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
 	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*")),
+	(handleFile, re.compile("^\s*<file>\s*")),
+	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$"))
 ]
 
