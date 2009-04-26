@@ -3,13 +3,31 @@ import re
 import doc
 import imp
 
+VAR_RE = "@\((?P<varid>[a-zA-Z_0-9]+)\)"
+VAR_REC = re.compile(VAR_RE)
+
+def reduceVars(doc, text):
+	"""Reduce variables in the given text.
+	- doc -- current document
+	- text -- text to replace in."""
+
+	m = VAR_REC.search(text)
+	while m:
+		val = str(doc.getVar(m.group('varid')))
+		text = text[:m.start()] + val + text[m.end():]
+		m = VAR_REC.search(text)
+	return text
+	
+
 ############### Word Parsing #####################
 
 def handleVar(man, match):
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(handler.doc.getVar(match.group(2)))))
+	id = match.group('varid')
+	val = man.doc.getVar(id)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(val)))
 
 INITIAL_WORDS = [
-	(handleVar, "@\(([a-zA-Z_0-9]+)\)")
+	(handleVar, VAR_RE)
 ]
 
 def handleText(man, line):
@@ -49,7 +67,7 @@ def handleComment(man, match):
 	pass
 
 def handleAssign(man, match):
-	man.doc.setVar(match.group(1), match.group(2))
+	man.doc.setVar(match.group(1), reduceVars(man.doc, match.group(2)))
 
 def handleUse(man, match):
 	name = match.group(1)
@@ -65,6 +83,7 @@ INITIAL_LINES = [
 class DefaultParser:
 	
 	def parse(self, handler, line):
+		line = reduceVars(handler.doc, line)
 		done = False
 		for (fun, re) in handler.lines:
 			match = re.match(line)

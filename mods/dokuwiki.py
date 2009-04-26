@@ -274,7 +274,10 @@ def handleList(man, kind, match):
 	parser.handleText(man, match.group(3))
 
 def handleCode(man, match):
-	BlockParser(man, highlight.CodeBlock(man, match.group(1)), END_CODE)
+	lang = match.group(2)
+	if lang == None:
+		lang = ""
+	BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
 
 def handleFile(man, match):
 	BlockParser(man, FileBlock(), END_FILE)
@@ -349,7 +352,7 @@ LINES = [
 	(handleNewPar, re.compile("^$")),
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
 	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
-	(handleCode, re.compile("^\s*<code\s+(\S+)\s*>\s*")),
+	(handleCode, re.compile("^\s*<code(\s+(\S+))?\s*>\s*")),
 	(handleFile, re.compile("^\s*<file>\s*")),
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),

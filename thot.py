@@ -63,6 +63,6 @@ man.parse(input)
 out_name = env["THOT_OUT_TYPE"]
 try:
 	out_driver = imp.load_source(out_name, document.env["THOT_BASE"] + "backs/" + out_name + ".py")
-	out_driver.output(document)
 except Exception, e:
 	onError('error during %s back-end load: %s' % (out_name, str(e)))
+out_driver.output(document)

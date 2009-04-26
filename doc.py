@@ -677,7 +677,7 @@ class Document(Container):
 		if self.env.has_key(name):
 			return self.env[name]
 		else:
-			return None
+			return ""
 	
 	def setVar(self, name, val):
 		self.env[name] = val

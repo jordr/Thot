@@ -175,7 +175,7 @@ def genCode(gen, lang, text):
 			sys.stderr.write("ERROR: can not call 'highlight'\n")
 			sys.exit(1)
 	else:
-		if lang not in LANGS and lang not in unsupported:
+		if lang and lang not in LANGS and lang not in unsupported:
 			sys.stderr.write('WARNING: ' + lang + ' unsupported highglight language\n')
 			unsupported.append(lang)
 		if gen.getType() not in BACKS and gen.getType() not in unsupported_backs:

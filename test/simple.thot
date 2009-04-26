@@ -166,3 +166,22 @@ I think we should do it
 >> Yes!
 
 >>> Then lets do it!
+
+
+====== variables ======
+
+<code>
+@V1=hello, world !
+I say "@(V1)" !!!!
+</code>
+
+@V1=hello, world !
+I say "@(V1)" !!!!
+
+<code>
+@V2=Did you say @(V1) ?
+@(V2)
+</code>
+
+@V2=Did you say @(V1) ?
+@(V2)
