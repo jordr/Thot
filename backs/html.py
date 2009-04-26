@@ -396,9 +396,10 @@ class Generator:
 		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
 		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('THOT_ENCODING'), True) + '">\n')
 		styles = self.doc.getVar("HTML_STYLES")
-		for style in styles.split(':'):
-			new_style = self.importCSS(style)
-			self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '"/>\n')
+		if styles:
+			for style in styles.split(':'):
+				new_style = self.importCSS(style)
+				self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '"/>\n')
 		short_icon = self.doc.getVar('HTML_SHORT_ICON')
 		if short_icon:
 			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)

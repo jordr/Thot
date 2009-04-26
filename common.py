@@ -36,7 +36,7 @@ def loadModule(name, path):
 			if os.path.exists(path):
 				return imp.load_compiled(name, path)
 			else:
-				onError ("cannot find module '%s'" % name)
+				return None
 	except Exception, e:
 		onError("cannot open module '%s': %s" % (path, str(e)))
 

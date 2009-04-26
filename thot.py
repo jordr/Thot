@@ -75,4 +75,8 @@ man.parse(input)
 out_name = env["THOT_OUT_TYPE"]
 out_path = os.path.join(document.env["THOT_BASE"], "backs")
 out_driver = common.loadModule(out_name,  out_path)
-out_driver.output(document)
+if out_driver:
+	out_driver.output(document)
+else:
+	common.onError('cannot find %s back-end' % out_name)
+

@@ -58,7 +58,10 @@ def handleUse(man, match):
 	name = match.group(1)
 	path = man.doc.getVar("THOT_USE_PATH")
 	mod = common.loadModule(name, path)
-	mod.init(man)
+	if mod:
+		mod.init(man)
+	else:
+		common.onError('cannot load module %s' % name)
 
 INITIAL_LINES = [
 	(handleComment, re.compile("^@@.*")),

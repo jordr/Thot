@@ -18,7 +18,7 @@ import sys
 import os.path
 import locale
 import string
-import imp
+import common
 
 class DefaultTranslator:
 	"""A translator that do nothing."""
@@ -52,20 +52,19 @@ def getTranslator(doc):
 	nlang = string.lower(lang).replace('-', '_')
 	
 	# look for the local version
-	path = doc.getVar('THOT_BASE') + "langs/" + nlang + ".py"
-	if os.path.exists(path):
-		mod = imp.load_source(nlang, path)
-		return mod.getTranslator(doc, lang)
+	path = os.path.join(doc.getVar('THOT_BASE'), "langs")
+	mod = common.loadModule(nlang, path)
+	if mod:
+		return mod.getTranslator(doc, nlang)
 	
 	# look for the global version
 	comps = nlang.split('_')
 	if comps[0] == 'en':
 		return DefaultTranslator()
 	else:
-		path = doc.getVar('THOT_BASE') + "langs/" + comps[0] + ".py"
-		if not os.path.exists(path):
+		mod = common.loadModule(comp[0], path)
+		if mode:
+			return mod.getTranslator(doc, comp[0])
+		else:
 			sys.stderr.write('WARNING: cannot find language ' + nlang + "\n")
 			return DefaultTranslator()
-		else:
-			mod = imp.load_source(lang, path)
-			return mod.getTranslator(doc, lang)
