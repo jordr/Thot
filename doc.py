@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 # levels
 L_DOC=0
 L_HEAD=1
@@ -43,6 +45,11 @@ ID_END_LINK = "end_link"
 
 ID_NEW_QUOTE = "new_quote"
 ID_END_QUOTE = "end_quote"
+
+
+# variable reduction
+VAR_RE = "@\((?P<varid>[a-zA-Z_0-9]+)\)"
+VAR_REC = re.compile(VAR_RE)
 
 
 # supported events
@@ -673,9 +680,22 @@ class Document(Container):
 		else:
 			self.add(man, event.make())	
 	
-	def getVar(self, name):
-		if self.env.has_key(name):
-			return self.env[name]
+	def reduceVars(self, text):
+		"""Reduce variables in the given text.
+		- doc -- current document
+		- text -- text to replace in."""
+
+		m = VAR_REC.search(text)
+		while m:
+			val = str(self.getVar(m.group('varid')))
+			text = text[:m.start()] + val + text[m.end():]
+			m = VAR_REC.search(text)
+		return text
+
+	def getVar(self, id):
+		"""Get a variable and evaluates the variables in its content."""
+		if self.env.has_key(id):
+			return self.reduceVars(self.env[id])
 		else:
 			return ""
 	

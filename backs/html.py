@@ -20,6 +20,9 @@ import cgi
 import i18n
 import highlight
 import doc
+import shutil
+import re
+import urlparse
 
 # supported variables
 #	TITLE: title of the document
@@ -30,6 +33,8 @@ import doc
 #	THOT_ENCODING: charset for the document
 #	HTML_STYLES: CSS styles to use (':' separated)
 #	HTML_SHORT_ICON: short icon for HTML file
+
+CSS_URL_RE = re.compile('url\(([^)]*)\)')
 
 LISTS = {
 	'ul': ('<ul>', '<li>', '</li>', '</ul>'),
@@ -55,7 +60,7 @@ def getStyle(style):
 		return STYLES[style]
 	else:
 		raise Exception('style ' + style + ' not supported')
-
+		
 
 class Generator:
 	"""Generator for HTML output."""
@@ -64,7 +69,9 @@ class Generator:
 	doc = None
 	counters = None
 	path = None
-	files = None
+	root = None
+	from_files = None
+	to_files = None
 	footnotes = None
 	
 	def __init__(self, path, out, doc):
@@ -72,30 +79,144 @@ class Generator:
 		self.doc = doc
 		self.path = path
 		self.trans  = i18n.getTranslator(self.doc)
-		self.files = { }
+		self.from_files = { }
+		self.to_files = { }
 		self.resetCounters()
 		self.footnotes = []
+		if path.endswith('.thot'):
+			self.root = path[:-5]
+		else:
+			self.root = path
 
 	def getType(self):
 		return 'html'
 	
-	def getFriendFile(self, path):
-		"""Get the path of a file to add to the current generation."""
-		dir, file = os.path.split(path)
-		if not self.files.has_key(file):
-			self.files[file] = [dir]
-			return self.path + "-" + file
+	def getFriendFile(self, path, base = ''):
+		"""Test if a file is a friend file and returns its generation
+		relative path. Return None if the the file is not part
+		of the generation.
+		path -- path of the file,
+		base -- potential file base."""
+		
+		if os.path.isabs(path):
+			apath = path
+		elif base == '':
+			return path
 		else:
-			paths = self.files[file]
-			pos = paths.find(path)
-			if pos == 0:
-				return self.path + "-" + file
-			else:
-				if pos == -1:
-					pos = len(paths)
-					paths.append(dir)
-				root, ext = os.path.splitext(self.path + "-" + file)
-				return root + "-" + str(pos) + ext
+			apath = os.path.join(base, path)
+		if self.from_files.has_key(apath):
+			return self.from_files[apath]
+		else:
+			return None
+	
+	def addFriendFile(self, path, base = ''):
+		"""Add the given base/path to the generated files and
+		return the target path.
+		path -- path to the file
+		base -- base directory containing the file ('' for CWD files)"""
+		
+		# normalize path
+		if os.path.isabs(path):
+			apath = path
+			base, path = os.path.split(path)
+		elif base == '':
+			return path
+		else:
+			apath = os.path.join(base, path)
+		if self.from_files.has_key(apath):
+			return self.from_files[apath]
+		
+		# make target path
+		file, ext = os.path.splitext(path)
+		file = os.path.join(self.root + "-imports", file)
+		tpath = file + ext
+		cnt = 0
+		while self.to_files.has_key(tpath):
+			tpath = "%s-%d.%s" % (file, cnt, ext)
+			cnt = cnt + 1
+		
+		# create direcory
+		dpath = os.path.dirname(tpath)
+		if not os.path.exists(dpath):
+			try:
+				os.makedirs(dpath)
+			except os.error, e:
+				thot.onError('cannot create directory "%s": %s' % (dpath, str(e)))
+		
+		# record all
+		self.from_files[apath] = tpath
+		self.to_files[tpath] = apath;
+		return tpath
+
+	def computeRelative(self, file, base):
+		l = len(os.path.commonprefix([os.path.dirname(base), file]))
+		file = file[l:] 
+		while file[0] == '/':
+			file = file[1:]
+		return file
+
+	def getFriendRelativePath(self, path):
+		"""Get the relative path to the HTML of a friend file."""
+		return self.computeRelative(path, self.path)
+
+	def loadFriendFile(self, path, base = ''):
+		"""Load a friend file in the generation location.
+		to_path -- relative path to write to.
+		from_path -- absolute file to the file to copy."""
+		
+		# get the target path
+		if base == '' and not os.path.isabs(path):
+			return path
+		tpath = self.getFriendFile(path, base)
+		
+		# we need to load it !
+		if not tpath:
+			spath = os.path.join(base, path)
+			tpath = self.addFriendFile(path, base)
+			try:
+				shutil.copyfile(spath, tpath)
+			except Error, e:
+				pass
+			except IOError, e:
+				thot.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
+		
+		# build the HTML relative path
+		return self.getFriendRelativePath(tpath)
+
+	def importCSS(self, spath):
+		"""Perform import of files found in a CSS stylesheet.
+		spath -- path to the original CSS stylesheet."""
+		
+		# get target path
+		tpath = self.getFriendFile(spath)
+		if tpath:
+			return tpath
+		tpath = self.addFriendFile(spath)
+		
+		# open files
+		input = open(spath)
+		output = open(tpath, "w")
+		base = os.path.dirname(spath)
+		cpath = self.getFriendRelativePath(tpath)
+		
+		# perform the copy
+		for line in input:
+			m = CSS_URL_RE.search(line)
+			while m:
+				output.write(line[:m.start()])
+				url = m.group(1)
+				res = urlparse.urlparse(url)
+				if res[0]:
+					output.write(m.group())
+				else:
+					rpath = self.loadFriendFile(res[2], base)
+					output.write("url(%s)" % self.computeRelative(rpath, cpath))
+				line = line[m.end():]
+				m = CSS_URL_RE.search(line)
+			output.write(line)
+		
+		# return path
+		return cpath
 
 	def resetCounters(self):
 		self.counters = {
@@ -273,9 +394,9 @@ class Generator:
 		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
 		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('THOT_ENCODING'), True) + '">\n')
 		styles = self.doc.getVar("HTML_STYLES")
-		if styles:
-			for style in styles.split(':'):
-				self.out.write('	<link rel="stylesheet" type="text/css" href="' + style + '">')
+		for style in styles.split(':'):
+			new_style = self.importCSS(style)
+			self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '"/>\n')
 		short_icon = self.doc.getVar('HTML_SHORT_ICON')
 		if short_icon:
 			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
