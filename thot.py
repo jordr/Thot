@@ -1,5 +1,20 @@
 #!/usr/bin/python
-import imp
+# thot -- Thot command
+# Copyright (C) 2009  <hugues.casse@laposte.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import doc
 import os
 import parser
@@ -8,17 +23,14 @@ import sys
 import optparse
 import datetime
 import os.path
-
-# Error handling
-def onError(text):
-	sys.stderr.write("ERROR: %s\n" % text)
-	sys.exit(1)
+import common
 
 # Prepare environment
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.1"
 env["THOT_ENCODING"] = locale.getpreferredencoding()
-env["THOT_BASE"] = os.path.dirname(os.path.abspath(__file__)) + '/'
+base = os.path.realpath(os.path.abspath(__file__))
+env["THOT_BASE"] = os.path.dirname(base) + '/'
 env["THOT_USE_PATH"] = env["THOT_BASE"] + "mods/"
 env["THOT_DATE"] = str(datetime.datetime.today())
 
@@ -48,7 +60,7 @@ if options.defines:
 	for d in options.defines:
 		p = d.find('=')
 		if p == -1:
-			onError('-D' + d + ' must follow syntax -Didentifier=value')
+			common.onError('-D' + d + ' must follow syntax -Didentifier=value')
 		else:
 			env[d[:p]] = d[p+1:]
 
@@ -61,8 +73,6 @@ man.parse(input)
 
 # Output the result
 out_name = env["THOT_OUT_TYPE"]
-try:
-	out_driver = imp.load_source(out_name, document.env["THOT_BASE"] + "backs/" + out_name + ".py")
-except Exception, e:
-	onError('error during %s back-end load: %s' % (out_name, str(e)))
+out_path = os.path.join(document.env["THOT_BASE"], "backs")
+out_driver = common.loadModule(out_name,  out_path)
 out_driver.output(document)

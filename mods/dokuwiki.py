@@ -18,6 +18,7 @@ import parser
 import doc
 import re
 import highlight
+import common
 
 def computeDepth(text):
 	depth = 0
@@ -111,7 +112,7 @@ class FileBlock(doc.Block):
 				gen.genText(line + "\n")
 			gen.genVerbatim('</pre>\n')
 		else:
-			thot.onError('%s back-end is not supported by file block')
+			common.onError('%s back-end is not supported by file block')
 
 
 class NonParsedBlock(doc.Block):
@@ -130,7 +131,7 @@ class NonParsedBlock(doc.Block):
 				gen.genText(line + "\n")
 			gen.genVerbatim('</>\n')
 		else:
-			thot.onError('%s back-end is not supported by non-parsed block')
+			common.onError('%s back-end is not supported by non-parsed block')
 
 
 ### code parse ###

@@ -1,7 +1,7 @@
 
 import re
 import doc
-import imp
+import common
 	
 
 ############### Word Parsing #####################
@@ -56,7 +56,8 @@ def handleAssign(man, match):
 
 def handleUse(man, match):
 	name = match.group(1)
-	mod = imp.load_source(name, man.doc.getVar("THOT_USE_PATH") + name + ".py")
+	path = man.doc.getVar("THOT_USE_PATH")
+	mod = common.loadModule(name, path)
 	mod.init(man)
 
 INITIAL_LINES = [

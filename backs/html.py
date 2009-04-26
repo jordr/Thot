@@ -23,6 +23,7 @@ import doc
 import shutil
 import re
 import urlparse
+import common
 
 # supported variables
 #	TITLE: title of the document
@@ -141,7 +142,7 @@ class Generator:
 			try:
 				os.makedirs(dpath)
 			except os.error, e:
-				thot.onError('cannot create directory "%s": %s' % (dpath, str(e)))
+				common.onError('cannot create directory "%s": %s' % (dpath, str(e)))
 		
 		# record all
 		self.from_files[apath] = tpath
@@ -175,10 +176,10 @@ class Generator:
 			tpath = self.addFriendFile(path, base)
 			try:
 				shutil.copyfile(spath, tpath)
-			except Error, e:
+			except shutil.Error, e:
 				pass
 			except IOError, e:
-				thot.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
+				common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
 		
 		# build the HTML relative path
 		return self.getFriendRelativePath(tpath)

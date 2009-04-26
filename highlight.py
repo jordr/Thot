@@ -18,6 +18,7 @@ import subprocess
 import sys
 import doc
 import os.path
+import common
 
 LANGS=[
   '4gl',
@@ -240,4 +241,4 @@ class CodeBlock(doc.Block):
 			genCode(gen, self.lang, text)
 			gen.genVerbatim('</pre>')
 		else:
-			thot.onError('backend %s unsupported for code block' % type)
+			common.onError('backend %s unsupported for code block' % type)
