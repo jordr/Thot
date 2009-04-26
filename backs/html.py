@@ -370,7 +370,8 @@ class Generator:
 		self.out.write('</a>')
 	
 	def genImage(self, url, width = None, height = None, caption = None):
-		self.out.write('<img src="' + url + '"')
+		new_url = self.loadFriendFile(url)
+		self.out.write('<img src="' + new_url + '"')
 		if width <> None:
 			self.out.write(' width="' + str(width) + '"')
 		if height <> None:
