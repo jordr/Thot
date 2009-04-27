@@ -55,10 +55,10 @@ class DotBlock(doc.Block):
 			(out, err) = process.communicate(self.toText())
 			if process.returncode:
 				sys.stderr.write(err)
-				common.onError('error during dot call')
+				self.onError('error during dot call')
 			gen.genImage(gen.getFriendRelativePath(path))
 		except OSError, e:
-			common.onError('can not process dot graph: %s' % str(e))
+			self.onError('can not process dot graph: %s' % str(e))
 
 
 DOT_CLOSE = re.compile("^@</dot>")

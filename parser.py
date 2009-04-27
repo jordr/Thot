@@ -94,6 +94,8 @@ class Manager:
 	words_re = None
 	added_lines = None
 	added_words = None
+	line_num = None
+	file_name = None
 	
 	def __init__(self, doc):
 		self.item = doc
@@ -109,16 +111,14 @@ class Manager:
 		return item
 	
 	def send(self, event):
-		#print "send(" + str(event) + ")"
 		self.item.onEvent(self, event)
 	
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
-		#print "push(" + str(item) + ")"
+		item.setFileLine(self.file_name, self.line_num)
 	
 	def pop(self):
-		#print "pop(" + str(self.item) + ") to " + str(self.items[-1])
 		self.item = self.items.pop()
 	
 	def forward(self, event):
@@ -132,8 +132,11 @@ class Manager:
 	def getParser(self):
 		return self.parser
 	
-	def parse(self, file):
+	def parse(self, file, name = '<unknown>'):
+		self.line_num = 0
+		self.file_name = name
 		for line in file:
+			self.line_num += 1
 			if line[-1] == '\n':
 				line = line[0:-1]
 			self.parser.parse(self, line)

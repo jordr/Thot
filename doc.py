@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import common
 
 # levels
 L_DOC=0
@@ -155,6 +156,22 @@ class QuoteEvent(Event):
 # nodes
 class Node:
 	"""Base definition of document nodes."""
+	file = None
+	line = None
+	
+	def setFileLine(self, file, line):
+		if self.file == None:
+			self.file = file
+			self.line = line
+
+	def onError(self, msg):
+		common.onError('%s:%d: %s' % (self.file, self.line, msg))
+
+	def onWarning(self, msg):
+		common.onWarning('%s:%d: %s' % (self.file, self.line, msg))
+
+	def onInfo(self, msg):
+		common.onInfo('%s:%d: %s' % (self.file, self.line, msg))
 
 	def onEvent(self, man, event):
 		man.forward(event)
