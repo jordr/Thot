@@ -138,24 +138,6 @@ class NonParsedBlock(doc.Block):
 END_CODE = re.compile("^\s*<\/code>\s*$")
 END_FILE = re.compile("^\s*<\/file>\s*$")
 END_NOWIKI = re.compile("^\s*<\/nowiki>\s*$")
-class BlockParser:
-	old = None
-	block = None
-	re = None
-	
-	def __init__(self, man, block, re):
-		self.old = man.getParser()
-		man.setParser(self)
-		self.block = block
-		self.re = re
-		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
-
-	def parse(self, man, line):
-		if self.re.match(line):
-			man.setParser(self.old)
-		else:
-			self.block.add(line)
-
 
 INDENT_RE = re.compile("  \s*(.*)$")
 class IdentParser:
@@ -278,13 +260,13 @@ def handleCode(man, match):
 	lang = match.group(2)
 	if lang == None:
 		lang = ""
-	BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
+	parser.BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
 
 def handleFile(man, match):
-	BlockParser(man, FileBlock(), END_FILE)
+	parser.BlockParser(man, FileBlock(), END_FILE)
 
 def handleNoWiki(man, match):
-	BlockParser(man, NonParsedBlock(), END_NOWIKI)
+	parser.BlockParser(man, NonParsedBlock(), END_NOWIKI)
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):

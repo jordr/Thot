@@ -24,6 +24,16 @@ def onError(text):
 	sys.exit(1)
 
 
+def onWarning(message):
+	"""Display a warning message."""
+	sys.stderr.write("WARNING: %s\n" % text)
+
+
+def onInfo(message):
+	"""Display an information message."""
+	sys.stderr.write("INFO: %s\n" % text)
+
+
 def loadModule(name, path):
 	"""Load a module by its name and its path
 	and return its object."""

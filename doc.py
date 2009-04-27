@@ -441,6 +441,12 @@ class Block(Node):
 
 	def isEmpty(self):
 		return False
+	
+	def toText(self):
+		text = ''
+		for line in self.content:
+			text += line + '\n'			
+		return text
 
 
 # List family

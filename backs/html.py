@@ -1,4 +1,4 @@
-# doc -- Thot document escription module
+# html -- Thot html back-end
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify

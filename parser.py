@@ -164,3 +164,20 @@ class Manager:
 		self.words.extend(words)
 		self.words_re = None
 
+class BlockParser:
+	old = None
+	block = None
+	re = None
+	
+	def __init__(self, man, block, re):
+		self.old = man.getParser()
+		man.setParser(self)
+		self.block = block
+		self.re = re
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
+
+	def parse(self, man, line):
+		if self.re.match(line):
+			man.setParser(self.old)
+		else:
+			self.block.add(line)
