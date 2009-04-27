@@ -19,6 +19,7 @@ import parser
 import subprocess
 import common
 import re
+import sys
 
 
 count = 0
@@ -52,9 +53,9 @@ class DotBlock(doc.Block):
 					shell = True
 				)
 			(out, err) = process.communicate(self.toText())
-			print "OUT: %s" % out
-			print "ERR: %s" % err
-			print "returncode: %d" % process.returncode
+			if process.returncode:
+				sys.stderr.write(err)
+				common.onError('error during dot call')
 			gen.genImage(gen.getFriendRelativePath(path))
 		except OSError, e:
 			common.onError('can not process dot graph: %s' % str(e))
