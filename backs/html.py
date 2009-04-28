@@ -242,6 +242,8 @@ class Generator:
 		self.out.write('<a class="footnumber" href="#footnote-%d">%d</a>' % (cnt, cnt))
 
 	def genFootNotes(self):
+		if not self.footnotes:
+			return
 		num = 1
 		self.out.write('<div class="footnotes">\n')
 		for note in self.footnotes:

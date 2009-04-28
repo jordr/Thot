@@ -1,0 +1,211 @@
+@TITLE=Thot  @(THOT_VERSION) Manual
+@AUTHORS=H. Cassé <hugues.casse@laposte.net>
+@VERSION=0.1
+@LANG=en_EN
+@THOT=//**Thot**//
+@HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css
+@use dokuwiki
+
+@(THOT) is a simple but powerful system to authorize document. The main
+idea is that classic document processor (like OpenOffice or M$ Office)
+are usually too complex to really get productivity gains. The melting of
+keyboard and mouse and other input devices use is too slow, too 
+cumbersome to let the user develop its imagination and its creativity.
+
+In the opposite, some document generation systems like Latex or HTML
+(DocBook, etc) makes the user free from complex devices (and let it
+focus on the keyboard) but are usually hard to read: too much tags
+lessen the readbility of the text.
+
+Finally, the wiki tag system has shown to tie the lightness of keyboard
+with the readibility of not obfuscating notation. Yet, there are a lot
+of different wiki syntaxes and each people has its preferences.
+
+The @(THOT) project was started from this statement to provide a tool that
+allows:
+  * to the select the wiki syntax you like,
+  * to choose the output format,
+  * to enrich the syntax with domain-dedicated languages.
+
+In the first part of this document, you will find a tutorial to the
+@(THOT) usage. In the second part, an exhaustive description of features
+of @(THOT) is given and the last part is developper oriennted because
+@(THOT) has been designed as main barebone supporting use extensions.
+
+====== Tutorial ======
+
+To use @(THOT), you just need a CLI (Command Line Interface) to launch
+the ''thot'' command and a text editor. Other requirements includes
+naturally [[http://www.python.org/|Python]], the language @(THOT) is
+written in.
+
+Not mandatory but allowing some additional features, we should have:
+  * [[http://www.andre-simon.de/|highlight]] to colorize source code,
+  * [[http://www.graphviz.org/|GraphViz]] to use the Dot module.
+
+===== First Steps =====
+
+To write your first document, you have start your favorite text editor
+and to type the following text for example:
+<code>
+@TITLE=My First Document
+@AUTHORS=Rick Hunter <rick.hunter@policy.org>
+@LANG=en_EN
+@use dokuwiki
+
+Hello, I'm Rick Hunter.
+
+====== My Life ======
+
+This is my firts chapter.
+
+====== My Foes ======
+
+  * first one,
+  * second one,
+  * third one.
+</code>
+
+Once you have saved you first file as ''hunter.thot'' (for example).
+You have just to open a CLI and go in your file directory and to type:
+<code sh>
+> thot hunter.thot
+</code>
+
+This creates a file named ''hunter.html'' that you view with the
+web browser of your choice. Currently, only the ''html'' back-end
+is available but more will be added soon (especially ''latex'' and
+''docbook'').
+
+The page you got now, although it is fullfilling what was requested
+by your document, is a bit crude. To make things pretty, you may
+configure @(THOT) to use CSS stylesheet of your choice
+(for ''html'' back-end only).
+
+Basically, @(THOT) propose a small list of available styles but you
+may add your own:
+  * ''minima/initial.css'',
+  * ''minima/style_blue.css'',
+  * ''minima/style_brown.css'',
+  * ''minima/style_gray.css'',
+  * ''minima/style_green.css'',
+  * ''minima/style_pink.css'',
+  * ''minima/style_purple.css''.
+
+Once you have done you choice (for example blue), you have just to
+add the line blow at the head of your document:
+<code>
+@HTML_STYLES=@(THOT_BASE)/css/minima/style_blue.css
+</code>
+
+Then, you have to rebuild the document with ''thot'' command and you
+may appreciate the new look of the page on the browser (don't 
+forget to refresh the page to get the new version). Now, you can touch
+the power of @(THOT), we gan dig in the details of the lighweight tags.
+
+
+=====  Explanation of the Example =====
+
+In this section, we detail the example given above.
+
+The first part of the document contains meta-définitions used by
+@(THOT) to generate the document.
+
+<code>
+@TITLE=My First Document
+@AUTHORS=Rick Hunter <rick.hunter@policy.org>
+@LANG=en_EN
+</code>
+
+This three lines gives, respectively, the title, the authors and the
+language of the document. The language must be defined according
+[[http://tools.ietf.org/html/rfc4647|RFC4646]] and
+[[http://tools.ietf.org/html/rfc4647|RFC4647]] standard rules. ''en_EN''
+means to english of England. ''title'' and ''authors'' may contain
+any free text.
+
+<code>
+@use dokuwiki
+</code>
+This lines registers the syntax of [[http://www.dokuwiki.org/dokuwiki|Dokuwiki]]
+as the document syntax. Without such a line, no markup is scanned in the document and
+you would get a flat document output. Note that, from this point,
+@(THOT) will accept Dokuwiki syntax. Tags in the previous was just
+pure @(THOT) meta-information.
+
+<code>
+Hello, I'm Rick Hunter.
+</code>
+Here we have simple text paragraph that is dump to the output document
+as-is. Notice that, in Dokuwiki syntax, paragraph are separated by
+blank lines.
+
+<code>
+====== My Life ======
+</code>
+This is also Dokuwiki syntax to define a top-level header title and
+the sepparation between two sections. The
+number of '=' defines the level of the header: 6 for top level,
+5 for level just below and so on.
+
+<code>
+This is my firts chapter.
+
+====== My Foes ======
+</code>
+Here we still have a simple paragraph and a top level header.
+
+<code>
+  * first one,
+  * second one,
+  * third one.
+</code>
+This paragraph is more interesting. Two spaces and a star are used to
+denote items of dot list. One may observe that this syntax is also
+easy to read and to use.
+
+This example show only a little part of the Dokuwiki syntax.
+For more details, you can refer to
+[[http://www.dokuwiki.org/syntax|Dokuwiki syntax description]]. Notice
+also that @(THOT) does not enforce the use of Dokuwiki. For example,
+if you prefer a syntax called ''mysyntax'' and that this syntax is
+delivered or installed in @(THOT), you have just to replace the
+''@use'' statement by:
+<code>
+@use mysyntax
+</code>
+
+
+===== Using a simple module ===== 
+
+
+====== Writer Manual ======
+
+===== Basic Syntax =====
+
+==== Comments ====
+
+==== Definitions and Variables ====
+
+==== Default Variables ====
+
+==== Modules ====
+
+===== Dokuwiki Front-end =====
+
+===== HTML Back-end =====
+
+===== Dot Module =====
+
+====== Developper Manual ======
+
+===== Architecture =====
+
+===== How to write a simple module ? =====
+
+===== How to write a front-end module ? =====
+
+===== How to write a back-end ? =====
+
+===== How to write a language ? =====
+

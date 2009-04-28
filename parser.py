@@ -42,8 +42,7 @@ def handleText(man, line):
 		match = man.words_re.search(line)
 	
 	# end of line
-	if line:
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(line)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(line + ' ')))
 
 
 ############### Line Parsing ######################
