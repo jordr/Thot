@@ -1,5 +1,5 @@
 
-SUBDIRS=mods backs langs css
+SUBDIRS=mods backs langs css doc
 
 SOURCES = \
 	common.py \
