@@ -187,3 +187,8 @@ I say "@(V1)" !!!!
 
 @V2=Did you say @(V1) ?
 @(V2)
+
+====== Example of inclusion ======
+
+@include include.thot
+

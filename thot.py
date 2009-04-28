@@ -68,7 +68,7 @@ if options.defines:
 # Parse the file
 document = doc.Document(env)
 man = parser.Manager(document)
-man.parse(input)
+man.parse(input, env['THOT_FILE'])
 #document.dump("")
 
 # Output the result

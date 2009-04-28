@@ -2,6 +2,7 @@
 import re
 import doc
 import common
+import os.path
 	
 
 ############### Word Parsing #####################
@@ -54,18 +55,32 @@ def handleAssign(man, match):
 	man.doc.setVar(match.group(1), match.group(2))
 
 def handleUse(man, match):
-	name = match.group(1)
+	name = match.group(1).strip()
+	if name in man.used_mods:
+		return
 	path = man.doc.getVar("THOT_USE_PATH")
 	mod = common.loadModule(name, path)
 	if mod:
+		man.used_mods.append(mod)
 		mod.init(man)
 	else:
 		common.onError('cannot load module %s' % name)
 
+def handleInclude(man, match):
+	path = match.group(1).strip()
+	if not os.path.isabs(path):
+		path = os.path.join(os.path.dirname(man.file_name), path)
+	try:
+		file = open(path)
+		man.parseInternal(file, path)
+	except IOError, e:
+		common.onError('%s:%d: cannot include "%s": %s' % (path, str(e), man.file_name, man.line_num))
+
 INITIAL_LINES = [
 	(handleComment, re.compile("^@@.*")),
 	(handleAssign, re.compile("^@([a-zA-Z_0-9]+)\s*=(.*)")),
-	(handleUse, re.compile("^@use\s+(\S+)"))
+	(handleUse, re.compile("^@use\s+(\S+)")),
+	(handleInclude, re.compile('^@include\s+(.*)'))
 ]
 
 class DefaultParser:
@@ -95,6 +110,7 @@ class Manager:
 	added_words = None
 	line_num = None
 	file_name = None
+	used_mods = None
 	
 	def __init__(self, doc):
 		self.item = doc
@@ -105,6 +121,7 @@ class Manager:
 		self.words = INITIAL_WORDS[:]
 		self.added_lines = []
 		self.added_words = []
+		self.used_mods = []
 	
 	def get(self):
 		return item
@@ -130,8 +147,10 @@ class Manager:
 	
 	def getParser(self):
 		return self.parser
-	
-	def parse(self, file, name = '<unknown>'):
+
+	def parseInternal(self, file, name):
+		prev_line = self.line_num
+		prev_file = self.file_name
 		self.line_num = 0
 		self.file_name = name
 		for line in file:
@@ -139,9 +158,14 @@ class Manager:
 			if line[-1] == '\n':
 				line = line[0:-1]
 			self.parser.parse(self, line)
+		self.line_num = prev_line
+		self.file_name = prev_file
+
+	def parse(self, file, name = '<unknown>'):
+		self.parseInternal(file, name)
 		self.send(doc.Event(doc.L_DOC, doc.ID_END))
 		self.doc.clean()
-
+	
 	def addLine(self, line):
 		self.added_lines.append(line)
 		self.lines.append(line)
