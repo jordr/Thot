@@ -7,7 +7,8 @@ SOURCES = \
 	highlight.py \
 	i18n.py \
 	parser.py \
-	thot.py
+	thot.py \
+	back.py
 OBJECTS = $(SOURCES:.py=.pyc)
 
 ALL = $(OBJECTS)

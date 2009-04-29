@@ -109,8 +109,13 @@ class FileBlock(doc.Block):
 		if type == 'html':
 			gen.genVerbatim('<pre class="file">\n')
 			for line in self.content:
-				gen.genText(line + "\n")
+				gen.genVerbatim(line + "\n")
 			gen.genVerbatim('</pre>\n')
+		elif type == 'latex':
+			gen.genVerbatim('\\begin{verbatim}\n')
+			for line in self.content:
+				gen.genVerbatim(line + "\n")
+			gen.genVerbatim('\\end{verbatim}\n')
 		else:
 			common.onError('%s back-end is not supported by file block')
 
@@ -130,6 +135,11 @@ class NonParsedBlock(doc.Block):
 			for line in self.content:
 				gen.genText(line + "\n")
 			gen.genVerbatim('</>\n')
+		elif type == 'latex':
+			gen.genVerbatim('\\begin{verbatim}\n')
+			for line in self.content:
+				gen.genVerbatim(line + "\n")
+			gen.genVerbatim('\\end{verbatim}\n')
 		else:
 			common.onError('%s back-end is not supported by non-parsed block')
 

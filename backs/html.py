@@ -24,6 +24,7 @@ import shutil
 import re
 import urlparse
 import common
+import back
 
 # supported variables
 #	TITLE: title of the document
@@ -63,7 +64,7 @@ def getStyle(style):
 		raise Exception('style ' + style + ' not supported')
 		
 
-class Generator:
+class Generator(back.Generator):
 	"""Generator for HTML output."""
 	out = None
 	trans = None
@@ -76,114 +77,13 @@ class Generator:
 	footnotes = None
 	
 	def __init__(self, path, out, doc):
+		back.Generator.__init__(self, path, doc)
 		self.out = out
-		self.doc = doc
-		self.path = path
-		self.trans  = i18n.getTranslator(self.doc)
-		self.from_files = { }
-		self.to_files = { }
-		self.resetCounters()
 		self.footnotes = []
-		if path.endswith('.thot'):
-			self.root = path[:-5]
-		else:
-			self.root = path
 
 	def getType(self):
 		return 'html'
 	
-	def getFriendFile(self, path, base = ''):
-		"""Test if a file is a friend file and returns its generation
-		relative path. Return None if the the file is not part
-		of the generation.
-		path -- path of the file,
-		base -- potential file base."""
-		
-		if os.path.isabs(path):
-			apath = path
-		elif base == '':
-			return path
-		else:
-			apath = os.path.join(base, path)
-		if self.from_files.has_key(apath):
-			return self.from_files[apath]
-		else:
-			return None
-	
-	def addFriendFile(self, path, base = ''):
-		"""Add the given base/path to the generated files and
-		return the target path.
-		path -- path to the file
-		base -- base directory containing the file ('' for CWD files)"""
-		
-		# normalize path
-		if os.path.isabs(path):
-			apath = path
-			base, path = os.path.split(path)
-		elif base == '':
-			return path
-		else:
-			apath = os.path.join(base, path)
-		if self.from_files.has_key(apath):
-			return self.from_files[apath]
-		
-		# make target path
-		file, ext = os.path.splitext(path)
-		file = os.path.join(self.root + "-imports", file)
-		tpath = file + ext
-		cnt = 0
-		while self.to_files.has_key(tpath):
-			tpath = "%s-%d.%s" % (file, cnt, ext)
-			cnt = cnt + 1
-		
-		# create direcory
-		dpath = os.path.dirname(tpath)
-		if not os.path.exists(dpath):
-			try:
-				os.makedirs(dpath)
-			except os.error, e:
-				common.onError('cannot create directory "%s": %s' % (dpath, str(e)))
-		
-		# record all
-		self.from_files[apath] = tpath
-		self.to_files[tpath] = apath;
-		return tpath
-
-	def computeRelative(self, file, base):
-		l = len(os.path.commonprefix([os.path.dirname(base), file]))
-		file = file[l:] 
-		while file[0] == '/':
-			file = file[1:]
-		return file
-
-	def getFriendRelativePath(self, path):
-		"""Get the relative path to the HTML of a friend file."""
-		return self.computeRelative(path, self.path)
-
-	def loadFriendFile(self, path, base = ''):
-		"""Load a friend file in the generation location.
-		to_path -- relative path to write to.
-		from_path -- absolute file to the file to copy."""
-		
-		# get the target path
-		if base == '' and not os.path.isabs(path):
-			return path
-		tpath = self.getFriendFile(path, base)
-		
-		# we need to load it !
-		if not tpath:
-			spath = os.path.join(base, path)
-			tpath = self.addFriendFile(path, base)
-			try:
-				shutil.copyfile(spath, tpath)
-			except shutil.Error, e:
-				pass
-			except IOError, e:
-				common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
-		
-		# build the HTML relative path
-		return self.getFriendRelativePath(tpath)
-
 	def importCSS(self, spath):
 		"""Perform import of files found in a CSS stylesheet.
 		spath -- path to the original CSS stylesheet."""
@@ -224,18 +124,6 @@ class Generator:
 			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
 		}	
 	
-	def nextHeaderNumber(self, num):
-		self.counters[str(num)] = self.counters[str(num)] + 1
-		for i in xrange(num + 1, 6):
-			self.counters[str(i)] = 0
-		return self.getHeaderNumber(num)
-	
-	def getHeaderNumber(self, num):
-		res = str(self.counters['0'])
-		for i in xrange(1, num + 1):
-			res = res + '.' + str(self.counters[str(i)])
-		return res
-
 	def genFootNote(self, note):
 		self.footnotes.append(note)
 		cnt = len(self.footnotes)
@@ -467,31 +355,6 @@ class Generator:
 
 
 def output(doc):
-	out = None
-	path = None
-
-	# open the output file
-	out_name = doc.getVar("THOT_OUT_PATH")
-	if out_name:
-		out = open(out_name, "w")
-		if out_name.endswith('.html'):
-			path = out_name[:-5]
-		else:
-			path = out_name
-	else:
-		in_name = doc.getVar("THOT_FILE")
-		if not in_name or in_name == "<stdin>":
-			out = sys.stdout
-			path = "stdin"
-		else:
-			if in_name.endswith(".thot"):
-				out_name = in_name[:-5] + ".html"
-				path = in_name[:-5]
-			else:
-				out_name = in_name + ".html"
-				path = out_name
-			out = open(out_name, "w")
-
-	# generate output
+	(path, out) = back.openOut(doc, ".html")
 	gen = Generator(path, out, doc)
 	gen.run()

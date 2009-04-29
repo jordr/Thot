@@ -26,12 +26,12 @@ def onError(text):
 
 def onWarning(message):
 	"""Display a warning message."""
-	sys.stderr.write("WARNING: %s\n" % text)
+	sys.stderr.write("WARNING: %s\n" % message)
 
 
 def onInfo(message):
 	"""Display an information message."""
-	sys.stderr.write("INFO: %s\n" % text)
+	sys.stderr.write("INFO: %s\n" % message)
 
 
 def loadModule(name, path):

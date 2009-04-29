@@ -240,5 +240,7 @@ class CodeBlock(doc.Block):
 			gen.genVerbatim('<pre class="code">\n')
 			genCode(gen, self.lang, text)
 			gen.genVerbatim('</pre>')
+		elif type == 'latex':
+			pass
 		else:
 			common.onError('backend %s unsupported for code block' % type)
