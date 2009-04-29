@@ -176,7 +176,7 @@ class Generator:
 	def genQuoteEnd(self, level):
 		pass
 
-	def genTableBegin(self):
+	def genTableBegin(self, width):
 		pass
 		
 	def genTableEnd(self):

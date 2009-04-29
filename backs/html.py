@@ -153,7 +153,7 @@ class Generator(back.Generator):
 			self.out.write('</blockquote>')
 		self.out.write('\n')
 
-	def genTableBegin(self):
+	def genTableBegin(self, width):
 		self.out.write('<table>\n')
 
 	def genTableEnd(self):

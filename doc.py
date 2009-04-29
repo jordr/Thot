@@ -533,7 +533,7 @@ TABLE_ALIGNS = [ 'left', 'center', 'right' ]
 class Cell(Par):
 	kind = None
 	align = None
-	spand = None
+	span = None
 	
 	def __init__(self, kind, align = TAB_CENTER, span = 1):
 		Par.__init__(self)
@@ -568,6 +568,12 @@ class Row(Container):
 		else:
 			man.forward(event)
 
+	def getWidth(self):
+		width = 0
+		for cell in self.content:
+			width += cell.span
+		return width
+
 	def gen(self, gen):
 		gen.genTableRowBegin()
 		Container.gen(self, gen)
@@ -595,7 +601,7 @@ class Table(Container):
 			man.forward(event)
 
 	def gen(self, gen):
-		gen.genTableBegin()
+		gen.genTableBegin(self.content[0].getWidth())
 		Container.gen(self, gen)
 		gen.genTableEnd()
 

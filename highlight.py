@@ -161,10 +161,11 @@ def genCode(gen, lang, text):
 	gen -- back-end generator
 	lang -- code language
 	lines -- lines of the code"""
-	if lang in LANGS and gen.getType() in BACKS:
+	type = gen.getType()
+	if lang in LANGS and type in BACKS:
 		try:
 			process = subprocess.Popen(
-				['highlight -f --syntax=' + lang],
+				['highlight -f --syntax=%s %s' % (lang, BACKS[type])],
 				stdin = subprocess.PIPE,
 				stdout = subprocess.PIPE,
 				close_fds = True,
@@ -182,13 +183,18 @@ def genCode(gen, lang, text):
 		if gen.getType() not in BACKS and gen.getType() not in unsupported_backs:
 			sys.stderr.write('WARNING: ' + gen.getType() + ' unsupported highlight back-end\n')
 			unsupported_baks.append(lang)			
+		if type == 'latex':
+			gen.genVerbatim('\\begin{verbatim}\n')
 		gen.genVerbatim(text)
+		if type == 'latex':
+			gen.genVerbatim('\\end{verbatim}\n\n')
 
 
 class Feature(doc.Feature):
 	
 	def prepare(self, gen):
-		if gen.getType() in CSS_BACKS:
+		type = gen.getType()
+		if type in CSS_BACKS:
 			
 			# build the CSS file
 			try:
@@ -211,6 +217,31 @@ class Feature(doc.Feature):
 				styles += ':'
 			styles += gen.getFriendRelativePath(css)
 			gen.doc.setVar('HTML_STYLES', styles)
+
+		if type == 'latex':
+			
+			# build the .sty file
+			try:
+				css = gen.addFriendFile('/highlight/highlight.sty')
+				process = subprocess.Popen(
+					['highlight -f --syntax=c --style-outfile=%s %s' % (css, BACKS[type])],
+					stdin = subprocess.PIPE,
+					stdout = subprocess.PIPE,
+					close_fds = True,
+					shell = True
+				)
+				_ = process.communicate("")
+			except OSError, e:
+				sys.stderr.write("ERROR: can not call 'highlight'\n")
+				sys.exit(1)
+						
+			# build the preamble
+			preamble = gen.doc.getVar('LATEX_PREAMBLE')
+			preamble += '\\usepackage{color}\n'
+			preamble += '\\usepackage{alltt}\n'
+			preamble += '\\input {%s}\n' % gen.getFriendRelativePath(css)
+			gen.doc.setVar('LATEX_PREAMBLE', preamble)
+
 
 FEATURE = Feature()
 
@@ -241,6 +272,6 @@ class CodeBlock(doc.Block):
 			genCode(gen, self.lang, text)
 			gen.genVerbatim('</pre>')
 		elif type == 'latex':
-			pass
+			genCode(gen, self.lang, text)
 		else:
 			common.onError('backend %s unsupported for code block' % type)

@@ -20,6 +20,7 @@ import codecs
 import unicodedata
 import subprocess
 import os.path
+import doc
 
 
 # USED VARIABLES
@@ -28,7 +29,7 @@ import os.path
 #	LANG: document language
 #	THOT_ENCODING: character encoding
 #	LATEX_CLASS: latex class for document
-#	LATEX_PACKAGES: packages to use
+#	LATEX_PREAMBLE: insert just after document definition
 
 def escape(text):
 	res = ""
@@ -85,6 +86,8 @@ STYLES = {
 
 UNSUPPORTED_IMAGE = [ '.gif' ]
 
+ALIGNMENT = ['l', 'c', 'r']
+
 class UnicodeEncoder:
 	"""Abstract for unicode character encoding."""
 	
@@ -129,6 +132,8 @@ class Generator(back.Generator):
 	out = None
 	encoding = None
 	encoder = UnicodeEncoder()
+	first = False
+	multi = False
 	
 	def __init__(self, path, out, doc):
 		back.Generator.__init__(self, path, doc)
@@ -181,11 +186,8 @@ class Generator(back.Generator):
 			else:
 				common.onWarning('%s encoding is just ignored for latex' % self.encoding)
 
-		# write packages
-		packs = self.doc.getVar('LATEX_PACKAGES')
-		if packs:
-			for pack in packs.split(','):
-				self.out.write('\usepackage{%s}\n' % pack.strip())
+		# preamble
+		self.out.write(self.doc.getVar('LATEX_PREAMBLE'))
 				
 		# add custom definitions
 		self.out.write('\\newcommand{\\superscript}[1]{\\ensuremath{^{\\textrm{#1}}}}\n')
@@ -210,26 +212,45 @@ class Generator(back.Generator):
 	def genQuoteEnd(self, level):
 		self.out.write('\\end{quote}\n')
 
-	def genTableBegin(self):
-		pass
+	def genTableBegin(self, width):
+		self.out.write('\\vspace{4pt}\n')
+		self.out.write('\\begin{tabular}{|')
+		for i in xrange(0, width):
+			self.out.write('c|')
+		self.out.write('}\n')
 		
 	def genTableEnd(self):
-		pass
+		self.out.write('\\hline\n')
+		self.out.write('\\end{tabular}\n')
+		self.out.write('\\vspace{4pt}\n\n')
 	
 	def genTableRowBegin(self):
-		pass
+		self.out.write('\\hline\n')
+		self.first = True
 
 	def genTableRowEnd(self):
-		pass
+		self.out.write('\\\\\n')
 
 	def genTableCellBegin(self, kind, align, span):
-		pass
+		if self.first:
+			bar = '|'
+			self.first = False
+		else:
+			bar = ''
+			self.out.write(' & ')
+		if align <> doc.TAB_CENTER or span <> 1:
+			self.multi = True
+			self.out.write('\\multicolumn{%d}{%s%s|}{' % (span, bar, ALIGNMENT[align + 1]))
 
 	def genTableCellEnd(self, kind, align, span):
-		pass
+		if self.multi:
+			self.multi = False
+			self.out.write('}')
 	
 	def genHorizontalLine(self):
-		pass
+		self.out.write('\n\\vspace{4pt}\n')
+		self.out.write('\\hrule\n')
+		self.out.write('\\vspace{4pt}\n\n')
 	
 	def genVerbatim(self, line):
 		self.out.write(line)
