@@ -192,7 +192,7 @@ class Generator(back.Generator):
 			paper = 'a4paper'
 
 		# preamble
-		self.out.write('\\documentclass[12pt,oneside,%s,%s]{%s}\n' % (paper, lang, cls))
+		self.out.write('\\documentclass[oneside,%s,%s]{%s}\n' % (paper, lang, cls))
 		self.out.write('\\usepackage[T1]{fontenc}\n')
 		self.out.write('\\usepackage[pdftex]{graphicx}\n')
 		self.out.write('\\usepackage{hyperref}\n')
