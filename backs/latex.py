@@ -30,6 +30,7 @@ import doc
 #	THOT_ENCODING: character encoding
 #	LATEX_CLASS: latex class for document
 #	LATEX_PREAMBLE: insert just after document definition
+#	LATEX_OUTPUT: one of 'latex' or 'pdf'
 
 def escape(text):
 	res = ""
@@ -198,12 +199,35 @@ class Generator(back.Generator):
 		self.out.write('\\title{%s}\n' % escape(self.doc.getVar('TITLE')))
 		self.out.write('\\author{%s}\n' % escape(self.doc.getVar('AUTHORS')))
 		self.out.write('\\maketitle\n\n')
+		self.out.write('\\tableofcontents\n\n')
 		
 		# write body
 		self.doc.gen(self)
 		
 		# write footer
 		self.out.write('\\end{document}\n')
+		self.out.close()
+		
+		# generate final format
+		output = self.doc.getVar('LATEX_OUTPUT')
+		if not output or output == 'latex':
+			pass
+		elif output == 'pdf':
+			for i in xrange(0, 2):	# two times for TOC (sorry)
+				dir, file = os.path.split(self.path)
+				process = subprocess.Popen(
+					['pdflatex %s -interaction batchmod' % file],
+					shell = True,
+					stdout = subprocess.PIPE,
+					stderr = subprocess.PIPE,
+					cwd = dir
+				)
+				out, err = process.communicate('')
+				if process.returncode <> 0:
+					sys.stdout.write(out)
+					sys.stderr.write(err)
+		else:
+			common.onError('unknown output: %s' % output)
 
 	def genQuoteBegin(self, level):
 		# Latex does not seem to support multi-quote...
