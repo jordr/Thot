@@ -21,6 +21,7 @@ import unicodedata
 import subprocess
 import os.path
 import doc
+import sys
 
 
 # USED VARIABLES
@@ -31,6 +32,7 @@ import doc
 #	LATEX_CLASS: latex class for document
 #	LATEX_PREAMBLE: insert just after document definition
 #	LATEX_OUTPUT: one of 'latex' or 'pdf'
+#	LATEX_PAPER: latex paper format (a4paper, letter, etc)
 
 def escape(text):
 	res = ""
@@ -149,13 +151,13 @@ class Generator(back.Generator):
 	def run(self):
 		self.doc.pregen(self)
 		
-		# write header
+		# get class
 		cls = self.doc.getVar('LATEX_CLASS')
 		if not cls:
 			cls = 'book'
-		self.out.write('\\documentclass{%s}\n' % cls)
+		preamble = self.doc.getVar('LATEX_PREAMBLE')
 		
-		# add babel internationalization
+		# look for internationalization
 		lang = self.doc.getVar('LANG').lower().replace('-', '_')
 		if lang:
 			if LANGUAGES.has_key(lang):
@@ -170,29 +172,40 @@ class Generator(back.Generator):
 						lang = LANGUAGES[lang]
 					else:
 						common.onError('cannot not support "%s"' % lang)
-			self.out.write('\\usepackage[%s]{babel}\n' % lang)
-			self.out.write('\\usepackage[pdftex]{graphicx}\n')
-			self.out.write('\\usepackage{hyperref}\n')
 
-		# support for encoding
+		# look for encoding
 		self.encoding = self.doc.getVar('THOT_ENCODING').lower().replace('-', '_')
 		if self.encoding:
 			if self.encoding == 'utf_8':
-				self.out.write('\\usepackage{ucs}\n')
-				self.out.write('\\usepackage[utf8x]{inputenc}\n')
+				preamble += '\\usepackage{ucs}\n'
+				preamble += '\\usepackage[utf8x]{inputenc}\n'
 				self.encoder = UTF8Encoder()
 			elif self.encoding == 'iso_8859_1':
-				self.out.write('\\usepackage[latin1]{inputenc}\n')
+				preamble += '\\usepackage[latin1]{inputenc}\n'
 				self.encoder = NonUnicodeEncoder(self.encoding)
 			else:
 				common.onWarning('%s encoding is just ignored for latex' % self.encoding)
+		
+		# look paper size
+		paper = self.doc.getVar('LATEX_PAPER')
+		if not paper:
+			paper = 'a4paper'
 
 		# preamble
-		self.out.write(self.doc.getVar('LATEX_PREAMBLE'))
+		self.out.write('\\documentclass[12pt,oneside,%s,%s]{%s}\n' % (paper, lang, cls))
+		self.out.write('\\usepackage[T1]{fontenc}\n')
+		self.out.write('\\usepackage[pdftex]{graphicx}\n')
+		self.out.write('\\usepackage{hyperref}\n')
+		self.out.write('\\usepackage{verbatim}\n')
+		#self.out.write('\\usepackage{fancyhdr}\n')
+		self.out.write(preamble)
+		self.out.write('\\usepackage[%s]{babel}\n' % lang)
 				
 		# add custom definitions
 		self.out.write('\\newcommand{\\superscript}[1]{\\ensuremath{^{\\textrm{#1}}}}\n')
 		self.out.write('\\newcommand{\\subscript}[1]{\\ensuremath{_{\\textrm{#1}}}}\n')
+		self.out.write('\\headheight=20pt\n')
+		self.out.write('\\headsep=10pt\n')
 
 		# write title
 		self.out.write('\\begin{document}\n')
@@ -200,6 +213,7 @@ class Generator(back.Generator):
 		self.out.write('\\author{%s}\n' % escape(self.doc.getVar('AUTHORS')))
 		self.out.write('\\maketitle\n\n')
 		self.out.write('\\tableofcontents\n\n')
+		self.out.write('\\pagebreak\n\n')
 		
 		# write body
 		self.doc.gen(self)
@@ -216,7 +230,7 @@ class Generator(back.Generator):
 			for i in xrange(0, 2):	# two times for TOC (sorry)
 				dir, file = os.path.split(self.path)
 				process = subprocess.Popen(
-					['pdflatex %s -interaction nonstopmode' % file],
+					['pdflatex -halt-on-error %s' % file],
 					shell = True,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,
