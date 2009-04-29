@@ -216,7 +216,7 @@ class Generator(back.Generator):
 			for i in xrange(0, 2):	# two times for TOC (sorry)
 				dir, file = os.path.split(self.path)
 				process = subprocess.Popen(
-					['pdflatex %s -interaction batchmod' % file],
+					['pdflatex %s -interaction nonstopmode' % file],
 					shell = True,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,
