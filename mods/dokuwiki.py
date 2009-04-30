@@ -117,7 +117,7 @@ class FileBlock(doc.Block):
 				gen.genVerbatim(line + "\n")
 			gen.genVerbatim('\\end{verbatim}\n')
 		else:
-			common.onError('%s back-end is not supported by file block')
+			common.onWarning('%s back-end is not supported by file block' % type)
 
 
 class NonParsedBlock(doc.Block):
@@ -141,7 +141,7 @@ class NonParsedBlock(doc.Block):
 				gen.genVerbatim(line + "\n")
 			gen.genVerbatim('\\end{verbatim}\n')
 		else:
-			common.onError('%s back-end is not supported by non-parsed block')
+			common.onWarning('%s back-end is not supported by file block' % type)
 
 
 ### code parse ###

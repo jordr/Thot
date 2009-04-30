@@ -1,6 +1,6 @@
 @use dokuwiki
 @TITLE=Thot Manual @(THOT_VERSION)
-@AUTHORS=H. Cassé <hugues.casse@laposte.net>
+@AUTHORS=H. Cassé <hugues.casse@laposte.net>, moi oui <ici@labas.fr>
 @VERSION=0.1
 @LANG=en_EN
 @HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css

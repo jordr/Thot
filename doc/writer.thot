@@ -1,12 +1,83 @@
 ====== Writer Manual ======
 
+This chapter is aimed to writer of documents in @(THOT). You will find
+here the details to benefit from the power of @(THOT).
+
+
 ===== Basic Syntax =====
+
+This sections describes the minimal @(THOT) syntax that is independent
+of any module.
+
 
 ==== Comments ====
 
+@(THOT) supports comments spanning on a complete line. You just have to
+use double ''@'' at the start of the line (notice that most wiki
+independent syntax is prefixed by ''@'').
+
+<code>
+@@ a commend here to the end of the line
+</code>
+
+The comment is just for author information and disappears in the final
+output document.
+
+
 ==== Definitions and Variables ====
 
+To share information information and to configure modules, @(THOT)
+provides a system of variables. A variable is defined by its name
+and its textual value.
+
+To define a variable, you have just to type:
+<code>
+@IDENTIFIER=VALUE
+</code>
+Where ''IDENTIFIER'' is the variable identifier and ''VALUE'' the value
+of the variable. This value may be any text (including module tags)
+to the end of the line (without including the final newline).
+
+To use a variable, you have just to type anywhere in the text and in
+a line.
+<code>
+TEXT-BEFORE @(IDENTIFIER) TEXT-AFTER
+</code>
+Where ''IDENTIFIER'' is the identifier of the variable to get the value
+from. ''TEXT-BEFORE'' and ''TEXT-AFTER'' are any text (possibly
+containing markup or variable use.
+
+In the example below, we define a variable ''THOT'' that is used
+throughout this document and avoid to type boring markup:
+<code>
+@THOT=**//THOT//**
+
+This document presents @(THOT), a textual document process. @(THOT)
+...
+</code>
+
+Notice that the value of a variable may contains variable uses but
+they are processed in late evaluation: they are replaced by their value
+only  when the variable is used in
+the main text. For example, the @(THOT) text below:
+<code>
+@X=--@(Y)--
+@Y=hello
+@(X) World !
+@Y=bye, bye
+@(X) World !
+</code>
+will give:
+<code>
+hello World !
+bybe, bye World !
+</code>
+
 ==== Default Variables ====
+
+==== Module Usage ====
+
+==== Inclusion ====
 
 ==== Modules ====
 

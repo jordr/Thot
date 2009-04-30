@@ -151,6 +151,12 @@ BACKS = {
 	'xml': '--xml'
 }
 
+DOCBOOK_LANGS = {
+	'py': 'python',
+	'c': 'c',
+	'c++': 'c++'
+}
+
 CSS_BACKS = [ 'html', 'xhtml' ]
 
 unsupported = []
@@ -273,5 +279,12 @@ class CodeBlock(doc.Block):
 			gen.genVerbatim('</pre>')
 		elif type == 'latex':
 			genCode(gen, self.lang, text)
+		elif type == 'docbook':
+			gen.genVerbatim('<programlisting xml:space="preserve" ')
+			if DOCBOOK_LANGS.has_key(self.lang):
+				gen.genVerbatim(' language="%s"' % DOCBOOK_LANGS[self.lang])
+			gen.genVerbatim('>\n')
+			gen.genText(self.toText())
+			gen.genVerbatim('</programlisting>\n')
 		else:
-			common.onError('backend %s unsupported for code block' % type)
+			common.onWarning('backend %s unsupported for code block' % type)

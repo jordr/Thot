@@ -25,29 +25,51 @@ class Generator:
 	counters = None
 	path = None
 	root = None
+	out = None
 	from_files = None
 	to_files = None
 	
-	def __init__(self, path, doc):
+	def __init__(self, doc):
 		"""Build the abstract generator.
-		path -- path of the file to create
 		doc -- document to generate."""
 		
 		self.doc = doc
-		self.path = path
 		self.trans  = i18n.getTranslator(self.doc)
 		self.from_files = { }
 		self.to_files = { }
 		self.resetCounters()
-		if path.endswith('.thot'):
-			self.root = path[:-5]
-		else:
-			self.root = path
 
 	def getType(self):
 		"""Get type of the back-end: html, latex, xml."""
 		return None
-	
+
+	def openMain(self, suff):
+		"""Create and open an out file for the given document.
+		suff -- suffix of the out file.
+		Set path, root and out fields."""
+
+		self.path = self.doc.getVar("THOT_OUT_PATH")
+		if self.path:
+			self.out = open(self.path, "w")
+			if self.path.endswith(suff):
+				self.root = self.path[:-5]
+			else:
+				self.root = self.path
+		else:
+			in_name = self.doc.getVar("THOT_FILE")
+			if not in_name or in_name == "<stdin>":
+				self.out = sys.stdout
+				self.path = "stdin"
+			else:
+				if in_name.endswith(".thot"):
+					self.path = in_name[:-5] + suff
+					self.root = in_name[:-5]
+				else:
+					self.path = in_name + suff
+					self.root = self.path
+				self.out = open(self.path, "w")
+
+
 	def relocateFriendFile(self, path):
 		"""Convert document-relative path to the CWD-relative path."""
 		if os.path.isabs(path):
@@ -167,9 +189,6 @@ class Generator:
 	def genFootNote(self, note):
 		pass
 
-	def genFootNotes(self):
-		pass
-
 	def genQuoteBegin(self, level):
 		pass
 
@@ -259,33 +278,3 @@ class Generator:
 
 	def genLineBreak(self):
 		pass
-
-
-def openOut(doc, suff):
-	"""Create and open an out file for the given document.
-	doc -- document to produce out file for,
-	suff -- suffix of the out file.
-	Returns (path, file). """
-
-	out_name = doc.getVar("THOT_OUT_PATH")
-	if out_name:
-		out = open(out_name, "w")
-		if out_name.endswith(suff):
-			path = out_name[:-5]
-		else:
-			path = out_name
-	else:
-		in_name = doc.getVar("THOT_FILE")
-		if not in_name or in_name == "<stdin>":
-			out = sys.stdout
-			path = "stdin"
-		else:
-			if in_name.endswith(".thot"):
-				out_name = in_name[:-5] + suff
-				path = in_name[:-5]
-			else:
-				out_name = in_name + suff
-				path = out_name
-			out = open(out_name, "w")
-	return (path, out)
-

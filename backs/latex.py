@@ -28,10 +28,10 @@ import sys
 #	TITLE: document title
 #	AUTHORS: document authors
 #	LANG: document language
+#	OUTPUT: one of 'latex' or 'pdf'
 #	THOT_ENCODING: character encoding
 #	LATEX_CLASS: latex class for document
 #	LATEX_PREAMBLE: insert just after document definition
-#	LATEX_OUTPUT: one of 'latex' or 'pdf'
 #	LATEX_PAPER: latex paper format (a4paper, letter, etc)
 
 def escape(text):
@@ -132,15 +132,13 @@ class NonUnicodeEncoder(UnicodeEncoder):
 
 
 class Generator(back.Generator):
-	out = None
 	encoding = None
 	encoder = UnicodeEncoder()
 	first = False
 	multi = False
 	
-	def __init__(self, path, out, doc):
-		back.Generator.__init__(self, path, doc)
-		self.out = out
+	def __init__(self, doc):
+		back.Generator.__init__(self, doc)
 
 	def unsupported(self, feature):
 		common.onError('%s unsupported for Latex back-end')
@@ -149,6 +147,7 @@ class Generator(back.Generator):
 		return 'latex'
 
 	def run(self):
+		self.openMain('.tex')
 		self.doc.pregen(self)
 		
 		# get class
@@ -223,12 +222,13 @@ class Generator(back.Generator):
 		self.out.close()
 		
 		# generate final format
-		output = self.doc.getVar('LATEX_OUTPUT')
+		output = self.doc.getVar('OUTPUT')
 		if not output or output == 'latex':
 			pass
 		elif output == 'pdf':
 			for i in xrange(0, 2):	# two times for TOC (sorry)
 				dir, file = os.path.split(self.path)
+				print file
 				process = subprocess.Popen(
 					['pdflatex -halt-on-error %s' % file],
 					shell = True,
@@ -242,6 +242,12 @@ class Generator(back.Generator):
 					sys.stderr.write(err)
 		else:
 			common.onError('unknown output: %s' % output)
+
+	def genFootNote(self, note):
+		self.out.write('\\footnote{')
+		for item in note:
+			item.gen(self)
+		self.out.write('}')
 
 	def genQuoteBegin(self, level):
 		# Latex does not seem to support multi-quote...
@@ -393,6 +399,5 @@ class Generator(back.Generator):
 
 
 def output(doc):
-	(path, out) = back.openOut(doc, ".tex")
-	gen = Generator(path, out, doc)
+	gen = Generator(doc)
 	gen.run()

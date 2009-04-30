@@ -66,7 +66,6 @@ def getStyle(style):
 
 class Generator(back.Generator):
 	"""Generator for HTML output."""
-	out = None
 	trans = None
 	doc = None
 	counters = None
@@ -76,9 +75,8 @@ class Generator(back.Generator):
 	to_files = None
 	footnotes = None
 	
-	def __init__(self, path, out, doc):
-		back.Generator.__init__(self, path, doc)
-		self.out = out
+	def __init__(self, doc):
+		back.Generator.__init__(self, doc)
 		self.footnotes = []
 
 	def getType(self):
@@ -272,7 +270,7 @@ class Generator(back.Generator):
 		self.out.write('/>')
 	
 	def genGlyph(self, code):
-		self.out.write('&#' + str(code) + ',')
+		self.out.write('&#' + str(code) + ';')
 
 	def genLineBreak(self):
 		self.out.write('<br/>')
@@ -346,6 +344,7 @@ class Generator(back.Generator):
 		self.out.write('	</div>\n')
 	
 	def run(self):
+		self.openMain('.html')
 		self.doc.pregen(self)
 		self.genHeader()
 		self.genTitle()
@@ -355,6 +354,5 @@ class Generator(back.Generator):
 
 
 def output(doc):
-	(path, out) = back.openOut(doc, ".html")
-	gen = Generator(path, out, doc)
+	gen = Generator(doc)
 	gen.run()
