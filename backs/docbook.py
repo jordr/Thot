@@ -116,7 +116,6 @@ class Generator(back.Generator):
 				cmd = 'dblatex %s -o %s' % (self.path, name + ".pdf")
 			elif self.back == 'openjade':
 				cmd = 'docbook2pdf %s' % self.path
-			print cmd
 			process = subprocess.Popen(
 					[cmd],
 					shell = True,
@@ -124,13 +123,16 @@ class Generator(back.Generator):
 					stderr = subprocess.PIPE
 				)
 			out, err = process.communicate('')
-			print out
-			print err
 			if process.returncode <> 0:
 				sys.stdout.write(out)
 				sys.stderr.write(err)
-			elif self.backend == 'openjade':
-				shutil.move(self.path + ".pdf", name + ".pdf")
+				print "ERROR: failed"
+			else:
+				if self.backend == 'openjade':
+					shutil.move(self.path + ".pdf", name + ".pdf")
+				print "SUCCESS: result in %s" % (name + ".pdf")
+		else:
+			print "SUCCESS: result in %s" % self.path
 
 	def genFootNote(self, note):
 		self.out.write('<footnote>')
@@ -139,10 +141,10 @@ class Generator(back.Generator):
 		self.out.write('</footnote>')
 
 	def genQuoteBegin(self, level):
-		self.out.write('<blockquote>')
+		self.out.write('<blockquote><para>')
 
 	def genQuoteEnd(self, level):
-		self.out.write('</blockquote>')
+		self.out.write('</para></blockquote>')
 
 	def genTableBegin(self, width):
 		self.out.write('<table><tgroup cols="%d">"\n' % width)
