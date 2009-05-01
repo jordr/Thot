@@ -116,6 +116,11 @@ class FileBlock(doc.Block):
 			for line in self.content:
 				gen.genVerbatim(line + "\n")
 			gen.genVerbatim('\\end{verbatim}\n')
+		elif type == 'docbook':
+			gen.genVerbatim('<screen>\n')
+			for line in self.content:
+				gen.genVerbatim(line + "\n")
+			gen.genVerbatim('</screen>\n')			
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
 
@@ -136,10 +141,13 @@ class NonParsedBlock(doc.Block):
 				gen.genText(line + "\n")
 			gen.genVerbatim('</>\n')
 		elif type == 'latex':
-			gen.genVerbatim('\\begin{verbatim}\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
-			gen.genVerbatim('\\end{verbatim}\n')
+				gen.genText(line + "\n")
+		elif type == 'docbook':
+			gen.genVerbatim('<para>\n')
+			for line in self.content:
+				gen.genText(line + "\n")
+			gen.genVerbatim('</para>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
 
@@ -150,14 +158,14 @@ END_FILE = re.compile("^\s*<\/file>\s*$")
 END_NOWIKI = re.compile("^\s*<\/nowiki>\s*$")
 
 INDENT_RE = re.compile("  \s*(.*)$")
-class IdentParser:
+class IndentParser:
 	old = None
 	block = None
 	
 	def __init__(self, man, match):
 		self.old = man.getParser()
 		man.setParser(self)
-		self.block = NonParsedBlock()
+		self.block = highlight.CodeBlock(man, '')
 		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 		self.block.add(match.group(1))
 	
@@ -333,8 +341,8 @@ def handleRow(man, match):
 def handleHLine(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, doc.HorizontalLine()))
 
-def handleIdent(man, match):
-	IdentParser(man, match)
+def handleIndent(man, match):
+	IndentParser(man, match)
 
 def handleQuote(man, match):
 	man.send(doc.QuoteEvent(len(match.group(1))))
@@ -350,7 +358,7 @@ LINES = [
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
 	(handleHLine, re.compile("^-----*\s*$")),
-	(handleIdent, INDENT_RE),
+	(handleIndent, INDENT_RE),
 	(handleQuote, re.compile("^(>+)(.*)$"))
 ]
 

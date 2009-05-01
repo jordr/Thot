@@ -113,12 +113,11 @@ There is one footnote ((here and now)).
 ====== Block tests ======
 
 And now, a piece of code
-
 <code py>
 print "Hello, world !"
 </code>
 
-And now some C
+And now some C code
 <code c>
 #include <stdio.h>
 
@@ -127,7 +126,7 @@ int main(void) {
 }
 </code>
 
-
+A file below:
 <file>
 line1
 line2
@@ -135,6 +134,7 @@ line3
 line4
 </file>
 
+nowiki area:
 <nowiki>
 <code>
 no code !
