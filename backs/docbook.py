@@ -146,36 +146,37 @@ class Generator(back.Generator):
 	def genQuoteEnd(self, level):
 		self.out.write('</para></blockquote>')
 
-	def genTableBegin(self, width):
-		self.out.write('<table><tgroup cols="%d">"\n' % width)
-		for i in xrange(0, width):
+	def genTable(self, table):
+
+		# table prolog
+		self.out.write('<table><tgroup cols="%d">"\n' % table.getWidth())
+		for i in xrange(0, table.getWidth()):
 			self.out.write('<colspec colname="%d"/>' % i)
 		self.out.write('<tbody>\n')
+
+		# output rows
+		for row in table.getRows():
+			self.out.write('<row>\n')
+			icol = 0
+
+			# output columns
+			for cell in row.getCells():
+				self.out.write('<entry')
+				if cell.align <> doc.TAB_LEFT:
+					self.out.write(' align="%s"' % TAB_ALIGN[cell.align + 1])
+				if cell.span <> 1:
+					self.out.write(' namest="%d" nameend="%d"' % (icol, icol + cell.span - 1))
+				icol += cell.span
+				self.out.write('>')
+				cell.gen(self)
+				self.out.write('</entry>')
+				
+			self.out.write('</row>\n')		
 		
-	def genTableEnd(self):
+		# table epilog
 		self.out.write('</tbody></tgroup></table>\n')
 	
-	def genTableRowBegin(self):
-		self.tab_idx = 0
-		self.out.write('<row>\n')
 
-	def genTableRowEnd(self):
-		self.out.write('</row>\n')
-
-	def genTableCellBegin(self, kind, align, span):
-		self.out.write('<entry')
-		if align <> doc.TAB_LEFT:
-			self.out.write(' align="%s"' % TAB_ALIGN[align + 1])
-		if span <> 1:
-			self.out.write(' namest="%d" nameend="%d"' % (self.tab_idx, self.tab_idx + span - 1))
-			self.tab_idx += span
-		else:
-			self.tab_idx += 1
-		self.out.write('>')
-
-	def genTableCellEnd(self, kind, align, span):
-		self.out.write('</entry>')
-	
 	def genHorizontalLine(self):
 		pass
 	

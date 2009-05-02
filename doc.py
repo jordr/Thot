@@ -33,6 +33,8 @@ ID_TITLE = "title"
 ID_NEW_ITEM = "new_item"	# ItemEvent
 ID_END_ITEM = "end_item"
 
+ID_NEW_TAB = "new_tab"
+ID_END_TAB = "end_tab"
 ID_NEW_ROW = "new_row"
 ID_END_ROW = "end_row"
 ID_NEW_CELL = "new_cell"
@@ -541,11 +543,6 @@ class Cell(Par):
 		self.align = align
 		self.span = span
 
-	def gen(self, gen):
-		gen.genTableCellBegin(self.kind, self.align, self.span)
-		Par.gen(self, gen)
-		gen.genTableCellEnd(self.kind, self.align, self.span)
-	
 	def isEmpty(self):
 		return False
 
@@ -554,9 +551,11 @@ class Cell(Par):
 
 
 class Row(Container):
+	kind = None
 	
-	def __init__(self):
+	def __init__(self, kind):
 		Container.__init__(self)
+		self.kind = kind
 
 	def onEvent(self, man, event):
 		if event.id is ID_NEW_CELL:
@@ -574,42 +573,52 @@ class Row(Container):
 			width += cell.span
 		return width
 
-	def gen(self, gen):
-		gen.genTableRowBegin()
-		Container.gen(self, gen)
-		gen.genTableRowEnd()
-
 	def isEmpty(self):
 		return False
 
 	def dumpHead(self, tab):
 		print tab + 'row('
 
+	def getCells(self):
+		"""Get the list of cells."""
+		return self.content
+
 
 class Table(Container):
+	"""Repreentation of a table, that is composed or Rows that are
+	composed, in turn, of cells."""
+	width = None
 
 	def __init__(self):
 		Container.__init__(self)
 	
+	def getWidth(self):
+		if self.width == None:
+			self.width = self.content[0].getWidth()
+		return self.width
+	
 	def onEvent(self, man, event):
 		if event.id is ID_NEW_CELL:
-			self.add(man, Row())
+			man.push(self.content[0])
 			man.send(event)
 		elif event.id is ID_NEW_ROW:
-			self.add(man, Row())
+			self.add(man, event.make().content[0])
 		else:
 			man.forward(event)
 
 	def gen(self, gen):
-		gen.genTableBegin(self.content[0].getWidth())
-		Container.gen(self, gen)
-		gen.genTableEnd()
+		gen.genTable(self)
 
 	def isEmpty(self):
 		return False
 
+	def getRows(self):
+		"""Get the list of rows."""
+		return self.content
+
 	def dumpHead(self, tab):
 		print tab + 'table('
+
 
 # main family
 class HorizontalLine(Node):

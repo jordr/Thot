@@ -195,23 +195,27 @@ class Generator:
 	def genQuoteEnd(self, level):
 		pass
 
-	def genTableBegin(self, width):
+	def genTable(self, table):
+		"""Called when a table need to be generated."""
 		pass
+
+	#def genTableBegin(self, table):
+		#pass
 		
-	def genTableEnd(self):
-		pass
+	#def genTableEnd(self, table):
+		#pass
 	
-	def genTableRowBegin(self):
-		pass
+	#def genTableRowBegin(self, table, row):
+		#pass
 
-	def genTableRowEnd(self):
-		pass
+	#def genTableRowEnd(self, table, row):
+		#pass
 
-	def genTableCellBegin(self, kind, align, span):
-		pass
+	#def genTableCellBegin(self, table, row, cell):
+		#pass
 
-	def genTableCellEnd(self, kind, align, span):
-		pass
+	#def genTableCellEnd(self, table, row, cell):
+		#pass
 	
 	def genHorizontalLine(self):
 		pass

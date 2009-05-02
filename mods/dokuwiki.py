@@ -288,7 +288,14 @@ def handleNoWiki(man, match):
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, doc.Table()))
+	table = doc.Table()
+	if match.group(4) == '^':
+		kind = doc.TAB_HEADER
+	else:
+		kind = doc.TAB_NORMAL
+	row = doc.Row(kind)
+	table.content.append(row)
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, table))
 	row = match.group(1)
 	object = None
 	while row:

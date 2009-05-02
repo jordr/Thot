@@ -256,41 +256,73 @@ class Generator(back.Generator):
 	def genQuoteEnd(self, level):
 		self.out.write('\\end{quote}\n')
 
-	def genTableBegin(self, width):
+	def genTable(self, table):
+		
+		# output prolog
 		self.out.write('\\vspace{4pt}\n')
 		self.out.write('\\begin{tabular}{|')
-		for i in xrange(0, width):
+		for i in xrange(0, table.getWidth()):
 			self.out.write('c|')
 		self.out.write('}\n')
 		
-	def genTableEnd(self):
+		# compute vertical and horizontal lines
+		hlines = []
+		vlines = []
+		rows = table.getRows()
+		for i in xrange(0, len(rows)):
+			row = rows[i]
+			if i < len(rows) - 1 and row.kind <> rows[i + 1].kind:
+				hlines += [i]
+			if row.kind <> doc.TAB_HEADER:
+				cells = row.getCells()
+				pos = 0
+				for i in xrange(0, len(cells) - 1):
+					if pos not in vlines and cells[i].kind <> cells[i + 1].kind:
+						vlines += [pos]
+						pos += cells[i].span
+		
+		# generate the content
+		for irow in xrange(0, len(rows)):
+			self.out.write('\\hline\n')
+			row = rows[irow]
+			icol = 0
+			for cell in row.getCells():
+				
+				multi = False
+				if icol == 0:
+					lbar = '|'
+				else:
+					self.out.write(' & ')
+					lbar = ''
+				if icol in vlines:
+					rbar = '|'
+					multi = True
+				else:
+					rbar = ''
+				if cell.align <> doc.TAB_CENTER or cell.span <> 1:
+					multi = True
+				if multi:
+					self.out.write('\\multicolumn{%d}{%s%s|%s}{' % (cell.span, lbar, ALIGNMENT[cell.align + 1], rbar))
+				icol += cell.span
+				if cell.kind == doc.TAB_HEADER:
+					self.out.write('\\bf{')
+
+				cell.gen(self)
+
+				if cell.kind == doc.TAB_HEADER:
+					self.out.write('}')
+				if multi:
+					self.out.write('}')
+
+			self.out.write('\\\\\n')
+			if irow in hlines:
+				self.out.write('\\hline\n')
+	
+		# epilog	
 		self.out.write('\\hline\n')
 		self.out.write('\\end{tabular}\n')
 		self.out.write('\\vspace{4pt}\n\n')
-	
-	def genTableRowBegin(self):
-		self.out.write('\\hline\n')
-		self.first = True
 
-	def genTableRowEnd(self):
-		self.out.write('\\\\\n')
-
-	def genTableCellBegin(self, kind, align, span):
-		if self.first:
-			bar = '|'
-			self.first = False
-		else:
-			bar = ''
-			self.out.write(' & ')
-		if align <> doc.TAB_CENTER or span <> 1:
-			self.multi = True
-			self.out.write('\\multicolumn{%d}{%s%s|}{' % (span, bar, ALIGNMENT[align + 1]))
-
-	def genTableCellEnd(self, kind, align, span):
-		if self.multi:
-			self.multi = False
-			self.out.write('}')
-	
 	def genHorizontalLine(self):
 		self.out.write('\n\\vspace{4pt}\n')
 		self.out.write('\\hrule\n')

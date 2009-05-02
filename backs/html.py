@@ -151,38 +151,33 @@ class Generator(back.Generator):
 			self.out.write('</blockquote>')
 		self.out.write('\n')
 
-	def genTableBegin(self, width):
+	def genTable(self, table):
 		self.out.write('<table>\n')
+		for row in table.getRows():
+			self.out.write('<tr>\n')
+			for cell in row.getCells():
+				
+				if cell.kind == doc.TAB_HEADER:
+					self.out.write('<th')
+				else:
+					self.out.write('<td')
+				if cell.align == doc.TAB_LEFT:
+					pass
+				elif cell.align == doc.TAB_RIGHT:
+					self.out.write(' align="right"')
+				else:
+					self.out.write(' align="center"')
+				if cell.span <> 1:
+					self.out.write(' colspan="' + str(cell.span) + '"')
+				self.out.write('>')
+				cell.gen(self)
+				if cell.kind == doc.TAB_HEADER:
+					self.out.write('</th>\n')
+				else:
+					self.out.write('</td>\n')
 
-	def genTableEnd(self):
+			self.out.write('</tr>\n')
 		self.out.write('</table>\n')		
-	
-	def genTableRowBegin(self):
-		self.out.write('<tr>\n')
-
-	def genTableRowEnd(self):
-		self.out.write('</tr>\n')
-
-	def genTableCellBegin(self, kind, align, span):
-		if kind == doc.TAB_HEADER:
-			self.out.write('<th')
-		else:
-			self.out.write('<td')
-		if align == doc.TAB_LEFT:
-			self.out.write(' align="left"')
-		elif align == doc.TAB_RIGHT:
-			self.out.write(' align="right"')
-		else:
-			self.out.write(' align="center"')
-		if span <> 1:
-			self.out.write(' colspan="' + str(span) + '"')
-		self.out.write('>')
-
-	def genTableCellEnd(self, kind, align, span):
-		if kind == doc.TAB_HEADER:
-			self.out.write('</th>\n')
-		else:
-			self.out.write('</td>\n')
 	
 	def genHorizontalLine(self):
 		self.out.write('<hr/>')
