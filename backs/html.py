@@ -194,29 +194,16 @@ class Generator(back.Generator):
 	def genParEnd(self):
 		self.out.write('</p>\n')
 
-	def genListBegin(self, kind):
-		if kind == "ul":
-			self.out.write('<ul>\n')
-		elif kind == 'ol':
-			self.out.write('<ol>\n')
-		else:
-			raise Exception('list ' + kind + ' unsupported')
-	
-	def genListBegin(self, kind):
-		tag, _, _, _ = getList(kind)
-		self.out.write(tag + '\n')
-		
-	def genListItemBegin(self, kind):
-		_, tag, _, _ = getList(kind)
-		self.out.write(tag)
+	def genList(self, list):
+		list_begin, item_begin, item_end, list_end = getList(list.kind)
+		self.out.write(list_begin + '\n')
 
-	def genListItemEnd(self, kind):
-		_, _, tag, _ = getList(kind)
-		self.out.write(tag + '\n')
+		for item in list.getItems():
+			self.out.write(item_begin)
+			item.gen(self)
+			self.out.write(item_end + '\n')
 
-	def genListEnd(self, kind):
-		_, _, _, tag = getList(kind)
-		self.out.write(tag + '\n')
+		self.out.write(list_end + '\n')
 
 	def genStyleBegin(self, kind):
 		tag, _ = getStyle(kind)

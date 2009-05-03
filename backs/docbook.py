@@ -192,24 +192,22 @@ class Generator(back.Generator):
 	def genParEnd(self):
 		self.out.write('</para>\n')
 
-	def genListBegin(self, kind):
-		if kind == 'ul':
+	def genList(self, list):
+		if list.kind == 'ul':
 			self.out.write('<itemizedlist>\n')
-		elif kind == 'ol':
+		elif list.kind == 'ol':
 			self.out.write('<orderedlist>\n')
 		else:
-			common.onWarning('docbook does not support %s list' % kind)
+			common.onWarning('docbook does not support %s list' % list.kind)
 	
-	def genListItemBegin(self, kind):
-		self.out.write('<listitem>')
+		for item in list.getItems():
+			self.out.write('<listitem>')
+			item.gen(self)
+			self.out.write('</listitem>\n')
 
-	def genListItemEnd(self, kind):
-		self.out.write('</listitem>\n')
-
-	def genListEnd(self, kind):
-		if kind == 'ul':
+		if list.kind == 'ul':
 			self.out.write('</itemizedlist>\n')
-		elif kind == 'ol':
+		elif list.kind == 'ol':
 			self.out.write('</orderedlist>\n')
 
 	def genStyleBegin(self, kind):

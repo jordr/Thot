@@ -340,22 +340,19 @@ class Generator(back.Generator):
 	def genParEnd(self):
 		self.out.write('\n\n')
 
-	def genListBegin(self, kind):
-		if kind == 'ul':
+	def genList(self, list):
+		if list.kind == 'ul':
 			self.out.write('\\begin{itemize}\n')
-		elif kind == 'ol':
+		elif list.kind == 'ol':
 			self.out.write('\\begin{enumerate}\n')
 		else:
-			self.unsupported('%s list' % kind)
+			self.unsupported('%s list' % list.kind)
 
-	def genListItemBegin(self, kind):
-		self.out.write('\\item ')			
+		for item in list.getItems():
+			self.out.write('\\item ')			
+			item.gen(self)
 
-	def genListItemEnd(self, kind):
-		pass
-
-	def genListEnd(self, kind):
-		if kind == 'ul':
+		if list.kind == 'ul':
 			self.out.write('\\end{itemize}\n')
 		else:
 			self.out.write('\\end{enumerate}\n')

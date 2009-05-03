@@ -21,21 +21,21 @@ texte 1.2
 
 texte 1.2 b
 
-====== chapitre 2 ======
+====== List Tests ======
 
-===== section 2.1 =====
+===== unumbered list =====
 
   * item 1
   * item 2
   * item 3
 
-===== section 2.2 =====
+===== numbered list =====
 
   - item 1
   - item 2
   - item 3
 
-====== chapitre 3 ======
+===== nested list =====
 
   * item a
   * item b

@@ -232,18 +232,10 @@ class Generator:
 	def genParEnd(self):
 		pass
 
-	def genListBegin(self, kind):
+	def genList(self, list):
+		"""Generate output for a list."""
 		pass
 	
-	def genListItemBegin(self, kind):
-		pass
-
-	def genListItemEnd(self, kind):
-		pass
-
-	def genListEnd(self, kind):
-		pass
-
 	def genStyleBegin(self, kind):
 		pass
 

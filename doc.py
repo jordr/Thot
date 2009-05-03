@@ -513,13 +513,12 @@ class List(Container):
 	def dumpHead(self, tab):
 		print tab + "list(" + self.kind + "," + str(self.depth) + ", "
 
+	def getItems(self):
+		"""Get the list of items in the list."""
+		return self.content
+
 	def gen(self, gen):
-		gen.genListBegin(self.kind)
-		for item in self.getContent():
-			gen.genListItemBegin(self.kind)
-			item.gen(gen)
-			gen.genListItemEnd(self.kind)
-		gen.genListEnd(self.kind)
+		gen.genList(self)
 
 
 # Table
