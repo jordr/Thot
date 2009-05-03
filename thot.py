@@ -28,7 +28,7 @@ import common
 # Prepare environment
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.1"
-env["THOT_ENCODING"] = locale.getpreferredencoding()
+env["ENCODING"] = locale.getpreferredencoding()
 base = os.path.realpath(os.path.abspath(__file__))
 env["THOT_BASE"] = os.path.dirname(base) + '/'
 env["THOT_USE_PATH"] = env["THOT_BASE"] + "mods/"

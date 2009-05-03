@@ -29,7 +29,7 @@ import sys
 #	AUTHORS: document authors
 #	LANG: document language
 #	OUTPUT: one of 'latex' or 'pdf'
-#	THOT_ENCODING: character encoding
+#	ENCODING: character encoding
 #	LATEX_CLASS: latex class for document
 #	LATEX_PREAMBLE: insert just after document definition
 #	LATEX_PAPER: latex paper format (a4paper, letter, etc)
@@ -173,7 +173,7 @@ class Generator(back.Generator):
 						common.onError('cannot not support "%s"' % lang)
 
 		# look for encoding
-		self.encoding = self.doc.getVar('THOT_ENCODING').lower().replace('-', '_')
+		self.encoding = self.doc.getVar('ENCODING').lower().replace('-', '_')
 		if self.encoding:
 			if self.encoding == 'utf_8':
 				preamble += '\\usepackage{ucs}\n'

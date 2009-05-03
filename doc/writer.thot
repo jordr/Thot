@@ -75,6 +75,22 @@ bybe, bye World !
 
 ==== Default Variables ====
 
+As seen in the previous section, variables may be used to generate
+document content but they are also largely used to configure the
+behaviour of the different components of @(THOT) or to provide
+automatic information to the writer. This section
+describe the standard variables used by @(THOT). 
+
+The table shows all variables that may be provided to @(THOT):
+
+^ Variable ^Usage ^
+| ''AUTHORS'' |List of authors (including email and separated by comma). |
+| ''ENCODING'' |Character set encoding (as defined by IANA)((if not given, current character set is assumed.)). |
+| ''LANG'' |Language of the document (as in Unix locale). |
+| ''OUTPUT'' |Used by some back-end to precise output (pdf for example) |
+| ''TITLE'' |Title of the generated document. |
+| ''VERSION'' |Version of the document |
+
 ==== Module Usage ====
 
 ==== Inclusion ====

@@ -30,9 +30,9 @@ import back
 #	TITLE: title of the document
 #	AUTHORS: authors of the document
 #	LANG: lang of the document
+#	ENCODING: charset for the document
 #	THOT_OUT_PATH:	HTML out file
 #	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
-#	THOT_ENCODING: charset for the document
 #	HTML_STYLES: CSS styles to use (':' separated)
 #	HTML_SHORT_ICON: short icon for HTML file
 
@@ -264,7 +264,7 @@ class Generator(back.Generator):
 		self.out.write("	<title>" + cgi.escape(self.doc.getVar('TITLE')) + "</title>\n")
 		self.out.write('	<meta name="AUTHOR" content="' + cgi.escape(self.doc.getVar('AUTHORS'), True) + '">\n')
 		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
-		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('THOT_ENCODING'), True) + '">\n')
+		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('ENCODING'), True) + '">\n')
 		styles = self.doc.getVar("HTML_STYLES")
 		if styles:
 			for style in styles.split(':'):

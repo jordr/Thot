@@ -548,6 +548,9 @@ class Cell(Par):
 	def dumpHead(self, tab):
 		print tab + 'cell(' + TABLE_KINDS[self.kind] + ', ' + TABLE_ALIGNS[self.align + 1] + ', ' + str(self.span) + ','
 
+	def gen(self, gen):
+		Container.gen(self, gen)
+
 
 class Row(Container):
 	kind = None

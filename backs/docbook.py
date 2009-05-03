@@ -27,9 +27,9 @@ import re
 #	TITLE: document title
 #	AUTHORS: document authors
 #	LANG: document language
+#	ENCODING: character encoding
 #	OUTPUT: the kind of output (pdf only supported for now)
 #	DOCBOOK_BACKEND: may be openjade or dblatex
-#	THOT_ENCODING: character encoding
 #
 # NOTES
 #	highlight col/row headers not implemented (impossible for col)
@@ -77,7 +77,7 @@ class Generator(back.Generator):
 
 		# generate document header
 		self.doc.pregen(self)
-		self.out.write('<?xml version="1.0" encoding="%s" standalone="yes"?>\n' % self.doc.getVar('THOT_ENCODING'))
+		self.out.write('<?xml version="1.0" encoding="%s" standalone="yes"?>\n' % self.doc.getVar('ENCODING'))
 		self.out.write('<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">\n')
 		if self.sgml:
 			self.out.write('<book>\n')
