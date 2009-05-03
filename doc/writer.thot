@@ -73,6 +73,7 @@ hello World !
 bybe, bye World !
 </code>
 
+
 ==== Default Variables ====
 
 As seen in the previous section, variables may be used to generate
@@ -91,14 +92,92 @@ The table shows all variables that may be provided to @(THOT):
 | ''TITLE'' |Title of the generated document. |
 | ''VERSION'' |Version of the document |
 
+The variable below are provided by @(THOT) but must not be changed
+(unless you know exactly what you do):
+^ Variable ^Content ^
+| ''THOT_BASE'' |Base directory of @(THOT)((It may be used to retrieve resources provided by @(THOT) like CSS stylesheets.)). |
+| ''THOT_DATE'' |Current date. |
+| ''THOT_FILE'' |Start file containing the @(THOT) text (as passed in command line). |
+| ''THOT_OUT_PATH'' |Path of the file to generate (as passed to ''-o'' option). |
+| ''THOT_OUT_TYPE'' |Type of output back-end (as passed to ''-t'' option). |
+| ''THOT_USE_PATH'' |Colon-separated list of directory containing modules. |
+| ''THOT_VERSION'' |Current version of @(THOT) |
+
+There exist other variables according to used modules or back-end 
+that may be found in their documentation.
+
+
 ==== Module Usage ====
+
+As shown in the tutorial example, a	proeminent feature of @(THOT) is
+the configuration of the text scanner according needs of the user.
+This is mainly performed by the use of specific modules that add
+syntax to the basic parser of @(THOT). To use a module, you have
+just to add the following syntax:
+<code>
+@use MODULE_NAME
+</code>
+
+The module use is usually performed at the start of the document but
+it is not mandatory. The module is retrieved from the paths found
+in the ''THOT_USE_PATH'' variable (separated by colons). This variable
+is initialized with the path ''$(THOT_BASE)/mods''.
+
+Notice that, when you include a front-end module, like ''dokuwiki'',
+syntax from the previous front-end module are removed but other
+syntax rules are kept.
+
 
 ==== Inclusion ====
 
-==== Modules ====
+@(THOT) allows to split big document in multiple files. Then, one has
+to re-assemble the document using inclusion in the main document. The
+inclusion is performed in textual way as if the included text was
+replacing the inclusion command.
 
-===== Dokuwiki Front-end =====
+An inclusion command has the following syntax:
+<code>
+@include PATH_TO_FILE_TO_INCLUDE
+</code>
 
-===== HTML Back-end =====
+The passed path may be absolute or relative. In the latter case, the
+absolute path is built from the path of the directory containing the
+main file. This ensures that the document is well built whatever the
+working directory of @(THOT) invocation.
 
-===== Dot Module =====
+
+==== Command ====
+
+The ''thot'' command supports the syntax below:
+<code sh>
+> thot MAIN_FILE OPTIONS
+</code>
+
+The //MAIN_FILE// is @(THOT) file matching the syntax described in
+this chapter. The //OPTIONS// are described below:
+  * ''-h'', ''--help'': display the help of the command ;
+  * ''-o'', ''--out'' //FILE//: select the output file ;
+  * ''-D'', ''--define'' //NAME//''=''//VALUE'': defines a variable with its value ;
+  * ''-t'', ''--type'' //TYPE//: define the type of chosen back-end
+(default value ''html'', or one of ''docbook'' and ''latex'').
+
+
+===== Modules =====
+
+==== Dokuwiki Front-end ====
+
+==== Dot Module ====
+
+
+
+===== Back-ends =====
+
+
+==== HTML Back-end ====
+
+
+==== Latex Back-end ====
+
+
+==== DocBook Back-end ====
+
