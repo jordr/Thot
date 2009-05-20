@@ -242,6 +242,9 @@ class Generator:
 	def genStyleEnd(self, kind):
 		pass
 
+	def genHeader(self, header):
+		return False
+
 	def genHeaderBegin(self, level):
 		pass
 		

@@ -35,6 +35,7 @@ import back
 #	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
 #	HTML_STYLES: CSS styles to use (':' separated)
 #	HTML_SHORT_ICON: short icon for HTML file
+#	HTML_ONE_FILE_PER: one of document (default), chapter, section.
 
 CSS_URL_RE = re.compile('url\(([^)]*)\)')
 
@@ -62,7 +63,75 @@ def getStyle(style):
 		return STYLES[style]
 	else:
 		raise Exception('style ' + style + ' not supported')
+
+
+class PagePolicy:
+	"""A page policy allows to organize the generated document
+	according the preferences of the user."""
+	gen = None
+	
+	def __init__(self, gen):
+		self.gen = gen
+	
+	def onHeaderBegin(self, header):
+		pass
+	
+	def onHeaderEnd(self, header):
+		pass
+	
+	def unfolds(self, header):
+		return True
+	
+	def ref(self, header, number):
+		return	"#" + number
+
+
+class AllInOne(PagePolicy):
+	"""Simple page policy doing nothing: only one page."""
+
+	def __init__(self, gen):
+		PagePolicy.__init__(self, gen)
+
+
+class PerChapter(PagePolicy):
+	"""This page policy ensures there is one page per chapter."""
+	ctx = None
+	chapter = None
+
+	def __init__(self, gen):
+		PagePolicy.__init__(self, gen)
+		ctx = []
+
+	def onHeaderBegin(self, header):
+		if header.getLevel() == 0:
+			self.chapter = header
+			self.gen.openPage(header)
+			self.gen.genDocHeader()
+			self.gen.genTitle()
+			counters = self.gen.counters
+			self.gen.counters = {}
+			self.gen.genContent()
+			self.gen.counters = counters
+			self.gen.out.write('<div class="page">\n')
 		
+	def onHeaderEnd(self, header):
+		if header.getLevel() == 0:
+			self.header = None
+			self.gen.genFootNotes()
+			self.gen.out.write('</div>\n')
+			self.gen.genFooter()
+			self.gen.closePage()
+			print "generated %s" % (self.gen.getPage(header))
+
+	def unfolds(self, header):
+		return header == self.chapter or header.getLevel() <> 0
+	
+	def ref(self, header, number):
+		if header.level == 0:
+			return os.path.basename(self.gen.getPage(header))
+		else:
+			return PagePolicy.ref(self, header, number)
+
 
 class Generator(back.Generator):
 	"""Generator for HTML output."""
@@ -74,10 +143,20 @@ class Generator(back.Generator):
 	from_files = None
 	to_files = None
 	footnotes = None
+	struct = None
+	policy = None
+	pages = None
+	page_count = None
+	stack = None
 	
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
 		self.footnotes = []
+		self.pages = { }
+		self.policy = AllInOne(self)
+		self.pages = { }
+		self.page_count = 0
+		self.stack = []
 
 	def getType(self):
 		return 'html'
@@ -89,7 +168,7 @@ class Generator(back.Generator):
 		# get target path
 		tpath = self.getFriendFile(spath)
 		if tpath:
-			return tpath
+			return self.getFriendRelativePath(tpath)
 		tpath = self.addFriendFile(spath)
 		
 		# open files
@@ -213,26 +292,25 @@ class Generator(back.Generator):
 		_, tag = getStyle(kind)
 		self.out.write(tag)
 
-	def genHeaderBegin(self, level):
-		pass
+	def genHeader(self, header):
 		
-	def genHeaderTitleBegin(self, level):
-		number = self.nextHeaderNumber(level)
-		self.out.write('<h' + str(level + 1) + '>')
+		# prolog
+		number = self.nextHeaderNumber(header.getLevel())
+		self.policy.onHeaderBegin(header)
+		
+		# title
+		self.out.write('<h' + str(header.getLevel() + 1) + '>')
 		self.out.write('<a name="' + number + '"/>')
 		self.out.write(number)
-
-	def genHeaderTitleEnd(self, level):
-		self.out.write('</h' + str(level + 1) + '>\n')
+		header.genTitle(self)
+		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
 	
-	def genHeaderBodyBegin(self, level):
-		pass
-	
-	def genHeaderBodyEnd(self, level):
-		pass
-	
-	def genHeaderEnd(self, level):
-		pass
+		# body
+		header.genBody(self)
+		
+		# epilog
+		self.policy.onHeaderEnd(header)
+		return True
 
 	def genLinkBegin(self, url):
 		self.out.write('<a href="' + url + '">')
@@ -257,7 +335,7 @@ class Generator(back.Generator):
 	def genLineBreak(self):
 		self.out.write('<br/>')
 
-	def genHeader(self):
+	def genDocHeader(self):
 		self.out.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
 		self.out.write('<html>\n')
 		self.out.write('<head>\n')
@@ -291,12 +369,12 @@ class Generator(back.Generator):
 	def genFooter(self):
 		self.out.write("</div>\n</body>\n</html>\n")
 	
-	def genContentItem(self, content):
+	def genContentItem(self, content, max = 7, out = False):
 		
 		# look if there is some content
 		some = False
 		for item in content:
-			if item.getTitleLevel() >= 0:
+			if item.getHeaderLevel() >= 0:
 				some = True
 				break
 		if not some:
@@ -305,34 +383,66 @@ class Generator(back.Generator):
 		# generate the content
 		self.out.write('		<ul class="toc">\n')
 		for item in content:
-			level = item.getTitleLevel()
+			level = item.getHeaderLevel()
 			if level == -1:
 				continue
 			number = self.nextHeaderNumber(level)
+			ref = self.policy.ref(item, number)
 			self.out.write('			<li>')
-			self.out.write('<a href="#' + number + '">')
+			self.out.write('<a href="%s">' % ref)
 			self.out.write(number + ' ')
 			item.genTitle(self)
 			self.out.write('</a>')
-			self.genContentItem(item.getContent())
+			if self.policy.unfolds(item) and max > 1:
+				self.genContentItem(item.getContent(), max - 1, out)
 			self.out.write('</li>\n')
 		self.out.write('		</ul>\n')
 
-	def genContent(self):
+	def genContent(self, max = 7, out = False):
 		self.resetCounters()
 		self.out.write('	<div class="toc">\n')
 		self.out.write('		<h1><a name="toc"/>' + cgi.escape(self.trans.get('Table of content')) + '</h1>\n')
-		self.genContentItem(self.doc.getContent())
+		self.genContentItem(self.doc.getContent(), max, out)
 		self.out.write('	</div>\n')
 	
+	def getPage(self, header):
+		if not self.pages.has_key(header):
+			self.pages[header] = "%s-%d.html" % (self.root, self.page_count)
+			self.page_count += 1
+		return self.pages[header]
+	
+	def openPage(self, header):
+		path = self.getPage(header)
+		self.stack.append((self.out, self.footnotes))
+		self.out = open(path, 'w')
+		self.footnotes = []
+	
+	def closePage(self):
+		self.out.close()
+		self.out, self.footnotes = self.stack.pop()
+
 	def run(self):
+		
+		# select the policy
+		self.struct = self.doc.getVar('HTML_ONE_FILE_PER')
+		if self.struct == 'document' or self.struct == '':
+			pass
+		elif self.struct == 'chapter':
+			self.policy = PerChapter(self)
+		elif self.struct == 'section':
+			pass
+		else:
+			common.onError('one_file_per %s structure is not supported' % self.struct)
+
+		# generate the document
 		self.openMain('.html')
 		self.doc.pregen(self)
-		self.genHeader()
+		self.genDocHeader()
 		self.genTitle()
 		self.genContent()
 		self.genBody()
 		self.genFooter()
+		print "SUCCESS: result in %s" % self.path
 
 
 def output(doc):

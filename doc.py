@@ -187,7 +187,7 @@ class Node:
 	def clean(self):
 		pass
 	
-	def getTitleLevel(self):
+	def getHeaderLevel(self):
 		return -1
 	
 	def genTitle(self, gen):
@@ -671,20 +671,31 @@ class Header(Container):
 	def isEmpty(self):
 		return False
 	
-	def getTitleLevel(self):
+	def getLevel(self):
 		return self.level
+	
+	def getHeaderLevel(self):
+		return self.level
+	
+	def getTitle(self):
+		return self.title
 	
 	def genTitle(self, gen):
 		for item in self.title.getContent():
 			item.gen(gen)
 	
+	def genBody(self, gen):
+		Container.gen(self, gen)
+	
 	def gen(self, gen):
+		if gen.genHeader(self):
+			return
 		gen.genHeaderBegin(self.level)
 		gen.genHeaderTitleBegin(self.level)
 		self.genTitle(gen)
 		gen.genHeaderTitleEnd(self.level)
 		gen.genHeaderBodyBegin(self.level)
-		Container.gen(self, gen)
+		self.genBody(gen)
 		gen.genHeaderBodyEnd(self.level)
 		gen.genHeaderEnd(self.level)
 
