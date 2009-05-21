@@ -1,5 +1,5 @@
 
-SUBDIRS=mods backs langs css doc
+SUBDIRS=mods backs langs css doc test
 
 SOURCES = \
 	common.py \
@@ -14,6 +14,7 @@ OBJECTS = $(SOURCES:.py=.pyc)
 ALL = $(OBJECTS)
 INSTALL = custom-install
 CLEAN_FILES = $(OBJECTS)
+DIST_FILES=smileys Makefile.std Makefile.spec COPYING README
 
 include Makefile.std
 

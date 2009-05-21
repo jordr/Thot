@@ -11,6 +11,7 @@ CSS = \
 ALL = $(CSS)
 INSTALL = custom-install
 CLEAN_FILES = $(CSS)
+DIST_FILES=images ini make.py style.css
 
 include ../../Makefile.std
 

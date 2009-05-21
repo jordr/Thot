@@ -4,6 +4,7 @@ IMPORTS=$(DOCS:.thot=-imports)
 ALL = $(HTML)
 INSTALL = custom-install
 CLEAN_FILES += $(HTML) $(IMPORTS)
+DIST_FILES = $(wildcard *.thot)
 
 include ../Makefile.std
 
