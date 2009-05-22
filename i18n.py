@@ -62,9 +62,9 @@ def getTranslator(doc):
 	if comps[0] == 'en':
 		return DefaultTranslator()
 	else:
-		mod = common.loadModule(comp[0], path)
-		if mode:
-			return mod.getTranslator(doc, comp[0])
+		mod = common.loadModule(comps[0], path)
+		if mod:
+			return mod.getTranslator(doc, comps[0])
 		else:
 			sys.stderr.write('WARNING: cannot find language ' + nlang + "\n")
 			return DefaultTranslator()

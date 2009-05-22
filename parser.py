@@ -17,7 +17,6 @@ INITIAL_WORDS = [
 ]
 
 def handleText(man, line):
-	global re
 	
 	# init RE_WORDS
 	if man.words_re == None:
@@ -34,7 +33,7 @@ def handleText(man, line):
 	match = man.words_re.search(line)
 	while match:
 		idx = int(match.lastgroup[1:])
-		fun, re = man.words[idx]
+		fun, wre = man.words[idx]
 		word = line[:match.start()]
 		if word:
 			man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(word)))

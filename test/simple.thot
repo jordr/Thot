@@ -192,3 +192,8 @@ I say "@(V1)" !!!!
 
 @include include.thot
 
+====== Example of math module ======
+
+@use latexmath
+
+And an equation $x^2 + y^2$ and a single $$ !
