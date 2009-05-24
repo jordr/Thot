@@ -19,6 +19,7 @@ import subprocess
 
 MIMETEX_AVAILABLE = True
 count = 0
+formulae = { }
 
 class LatexMath(doc.Word):
 	
@@ -31,33 +32,39 @@ class LatexMath(doc.Word):
 	def gen(self, gen):
 		global MIMETEX_AVAILABLE
 		global count
+		global formulae
 		
 		if gen.getType() == "latex":
 			gen.genVerbatim("$%s$" % self.text)
 		else:
-			if not MIMETEX_AVAILABLE:
-				return
-			path = gen.addFriendFile("/latexmath/latexmath-%s.gif" % count);
-			count += 1
-			print path
-			try:
-				proc = subprocess.Popen(
-					["mimetex -d '%s' -e %s" % (self.text, path)],
-					stdout = subprocess.PIPE,
-					stderr = subprocess.PIPE,
-					shell = True
-				)
-				out, err = proc.communicate()
-				if proc.returncode <> 0:
-					sys.stderr.write(out)
-					sys.stderr.write(err)
-					self.onWarning("bad latexmath formula.")
-				else:
-					gen.genImage(gen.getFriendRelativePath(path))
-
-			except OSError, e:
-				MIMETEX_AVAILABLE = False
-				self.onWarning("mimetex is not available: no latexmath !")
+			rpath = ''
+			if formulae.has_key(self.text):
+				rpath = formulae[self.text]
+			else:
+				if not MIMETEX_AVAILABLE:
+					return
+				path = gen.addFriendFile("/latexmath/latexmath-%s.gif" % count);
+				count += 1
+				try:
+					proc = subprocess.Popen(
+						["mimetex -d '%s' -e %s" % (self.text, path)],
+						stdout = subprocess.PIPE,
+						stderr = subprocess.PIPE,
+						shell = True
+					)
+					out, err = proc.communicate()
+					if proc.returncode <> 0:
+						sys.stderr.write(out)
+						sys.stderr.write(err)
+						self.onWarning("bad latexmath formula.")
+					else:
+						rpath = gen.getFriendRelativePath(path)
+						formulae[self.text] = rpath
+				except OSError, e:
+					MIMETEX_AVAILABLE = False
+					self.onWarning("mimetex is not available: no latexmath !")
+			if rpath:
+				gen.genImage(rpath)
 
 
 def handleMath(man, match):

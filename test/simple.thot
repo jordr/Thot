@@ -197,3 +197,8 @@ I say "@(V1)" !!!!
 @use latexmath
 
 And an equation $x^2 + y^2$ and a single $$ !
+
+And another time $x^2 + y^2$ ...
+
+And a nice example : $\LARGE e^x=\sum_{n=0}^\infty\frac{x^n}{n!}$
+
