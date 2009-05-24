@@ -199,24 +199,6 @@ class Generator:
 		"""Called when a table need to be generated."""
 		pass
 
-	#def genTableBegin(self, table):
-		#pass
-		
-	#def genTableEnd(self, table):
-		#pass
-	
-	#def genTableRowBegin(self, table, row):
-		#pass
-
-	#def genTableRowEnd(self, table, row):
-		#pass
-
-	#def genTableCellBegin(self, table, row, cell):
-		#pass
-
-	#def genTableCellEnd(self, table, row, cell):
-		#pass
-	
 	def genHorizontalLine(self):
 		pass
 	

@@ -1,6 +1,7 @@
 SOURCES = \
 	dokuwiki.py \
-	dot.py
+	dot.py \
+	latexmath.py
 OBJECTS =  $(SOURCES:.py=.pyc)
 
 ALL = $(OBJECTS)
