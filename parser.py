@@ -161,9 +161,12 @@ class Manager:
 		self.file_name = prev_file
 
 	def parse(self, file, name = '<unknown>'):
-		self.parseInternal(file, name)
-		self.send(doc.Event(doc.L_DOC, doc.ID_END))
-		self.doc.clean()
+		try:
+			self.parseInternal(file, name)
+			self.send(doc.Event(doc.L_DOC, doc.ID_END))
+			self.doc.clean()
+		except Exception, e:
+			common.onError('%s:%d: %s' % (self.file_name, self.line_num, str(e)))
 	
 	def addLine(self, line):
 		self.added_lines.append(line)
