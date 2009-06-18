@@ -356,7 +356,21 @@ class Generator(back.Generator):
 	def genTitle(self):
 		self.out.write('<div class="header">\n')
 		self.out.write('	<div class="title">' + cgi.escape(self.doc.getVar('TITLE')) + '</div>\n')
-		self.out.write('	<div class="authors">' + cgi.escape(self.doc.getVar('AUTHORS')) + '</div>\n')
+		self.out.write('	<div class="authors">')
+		authors = common.scanAuthors(self.doc.getVar('AUTHORS'))
+		first = True
+		for author in authors:
+			if first:
+				first = False
+			else:
+				self.out.write(', ')
+			email = author['email']
+			if email:
+				self.out.write('<a href="mailto:' + cgi.escape(email) + '">')
+			self.out.write(cgi.escape(author['name']))
+			if email:
+				self.out.write('</a>')
+		self.out.write('</div>\n')
 		self.out.write('</div>')
 	
 	def genBody(self):
