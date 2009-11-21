@@ -9,7 +9,7 @@ make document-making as less painful as possible while unleashing
 powerful textual dialect: the basic wiki syntax may be improved by
 augmenting the syntax thanks to external modules.
 
-Thot is delivered unser the license GPL v2 delivered in the COPYING file.
+Thot is delivered under the license GPL v2 delivered in the COPYING file.
 
 To install Thot, unpacke the archive containing it and type:
 	> cd Thot-VXX/
