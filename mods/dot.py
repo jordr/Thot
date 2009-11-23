@@ -28,7 +28,7 @@ class DotBlock(doc.Block):
 	"""A block containing .dot graph.
 	See http://www.graphviz.org/ for more details."""
 	kind = None
-	
+
 	def __init__(self, kind):
 		doc.Block.__init__(self)
 		if not kind:
@@ -38,7 +38,7 @@ class DotBlock(doc.Block):
 
 	def dumpHead(self, tab):
 		print "%sblock.dot(" % tab
-	
+
 	def gen(self, gen):
 		global count
 		path = gen.addFriendFile('/dot/graph-%s.png' % count)
@@ -56,7 +56,9 @@ class DotBlock(doc.Block):
 			if process.returncode:
 				sys.stderr.write(err)
 				self.onError('error during dot call')
+			gen.genEmbeddedBegin('figure', self.label)
 			gen.genImage(gen.getFriendRelativePath(path))
+			gen.genEmbeddedEnd()
 		except OSError, e:
 			self.onError('can not process dot graph: %s' % str(e))
 
@@ -64,7 +66,7 @@ class DotBlock(doc.Block):
 DOT_CLOSE = re.compile("^@</dot>")
 
 def handleDot(man, match):
-	parser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)	
+	parser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
 
 DOT_LINE = (handleDot, re.compile("^@<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
 

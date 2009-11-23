@@ -80,7 +80,7 @@ As seen in the previous section, variables may be used to generate
 document content but they are also largely used to configure the
 behaviour of the different components of @(THOT) or to provide
 automatic information to the writer. This section
-describe the standard variables used by @(THOT). 
+describe the standard variables used by @(THOT).
 
 The table shows all variables that may be provided to @(THOT):
 
@@ -103,7 +103,7 @@ The variable below are provided by @(THOT) but must not be changed
 | ''THOT_USE_PATH'' |Colon-separated list of directory containing modules. |
 | ''THOT_VERSION'' |Current version of @(THOT) |
 
-There exist other variables according to used modules or back-end 
+There exist other variables according to used modules or back-end
 that may be found in their documentation.
 
 
@@ -145,6 +145,26 @@ absolute path is built from the path of the directory containing the
 main file. This ensures that the document is well built whatever the
 working directory of @(THOT) invocation.
 
+
+==== Assigning a label to an embedded part ====
+
+In Thot terminology, an embedded part is a piece of document that is
+not part of the main flow of text. Usual embedded parts are figures,
+tables, listing, etc.
+
+Label may hooked to embedded in a standard way using the ''@label''
+syntax. The label is formed by any word and formatting following
+the ''@label'' keyword to the end of the file. It must be placed
+just after the embedded part as in the example below.
+
+<file>
+  <code c>
+  int main() {
+    return 0;
+  }
+  </code>
+  @label This is //my// listing
+</file>
 
 ==== Command ====
 

@@ -3,7 +3,7 @@ import re
 import doc
 import common
 import os.path
-	
+
 
 ############### Word Parsing #####################
 
@@ -17,7 +17,7 @@ INITIAL_WORDS = [
 ]
 
 def handleText(man, line):
-	
+
 	# init RE_WORDS
 	if man.words_re == None:
 		text = ""
@@ -28,7 +28,7 @@ def handleText(man, line):
 			text = text + "(?P<a" + str(i) + ">" + wre + ")"
 			i = i + 1
 		man.words_re = re.compile(text)
-	
+
 	# look in line
 	match = man.words_re.search(line)
 	while match:
@@ -40,7 +40,7 @@ def handleText(man, line):
 		line = line[match.end():]
 		fun(man, match)
 		match = man.words_re.search(line)
-	
+
 	# end of line
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(line + ' ')))
 
@@ -75,15 +75,26 @@ def handleInclude(man, match):
 	except IOError, e:
 		common.onError('%s:%d: cannot include "%s": %s' % (path, str(e), man.file_name, man.line_num))
 
+def handleLabel(man, match):
+	par = doc.Par()
+	man.push(par)
+	man.getParser().parse(man, match.group(1))
+	while par <> man.get():
+		man.pop()
+	man.pop()
+	man.get().setLabel(par)
+
+
 INITIAL_LINES = [
 	(handleComment, re.compile("^@@.*")),
 	(handleAssign, re.compile("^@([a-zA-Z_0-9]+)\s*=(.*)")),
 	(handleUse, re.compile("^@use\s+(\S+)")),
-	(handleInclude, re.compile('^@include\s+(.*)'))
+	(handleInclude, re.compile('^@include\s+(.*)')),
+	(handleLabel, re.compile('^@label\s+(.*)'))
 ]
 
 class DefaultParser:
-	
+
 	def parse(self, handler, line):
 		line = handler.doc.reduceVars(line)
 		done = False
@@ -110,7 +121,7 @@ class Manager:
 	line_num = None
 	file_name = None
 	used_mods = None
-	
+
 	def __init__(self, doc):
 		self.item = doc
 		self.doc = doc
@@ -121,29 +132,29 @@ class Manager:
 		self.added_lines = []
 		self.added_words = []
 		self.used_mods = []
-	
+
 	def get(self):
-		return item
-	
+		return self.item
+
 	def send(self, event):
 		self.item.onEvent(self, event)
-	
+
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
 		item.setFileLine(self.file_name, self.line_num)
-	
+
 	def pop(self):
 		self.item = self.items.pop()
-	
+
 	def forward(self, event):
 		#print "forward(" + str(event) + ")"
 		self.pop()
 		self.send(event)
-	
+
 	def setParser(self, parser):
 		self.parser = parser
-	
+
 	def getParser(self):
 		return self.parser
 
@@ -167,24 +178,24 @@ class Manager:
 			self.doc.clean()
 		except Exception, e:
 			common.onError('%s:%d: %s' % (self.file_name, self.line_num, str(e)))
-	
+
 	def addLine(self, line):
 		self.added_lines.append(line)
 		self.lines.append(line)
-	
+
 	def addWord(self, word):
 		self.added_words.append(word)
 		self.words.append(word)
 		self.words_re = None
-	
+
 	def setSyntax(self, lines, words):
-		
+
 		# process lines
 		self.lines = []
 		self.lines.extend(INITIAL_LINES)
 		self.lines.extend(self.added_lines)
 		self.lines.extend(lines)
-		
+
 		# process words
 		self.words = []
 		self.words.extend(INITIAL_WORDS)
@@ -196,7 +207,7 @@ class BlockParser:
 	old = None
 	block = None
 	re = None
-	
+
 	def __init__(self, man, block, re):
 		self.old = man.getParser()
 		man.setParser(self)

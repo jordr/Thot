@@ -188,7 +188,7 @@ def genCode(gen, lang, text):
 			unsupported.append(lang)
 		if gen.getType() not in BACKS and gen.getType() not in unsupported_backs:
 			sys.stderr.write('WARNING: ' + gen.getType() + ' unsupported highlight back-end\n')
-			unsupported_baks.append(lang)			
+			unsupported_baks.append(lang)
 		if type == 'latex':
 			gen.genVerbatim('\\begin{verbatim}\n')
 		gen.genVerbatim(text)
@@ -197,11 +197,11 @@ def genCode(gen, lang, text):
 
 
 class Feature(doc.Feature):
-	
+
 	def prepare(self, gen):
 		type = gen.getType()
 		if type in CSS_BACKS:
-			
+
 			# build the CSS file
 			try:
 				css = gen.addFriendFile('/highlight/highlight.css')
@@ -216,7 +216,7 @@ class Feature(doc.Feature):
 			except OSError, e:
 				sys.stderr.write("ERROR: can not call 'highlight'\n")
 				sys.exit(1)
-			
+
 			# add the file to the style
 			styles = gen.doc.getVar('HTML_STYLES')
 			if styles:
@@ -225,7 +225,7 @@ class Feature(doc.Feature):
 			gen.doc.setVar('HTML_STYLES', styles)
 
 		if type == 'latex':
-			
+
 			# build the .sty file
 			try:
 				css = gen.addFriendFile('/highlight/highlight.sty')
@@ -240,7 +240,7 @@ class Feature(doc.Feature):
 			except OSError, e:
 				sys.stderr.write("ERROR: can not call 'highlight'\n")
 				sys.exit(1)
-						
+
 			# build the preamble
 			preamble = gen.doc.getVar('LATEX_PREAMBLE')
 			preamble += '\\usepackage{color}\n'
@@ -263,20 +263,22 @@ class CodeBlock(doc.Block):
 		print tab + "code(" + self.lang + ","
 
 	def gen(self, gen):
-		
+
 		# aggregate code
 		text = ""
 		for line in self.content:
 			if text <> "":
 				text += '\n'
 			text += line
-		
+
 		# generate the code
 		type = gen.getType()
 		if type == 'html':
+			gen.genEmbeddedBegin("listing", self.label)
 			gen.genVerbatim('<pre class="code">\n')
 			genCode(gen, self.lang, text)
 			gen.genVerbatim('</pre>')
+			gen.genEmbeddedEnd()
 		elif type == 'latex':
 			genCode(gen, self.lang, text)
 		elif type == 'docbook':

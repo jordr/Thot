@@ -105,24 +105,26 @@ class FileBlock(doc.Block):
 		print "%sblock.file(" % tab
 
 	def gen(self, gen):
+		gen.genEmbeddedBegin('listing', self.label)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<pre class="file">\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
+				gen.genText(line + "\n")
 			gen.genVerbatim('</pre>\n')
 		elif type == 'latex':
 			gen.genVerbatim('\\begin{verbatim}\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
+				gen.genText(line + "\n")
 			gen.genVerbatim('\\end{verbatim}\n')
 		elif type == 'docbook':
 			gen.genVerbatim('<screen>\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
+				gen.genText(line + "\n")
 			gen.genVerbatim('</screen>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
+		gen.genEmbeddedEnd()
 
 
 class NonParsedBlock(doc.Block):
@@ -134,6 +136,7 @@ class NonParsedBlock(doc.Block):
 		print "%sblock.nonparsed(" % tab
 
 	def gen(self, gen):
+		gen.genEmbeddedBegin('listing', self.label)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<p>\n')
@@ -150,6 +153,7 @@ class NonParsedBlock(doc.Block):
 			gen.genVerbatim('</para>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
+		gen.genEmbeddedEnd()
 
 
 ### code parse ###

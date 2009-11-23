@@ -148,6 +148,7 @@ class Generator(back.Generator):
 	pages = None
 	page_count = None
 	stack = None
+	label = None
 
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
@@ -372,6 +373,24 @@ class Generator(back.Generator):
 			if email:
 				self.out.write('</a>')
 		self.out.write('</div>\n')
+		self.out.write('</div>')
+
+	def genLabel(self, par):
+		self.out.write('<div class="label">')
+		par.gen(self)
+		self.out.write('</div>')
+
+	def genEmbeddedBegin(self, kind, label):
+		self.out.write('<div class="%s">' % kind)
+		if label and kind == 'listing':
+			self.genLabel(label)
+			self.label = None
+		else:
+			self.label = label
+
+	def genEmbeddedEnd(self):
+		if self.label:
+			self.genLabel(self.label)
 		self.out.write('</div>')
 
 	def genBody(self):
