@@ -61,6 +61,7 @@ LANGS=[
   'frink',
   'haskell',
   'hcl',
+  'html',
   'httpd',
   'icn',
   'idl',
@@ -191,7 +192,7 @@ def genCode(gen, lang, text):
 			unsupported_baks.append(lang)
 		if type == 'latex':
 			gen.genVerbatim('\\begin{verbatim}\n')
-		gen.genVerbatim(text)
+		gen.genText(text)
 		if type == 'latex':
 			gen.genVerbatim('\\end{verbatim}\n\n')
 
