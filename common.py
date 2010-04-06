@@ -17,6 +17,7 @@
 import sys
 import os.path
 import imp
+import re
 
 def onError(text):
 	"""Display the given error and stop the application."""
@@ -50,3 +51,23 @@ def loadModule(name, path):
 	except Exception, e:
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
+AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
+def scanAuthors(text):
+	"""Scan the author text to get structured representation of authors.
+	text -- text containing author declaration separated by ','
+	and with format "NAME <EMAIL>"
+	Return a list of authors where each author dictionary
+	containing 'name' and 'email' keys."""
+
+	authors = []
+	words = text.split(',')
+	for word in words:
+		author = {}
+		match = AUTHOR_RE.match(word)
+		if not match:
+			author['name'] = word
+		else:
+			author['name'] = match.group(1)
+			author['email'] = match.group(2)
+		authors.append(author)
+	return authors

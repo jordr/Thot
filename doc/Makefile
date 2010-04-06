@@ -15,3 +15,5 @@ custom-install:
 
 %.html: %.thot
 	../thot.py -t html $<
+
+doc.html: $(wildcard *.thot)

@@ -41,6 +41,15 @@ div.main {
 	font-style:italic; 
 }
 
+.authors a:link, .authors a:visited {
+	color: white;
+}
+
+.authors a:active, .authors a:hover {
+	text-decoration: underline;
+}
+
+
 /* ---------------  main ---------------- */
 
 div.main {
@@ -79,9 +88,9 @@ div.toc ul {
 }
 
 /* special headlines for sidebar */
-div.toc ul { clear: none; font-size: 120%; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 5px;}
-div.toc ul ul { clear: none; font-size: 120%; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 5px;}
-div.toc ul ul { clear: none; margin-bottom: 2px;}
+div.toc ul { clear: none; font-size: 150%; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 5px;}
+div.toc ul ul { clear: none; font-size: 80%; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 5px;}
+div.toc ul ul { clear: none; font-size: 80%; margin-bottom: 2px;}
 div.toc ul ul ul { clear: none; margin-bottom: 2px;}
 div.toc ul ul ul ul { clear: none; margin-bottom: 2px;}
 

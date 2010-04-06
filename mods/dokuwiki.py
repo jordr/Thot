@@ -48,8 +48,8 @@ ENTITIES = {
 	'<=' :      0x21d0,
 	'>>' :      0xbb,
 	'<<' :      0xab,
-	'---' :     0x2012,
-	'--' :      0x2010,
+	'---' :     0x2014,
+	'--' :      0x2013,
 	'(c)' :     0xa9,
 	'(tm)' :    0x2122,
 	'(r)' :     0xae,
@@ -97,43 +97,46 @@ for smiley in SMILEYS.keys():
 
 ### specific blocks ###
 class FileBlock(doc.Block):
-	
+
 	def __init__(self):
 		doc.Block.__init__(self)
-	
+
 	def dumpHead(self, tab):
 		print "%sblock.file(" % tab
-	
+
 	def gen(self, gen):
+		gen.genEmbeddedBegin('listing', self.label)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<pre class="file">\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
+				gen.genText(line + "\n")
 			gen.genVerbatim('</pre>\n')
 		elif type == 'latex':
 			gen.genVerbatim('\\begin{verbatim}\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
+				gen.genText(line + "\n")
 			gen.genVerbatim('\\end{verbatim}\n')
 		elif type == 'docbook':
 			gen.genVerbatim('<screen>\n')
 			for line in self.content:
-				gen.genVerbatim(line + "\n")
-			gen.genVerbatim('</screen>\n')			
+				gen.genText(line + "\n")
+			gen.genVerbatim('</screen>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
+		gen.genEmbeddedEnd()
 
 
 class NonParsedBlock(doc.Block):
-	
+
 	def __init__(self):
 		doc.Block.__init__(self)
-	
+
 	def dumpHead(self, tab):
 		print "%sblock.nonparsed(" % tab
-	
+
 	def gen(self, gen):
+		gen.genEmbeddedBegin('listing', self.label)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<p>\n')
@@ -150,6 +153,7 @@ class NonParsedBlock(doc.Block):
 			gen.genVerbatim('</para>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
+		gen.genEmbeddedEnd()
 
 
 ### code parse ###
@@ -161,14 +165,14 @@ INDENT_RE = re.compile("  \s*(.*)$")
 class IndentParser:
 	old = None
 	block = None
-	
+
 	def __init__(self, man, match):
 		self.old = man.getParser()
 		man.setParser(self)
 		self.block = highlight.CodeBlock(man, '')
 		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, self.block))
 		self.block.add(match.group(1))
-	
+
 	def parse(self, man, line):
 		match = INDENT_RE.match(line)
 		if match:
@@ -241,9 +245,9 @@ WORDS = [
 	(lambda man, match: handleStyle(man, "underline"), "__"),
 	(lambda man, match: handleStyle(man, "monospace"), "''"),
 	(lambda man, match: handleOpenStyle(man, "subscript"), "<sub>"),
-	(lambda man, match: handleCloseStyle(man, "subscript"), "<\/sub>"),	
+	(lambda man, match: handleCloseStyle(man, "subscript"), "<\/sub>"),
 	(lambda man, match: handleOpenStyle(man, "superscript"), "<sup>"),
-	(lambda man, match: handleCloseStyle(man, "superscript"), "<\/sup>"),	
+	(lambda man, match: handleCloseStyle(man, "superscript"), "<\/sup>"),
 	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
 	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),
 	(handleFootNote, '\(\('),
@@ -299,13 +303,13 @@ def handleRow(man, match):
 	row = match.group(1)
 	object = None
 	while row:
-		
+
 		# look kind
 		if row[0] == '^':
 			kind = doc.TAB_HEADER
 		else:
 			kind = doc.TAB_NORMAL
-		
+
 		# find end
 		match = TABLE_SEP.search(row, 1)
 		if match:
@@ -314,7 +318,7 @@ def handleRow(man, match):
 			last = len(row)
 		cell = row[1:last]
 		row = row[last:]
-		
+
 		# dump object if required
 		if cell == '' and object:
 			object.span += 1
@@ -336,7 +340,7 @@ def handleRow(man, match):
 			align = doc.TAB_RIGHT
 		else:
 			align = doc.TAB_CENTER
-		
+
 		# generate cell
 		object = doc.Cell(kind, align, 1)
 		text = cell

@@ -28,11 +28,11 @@ class Generator:
 	out = None
 	from_files = None
 	to_files = None
-	
+
 	def __init__(self, doc):
 		"""Build the abstract generator.
 		doc -- document to generate."""
-		
+
 		self.doc = doc
 		self.trans  = i18n.getTranslator(self.doc)
 		self.from_files = { }
@@ -76,14 +76,14 @@ class Generator:
 			return path
 		else:
 			return os.path.join(os.path.dirname(self.path), path)
-	
+
 	def getFriendFile(self, path, base = ''):
 		"""Test if a file is a friend file and returns its generation
 		relative path. Return None if the the file is not part
 		of the generation.
 		path -- path of the file,
 		base -- potential file base."""
-		
+
 		if os.path.isabs(path):
 			apath = path
 		elif base == '':
@@ -94,13 +94,13 @@ class Generator:
 			return self.from_files[apath]
 		else:
 			return None
-	
+
 	def addFriendFile(self, path, base = ''):
 		"""Add the given base/path to the generated files and
 		return the target path.
 		path -- path to the file
 		base -- base directory containing the file ('' for CWD files)"""
-		
+
 		# normalize path
 		if os.path.isabs(path):
 			apath = path
@@ -111,7 +111,7 @@ class Generator:
 			apath = os.path.join(base, path)
 		if self.from_files.has_key(apath):
 			return self.from_files[apath]
-		
+
 		# make target path
 		file, ext = os.path.splitext(path)
 		file = os.path.join(self.root + "-imports", file)
@@ -120,7 +120,7 @@ class Generator:
 		while self.to_files.has_key(tpath):
 			tpath = "%s-%d.%s" % (file, cnt, ext)
 			cnt = cnt + 1
-		
+
 		# create direcory
 		dpath = os.path.dirname(tpath)
 		if not os.path.exists(dpath):
@@ -128,7 +128,7 @@ class Generator:
 				os.makedirs(dpath)
 			except os.error, e:
 				common.onError('cannot create directory "%s": %s' % (dpath, str(e)))
-		
+
 		# record all
 		self.from_files[apath] = tpath
 		self.to_files[tpath] = apath;
@@ -136,7 +136,7 @@ class Generator:
 
 	def computeRelative(self, file, base):
 		l = len(os.path.commonprefix([os.path.dirname(base), file]))
-		file = file[l:] 
+		file = file[l:]
 		while file[0] == '/':
 			file = file[1:]
 		return file
@@ -149,12 +149,12 @@ class Generator:
 		"""Load a friend file in the generation location.
 		to_path -- relative path to write to.
 		from_path -- absolute file to the file to copy."""
-		
+
 		# get the target path
 		if base == '' and not os.path.isabs(path):
 			return path
 		tpath = self.getFriendFile(path, base)
-		
+
 		# we need to load it !
 		if not tpath:
 			spath = os.path.join(base, path)
@@ -165,21 +165,21 @@ class Generator:
 				pass
 			except IOError, e:
 				common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
-		
+
 		# build the HTML relative path
 		return self.getFriendRelativePath(tpath)
 
 	def resetCounters(self):
 		self.counters = {
 			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
-		}	
-	
+		}
+
 	def nextHeaderNumber(self, num):
 		self.counters[str(num)] = self.counters[str(num)] + 1
 		for i in xrange(num + 1, 6):
 			self.counters[str(i)] = 0
 		return self.getHeaderNumber(num)
-	
+
 	def getHeaderNumber(self, num):
 		res = str(self.counters['0'])
 		for i in xrange(1, num + 1):
@@ -201,23 +201,23 @@ class Generator:
 
 	def genHorizontalLine(self):
 		pass
-	
+
 	def genVerbatim(self, line):
 		pass
-	
+
 	def genText(self, text):
 		pass
 
 	def genParBegin(self):
 		pass
-	
+
 	def genParEnd(self):
 		pass
 
 	def genList(self, list):
 		"""Generate output for a list."""
 		pass
-	
+
 	def genStyleBegin(self, kind):
 		pass
 
@@ -229,33 +229,42 @@ class Generator:
 
 	def genHeaderBegin(self, level):
 		pass
-		
+
 	def genHeaderTitleBegin(self, level):
 		pass
 
 	def genHeaderTitleEnd(self, level):
 		pass
-	
+
 	def genHeaderBodyBegin(self, level):
 		pass
-	
+
 	def genHeaderBodyEnd(self, level):
 		pass
-	
+
 	def genHeaderEnd(self, level):
 		pass
 
 	def genLinkBegin(self, url):
 		pass
-	
+
 	def genLinkEnd(self, url):
 		pass
-	
+
 	def genImage(self, url, width = None, height = None, caption = None):
 		pass
-	
+
 	def genGlyph(self, code):
 		pass
 
 	def genLineBreak(self):
+		pass
+
+	def genEmbeddedBegin(self, kind, label):
+		"""Start an embedded area with the given label (a paragraph).
+		Usual kinds include "listing", "figure", "table", "algo"."""
+		pass
+
+	def genEmbeddedEnd(self):
+		"""End of generation for an embedded."""
 		pass

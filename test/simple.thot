@@ -70,13 +70,13 @@ Un smiley :-) ???
 
 Ume image !!!
 
-{{@(THOT_BASE)/pix/thot5.png}}
+{{@(THOT_BASE)/pix/thot5.gif}}
 
-{{@(THOT_BASE)/pix/thot5.png?16|16xN}}		16 x N
+{{@(THOT_BASE)/pix/thot5.gif?16|16xN}}		16 x N
 
-{{@(THOT_BASE)/pix/thot5.png?x16|Nx16}}	N x 16
+{{@(THOT_BASE)/pix/thot5.gif?x16|Nx16}}	N x 16
 
-{{@(THOT_BASE)/pix/thot5.png?16x16|16x16}}	16 x 16
+{{@(THOT_BASE)/pix/thot5.gif?16x16|16x16}}	16 x 16
 
 Image with relative name:
 {{gravure-thot.gif}}

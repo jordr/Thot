@@ -34,14 +34,23 @@ import sys
 #	LATEX_PREAMBLE: insert just after document definition
 #	LATEX_PAPER: latex paper format (a4paper, letter, etc)
 
-def escape(text):
-	res = ""
-	for c in text:
-		if c in ['&',  '$', '%', '#', '_', '{', '}', '\\', '~' ]:
-			res += '\\' + c
-		else:
-			res += c
-	return res
+ESCAPES = {
+	'&': '\\&',
+	'$': '\\$',
+	'%': '\\%',
+	'#': '\\#',
+	'_': '\\_',
+	'{': '\\{',
+	'}': '\\}',
+	'~': '$\sim$',
+	'\\': '$\\backslash$'
+}
+
+UNICODE_ESCAPES = {
+	0x2013: '--',
+	0x2014: '---',
+	0x22ef: '\ldots'
+}
 
 LANGUAGES = {
 	'en': 'english',
@@ -93,7 +102,7 @@ ALIGNMENT = ['l', 'c', 'r']
 
 class UnicodeEncoder:
 	"""Abstract for unicode character encoding."""
-	
+
 	def toText(self, code):
 		"""Transform the given code to text."""
 		pass
@@ -102,10 +111,10 @@ class UnicodeEncoder:
 class UTF8Encoder(UnicodeEncoder):
 	"""Unicode support by UTF8 encoding."""
 	encoder = None
-	
+
 	def __init__(self):
 		self.encoder = codecs.getencoder('UTF-8')
-	
+
 	def toText(self, code):
 		"""Transform the given code to text."""
 		str, _ = self.encoder(unichr(code))
@@ -116,19 +125,25 @@ class NonUnicodeEncoder(UnicodeEncoder):
 	"""Encoder for non-unicode character encoding."""
 	encoding = None
 	encoder = None
-	
+	escaped = None
+
 	def __init__(self, encoding):
 		self.encoding = encoding
-		encoder = codecs.getencoder(encoding)
-	
+		self.encoder = codecs.getencoder(encoding)
+		self.escaped = []
+
 	def toText(self, code):
 		"""Transform the given code to text."""
 		try:
 			str, _ = self.encoder(unichr(code))
 			return str
 		except UnicodeEncodeError,e:
-			common.onWarning('encoding %s cannot support character %x' % (self.encoding, code))
-			return unicodedata.name(unistr(code))
+			if UNICODE_ESCAPES.has_key(code):
+				return UNICODE_ESCAPES[code]
+			if not (code in self.escaped):
+				self.escaped.append(code)
+				common.onWarning('encoding %s cannot support character %x' % (self.encoding, code))
+			return unicodedata.name(unichr(code))
 
 
 class Generator(back.Generator):
@@ -136,9 +151,18 @@ class Generator(back.Generator):
 	encoder = UnicodeEncoder()
 	first = False
 	multi = False
-	
+
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
+
+	def escape(self, text):
+		res = ""
+		for c in text:
+			if ESCAPES.has_key(c):
+				res += ESCAPES[c]
+			else:
+				res += c
+		return res
 
 	def unsupported(self, feature):
 		common.onError('%s unsupported for Latex back-end')
@@ -149,13 +173,13 @@ class Generator(back.Generator):
 	def run(self):
 		self.openMain('.tex')
 		self.doc.pregen(self)
-		
+
 		# get class
 		cls = self.doc.getVar('LATEX_CLASS')
 		if not cls:
 			cls = 'book'
 		preamble = self.doc.getVar('LATEX_PREAMBLE')
-		
+
 		# look for internationalization
 		lang = self.doc.getVar('LANG').lower().replace('-', '_')
 		if lang:
@@ -184,7 +208,7 @@ class Generator(back.Generator):
 				self.encoder = NonUnicodeEncoder(self.encoding)
 			else:
 				common.onWarning('%s encoding is just ignored for latex' % self.encoding)
-		
+
 		# look paper size
 		paper = self.doc.getVar('LATEX_PAPER')
 		if not paper:
@@ -199,7 +223,7 @@ class Generator(back.Generator):
 		#self.out.write('\\usepackage{fancyhdr}\n')
 		self.out.write(preamble)
 		self.out.write('\\usepackage[%s]{babel}\n' % lang)
-				
+
 		# add custom definitions
 		self.out.write('\\newcommand{\\superscript}[1]{\\ensuremath{^{\\textrm{#1}}}}\n')
 		self.out.write('\\newcommand{\\subscript}[1]{\\ensuremath{_{\\textrm{#1}}}}\n')
@@ -208,29 +232,33 @@ class Generator(back.Generator):
 
 		# write title
 		self.out.write('\\begin{document}\n')
-		self.out.write('\\title{%s}\n' % escape(self.doc.getVar('TITLE')))
-		self.out.write('\\author{%s}\n' % escape(self.doc.getVar('AUTHORS')))
+		self.out.write('\\title{%s}\n' % self.escape(self.doc.getVar('TITLE')))
+		self.out.write('\\author{%s}\n' % self.escape(self.doc.getVar('AUTHORS')))
 		self.out.write('\\maketitle\n\n')
 		self.out.write('\\tableofcontents\n\n')
 		self.out.write('\\pagebreak\n\n')
-		
+
 		# write body
 		self.doc.gen(self)
-		
+
 		# write footer
 		self.out.write('\\end{document}\n')
 		self.out.close()
-		
+
 		# generate final format
 		output = self.doc.getVar('OUTPUT')
 		if not output or output == 'latex':
-			pass
+			print "SUCCESS: result in %s" % self.path
 		elif output == 'pdf':
+
+			# perform compilation
 			for i in xrange(0, 2):	# two times for TOC (sorry)
 				dir, file = os.path.split(self.path)
-				print file
+				cmd = 'pdflatex -halt-on-error %s' % file
+				if dir == "":
+					dir = "."
 				process = subprocess.Popen(
-					['pdflatex -halt-on-error %s' % file],
+					cmd,
 					shell = True,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,
@@ -240,6 +268,16 @@ class Generator(back.Generator):
 				if process.returncode <> 0:
 					sys.stdout.write(out)
 					sys.stderr.write(err)
+					return
+
+			# display result
+			file, ext = os.path.splitext(self.path)
+			if ext == ".tex":
+				path = file
+			else:
+				path = self.path
+			path = path + ".pdf"
+			print "SUCCESS: result in %s" % path
 		else:
 			common.onError('unknown output: %s' % output)
 
@@ -257,14 +295,14 @@ class Generator(back.Generator):
 		self.out.write('\\end{quote}\n')
 
 	def genTable(self, table):
-		
+
 		# output prolog
 		self.out.write('\\vspace{4pt}\n')
 		self.out.write('\\begin{tabular}{|')
 		for i in xrange(0, table.getWidth()):
 			self.out.write('c|')
 		self.out.write('}\n')
-		
+
 		# compute vertical and horizontal lines
 		hlines = []
 		vlines = []
@@ -280,14 +318,14 @@ class Generator(back.Generator):
 					if pos not in vlines and cells[i].kind <> cells[i + 1].kind:
 						vlines += [pos]
 						pos += cells[i].span
-		
+
 		# generate the content
 		for irow in xrange(0, len(rows)):
 			self.out.write('\\hline\n')
 			row = rows[irow]
 			icol = 0
 			for cell in row.getCells():
-				
+
 				multi = False
 				if icol == 0:
 					lbar = '|'
@@ -317,8 +355,8 @@ class Generator(back.Generator):
 			self.out.write('\\\\\n')
 			if irow in hlines:
 				self.out.write('\\hline\n')
-	
-		# epilog	
+
+		# epilog
 		self.out.write('\\hline\n')
 		self.out.write('\\end{tabular}\n')
 		self.out.write('\\vspace{4pt}\n\n')
@@ -327,16 +365,16 @@ class Generator(back.Generator):
 		self.out.write('\n\\vspace{4pt}\n')
 		self.out.write('\\hrule\n')
 		self.out.write('\\vspace{4pt}\n\n')
-	
+
 	def genVerbatim(self, line):
 		self.out.write(line)
-	
+
 	def genText(self, text):
-		self.out.write(escape(text))
+		self.out.write(self.escape(text))
 
 	def genParBegin(self):
 		pass
-	
+
 	def genParEnd(self):
 		self.out.write('\n\n')
 
@@ -349,7 +387,7 @@ class Generator(back.Generator):
 			self.unsupported('%s list' % list.kind)
 
 		for item in list.getItems():
-			self.out.write('\\item ')			
+			self.out.write('\\item ')
 			item.gen(self)
 
 		if list.kind == 'ul':
@@ -367,32 +405,32 @@ class Generator(back.Generator):
 
 	def genHeaderBegin(self, level):
 		pass
-		
+
 	def genHeaderTitleBegin(self, level):
 		self.out.write(SECTIONS[level])
 
 	def genHeaderTitleEnd(self, level):
 		self.out.write('}\n')
-	
+
 	def genHeaderBodyBegin(self, level):
 		pass
-	
+
 	def genHeaderBodyEnd(self, level):
 		pass
-	
+
 	def genHeaderEnd(self, level):
 		pass
 
 	def genLinkBegin(self, url):
-		self.out.write('\href{%s}{' % escape(url))
+		self.out.write('\href{%s}{' % self.escape(url))
 
 	def genLinkEnd(self, url):
 		self.out.write('}')
-	
+
 	def genImage(self, url, width = None, height = None, caption = None):
 		# !!TODO!!
 		# It should to download the image if the URL is external
-		
+
 		# handle unsupported image format
 		root, ext = os.path.splitext(url)
 		if ext.lower() not in UNSUPPORTED_IMAGE:
@@ -419,10 +457,10 @@ class Generator(back.Generator):
 		if args:
 			args = "[%s]" % args
 		self.out.write('\includegraphics%s{%s}' % (args, link))
-	
+
 	def genGlyph(self, code):
 		self.out.write(self.encoder.toText(code))
-		
+
 	def genLineBreak(self):
 		self.out.write(' \\\\ ')
 

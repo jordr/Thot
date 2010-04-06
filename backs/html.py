@@ -69,19 +69,19 @@ class PagePolicy:
 	"""A page policy allows to organize the generated document
 	according the preferences of the user."""
 	gen = None
-	
+
 	def __init__(self, gen):
 		self.gen = gen
-	
+
 	def onHeaderBegin(self, header):
 		pass
-	
+
 	def onHeaderEnd(self, header):
 		pass
-	
+
 	def unfolds(self, header):
 		return True
-	
+
 	def ref(self, header, number):
 		return	"#" + number
 
@@ -113,7 +113,7 @@ class PerChapter(PagePolicy):
 			self.gen.genContent()
 			self.gen.counters = counters
 			self.gen.out.write('<div class="page">\n')
-		
+
 	def onHeaderEnd(self, header):
 		if header.getLevel() == 0:
 			self.header = None
@@ -125,7 +125,7 @@ class PerChapter(PagePolicy):
 
 	def unfolds(self, header):
 		return header == self.chapter or header.getLevel() <> 0
-	
+
 	def ref(self, header, number):
 		if header.level == 0:
 			return os.path.basename(self.gen.getPage(header))
@@ -148,7 +148,8 @@ class Generator(back.Generator):
 	pages = None
 	page_count = None
 	stack = None
-	
+	label = None
+
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
 		self.footnotes = []
@@ -160,23 +161,23 @@ class Generator(back.Generator):
 
 	def getType(self):
 		return 'html'
-	
+
 	def importCSS(self, spath):
 		"""Perform import of files found in a CSS stylesheet.
 		spath -- path to the original CSS stylesheet."""
-		
+
 		# get target path
 		tpath = self.getFriendFile(spath)
 		if tpath:
 			return self.getFriendRelativePath(tpath)
 		tpath = self.addFriendFile(spath)
-		
+
 		# open files
 		input = open(spath)
 		output = open(tpath, "w")
 		base = os.path.dirname(spath)
 		cpath = self.getFriendRelativePath(tpath)
-		
+
 		# perform the copy
 		for line in input:
 			m = CSS_URL_RE.search(line)
@@ -192,15 +193,15 @@ class Generator(back.Generator):
 				line = line[m.end():]
 				m = CSS_URL_RE.search(line)
 			output.write(line)
-		
+
 		# return path
 		return cpath
 
 	def resetCounters(self):
 		self.counters = {
 			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
-		}	
-	
+		}
+
 	def genFootNote(self, note):
 		self.footnotes.append(note)
 		cnt = len(self.footnotes)
@@ -235,7 +236,7 @@ class Generator(back.Generator):
 		for row in table.getRows():
 			self.out.write('<tr>\n')
 			for cell in row.getCells():
-				
+
 				if cell.kind == doc.TAB_HEADER:
 					self.out.write('<th')
 				else:
@@ -256,20 +257,20 @@ class Generator(back.Generator):
 					self.out.write('</td>\n')
 
 			self.out.write('</tr>\n')
-		self.out.write('</table>\n')		
-	
+		self.out.write('</table>\n')
+
 	def genHorizontalLine(self):
 		self.out.write('<hr/>')
-	
+
 	def genVerbatim(self, line):
 		self.out.write(line)
-	
+
 	def genText(self, text):
 		self.out.write(cgi.escape(text))
 
 	def genParBegin(self):
 		self.out.write('<p>\n')
-	
+
 	def genParEnd(self):
 		self.out.write('</p>\n')
 
@@ -293,31 +294,31 @@ class Generator(back.Generator):
 		self.out.write(tag)
 
 	def genHeader(self, header):
-		
+
 		# prolog
 		number = self.nextHeaderNumber(header.getLevel())
 		self.policy.onHeaderBegin(header)
-		
+
 		# title
 		self.out.write('<h' + str(header.getLevel() + 1) + '>')
 		self.out.write('<a name="' + number + '"/>')
 		self.out.write(number)
 		header.genTitle(self)
 		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
-	
+
 		# body
 		header.genBody(self)
-		
+
 		# epilog
 		self.policy.onHeaderEnd(header)
 		return True
 
 	def genLinkBegin(self, url):
 		self.out.write('<a href="' + url + '">')
-	
+
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
-	
+
 	def genImage(self, url, width = None, height = None, caption = None):
 		new_url = self.loadFriendFile(url)
 		self.out.write('<img src="' + new_url + '"')
@@ -328,7 +329,7 @@ class Generator(back.Generator):
 		if caption <> None:
 			self.out.write(' alt="' + cgi.escape(caption, True) + '"')
 		self.out.write('/>')
-	
+
 	def genGlyph(self, code):
 		self.out.write('&#' + str(code) + ';')
 
@@ -352,13 +353,46 @@ class Generator(back.Generator):
 		if short_icon:
 			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
 		self.out.write('</head>\n<body>\n<div class="main">\n')
-	
+
 	def genTitle(self):
 		self.out.write('<div class="header">\n')
 		self.out.write('	<div class="title">' + cgi.escape(self.doc.getVar('TITLE')) + '</div>\n')
-		self.out.write('	<div class="authors">' + cgi.escape(self.doc.getVar('AUTHORS')) + '</div>\n')
+		self.out.write('	<div class="authors">')
+		authors = common.scanAuthors(self.doc.getVar('AUTHORS'))
+		first = True
+		for author in authors:
+			if first:
+				first = False
+			else:
+				self.out.write(', ')
+			email = ""
+			if author.has_key('email'):
+				email = author['email']
+				self.out.write('<a href="mailto:' + cgi.escape(email) + '">')
+			self.out.write(cgi.escape(author['name']))
+			if email:
+				self.out.write('</a>')
+		self.out.write('</div>\n')
 		self.out.write('</div>')
-	
+
+	def genLabel(self, par):
+		self.out.write('<div class="label">')
+		par.gen(self)
+		self.out.write('</div>')
+
+	def genEmbeddedBegin(self, kind, label):
+		self.out.write('<div class="%s">' % kind)
+		if label and kind == 'listing':
+			self.genLabel(label)
+			self.label = None
+		else:
+			self.label = label
+
+	def genEmbeddedEnd(self):
+		if self.label:
+			self.genLabel(self.label)
+		self.out.write('</div>')
+
 	def genBody(self):
 		self.out.write('<div class="page">\n')
 		self.resetCounters()
@@ -368,9 +402,9 @@ class Generator(back.Generator):
 
 	def genFooter(self):
 		self.out.write("</div>\n</body>\n</html>\n")
-	
+
 	def genContentItem(self, content, max = 7, out = False):
-		
+
 		# look if there is some content
 		some = False
 		for item in content:
@@ -379,7 +413,7 @@ class Generator(back.Generator):
 				break
 		if not some:
 			return
-		
+
 		# generate the content
 		self.out.write('		<ul class="toc">\n')
 		for item in content:
@@ -404,25 +438,25 @@ class Generator(back.Generator):
 		self.out.write('		<h1><a name="toc"/>' + cgi.escape(self.trans.get('Table of content')) + '</h1>\n')
 		self.genContentItem(self.doc.getContent(), max, out)
 		self.out.write('	</div>\n')
-	
+
 	def getPage(self, header):
 		if not self.pages.has_key(header):
 			self.pages[header] = "%s-%d.html" % (self.root, self.page_count)
 			self.page_count += 1
 		return self.pages[header]
-	
+
 	def openPage(self, header):
 		path = self.getPage(header)
 		self.stack.append((self.out, self.footnotes))
 		self.out = open(path, 'w')
 		self.footnotes = []
-	
+
 	def closePage(self):
 		self.out.close()
 		self.out, self.footnotes = self.stack.pop()
 
 	def run(self):
-		
+
 		# select the policy
 		self.struct = self.doc.getVar('HTML_ONE_FILE_PER')
 		if self.struct == 'document' or self.struct == '':

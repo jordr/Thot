@@ -4,13 +4,14 @@
 @LANG=en_EN
 @THOT=//**Thot**//
 @HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css
+@HTML_ONE_FILE_PER=chapter
 @LATEX_CLASS=amsbook
 @use dokuwiki
 
 @(THOT) is a simple but powerful system to authorize document. The main
 idea is that classic document processor (like OpenOffice or M$ Office)
 are usually too complex to really get productivity gains. The melting of
-keyboard and mouse and other input devices use is too slow, too 
+keyboard and mouse and other input devices use is too slow, too
 cumbersome to let the user develop its imagination and its creativity.
 
 In the opposite, some document generation systems like Latex or HTML
