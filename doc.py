@@ -299,7 +299,7 @@ class LineBreak(Node):
 		print tab + "linebreak"
 
 	def gen(self, gen):
-		gen.genLibeBreak()
+		gen.genLineBreak()
 
 
 # Style family
