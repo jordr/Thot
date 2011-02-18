@@ -1,8 +1,338 @@
 ====== Developper Manual ======
 
+This part of the manual presents the internal structure of @(THOT)
+in order to write extensions.
+
 ===== Architecture =====
 
+@(THOT) is implemented in Python and, therefore, provides an object-based
+structure to describe the document. The module ''doc'' contains the classes
+of this description.
+
+The object are organised in four levels of objects:
+^ Identifier ^ Description ^
+| ''L_DOC'' | top-level object representing the document |
+| ''L_HEAD'' | level representing chapter, sections and so on (part of the plan) |
+| ''L_PAR'' | objects of this level includes paragraph and lists |
+| ''L_WORD'' | this level represents single words and also word-level formatting |
+
+The following sections will describe each interesting class.
+
+==== Basic Classes ====
+
+The ''Node'' class is the parent of any class representing a document part.
+
+It provides basic methods to support document building.
+
+  * ''setFileLine(file, line)'' -- records  file position of the current element
+(accessible by ''file'' and ''line'' attributes)
+  * ''onError(message)'' -- called when an error is found
+  * ''onWarning(message)'' -- called when a warning need to be displayed
+  * ''onInfo(message)'' -- displays an informative message to the user
+  * ''onEvent(event)'' -- document construction proceeds by raising events as the text is parsed (see Events section)
+  * ''isEmpty()'' -- return True if the item may be ignored or removed
+  * ''dump()'' -- produces an output of the node for debugging purpose
+  * ''clean()'' -- called to clean up the document (removing empty nodes for example)
+  * ''getHeaderLevel()'' -- if the node is an header, get the level (-1 else)
+  * ''genTitle(generator)'' -- generates the title plan part of the node
+  * ''gen(generator)'' -- generates the document content of the node
+  * ''setLabel(labl)'' -- associated a label with the node (if it supports it)
+
+The ''Container'' class is the base class of nodes that may contains a set of sub-nodes.
+
+The set of nodes is stored in an attribute called ''content''.
+
+The following methods are also defined:
+  * ''add(manager, item)'' -- add the item to the content and possibly fix the parser manager
+  * ''last()'' -- return the last item of the content
+  * ''dumpHead()'' -- called before dumping content (for debugging purpose only)
+  * ''getContent()'' -- return the content
+
+==== Word Level Classes ====
+
+A ''Word'' object represents raw text in the document:
+  * ''text'' -- attribute containing the text
+  * ''Word(text)'' -- creates a word with the given text
+
+An ''Image'' object allows to embed an image in the document:
+  * ''Image(path, [width], [height], [caption])'' -- create an image found
+at the given path that may be fixed according to the width and/or the height.
+
+The ''Glyph'' class allows to embed character not supported by the current
+charset encoding:
+  * ''Glyph(code)'' -- embeds a character whose Unicode encoding is passed
+
+A ''LineBreak'' object allows to include a forced line-break in the text.
+
+''Style'' class inherits from ''Container'' and may embeds other words
+where the style is applied to. The style is given as a string character
+(and may be subject to extensions) passed to its constructor:
+  * ''Style(style)'' -- constructor
+  
+Usual style strings includes 'bold', 'italic', 'underline', 'subscript',
+'superscript', 'monospace', 'deleted'.
+
+The container class ''FootNote'' allows to insert foot-note in the text
+that contains a paragraph content.
+
+A ''Link'' is also a word container that associates an URL reference
+to the contained words:
+  * ''Link(reference)''
+
+==== Paragraph Levels Classes ====
+
+All these classes are derivative of the ''Container'' as they may
+contain word-level objects.
+
+A paragraph is represented by a ''Par'' object that may only contains
+words.
+
+''Quote'' class represents a special kind quoted paragraphe and contains
+also only words. Quoted paragraph are indented according the level passed
+to its constructor (starting to 1).
+
+''Embedded'' class is the base class of extensions defined at the paragraph
+level. This is the case of dot including.
+
+A ''Block'' paragraph contains words that must be displayed as-is,
+without considering it contains formatting.
+
+''List'' objects allows to represent lists. It is defined by its depth
+(starting at 0)
+and its kind that may be one of ''ul'' (unordered list) or 'ol'
+(ordered list). ''List'' objects can only contains ''ListItem'' object that, in turns,
+may contain other paragraphs.
+  * ''List(kind, depth)'' -- constructor
+  * ''getItems()'' -- get list of items of the list.
+
+Table are represented by the ''Table'' class that is composed of
+''Row'' object that, in turn, contains ''Cell'' object (which are
+composed of words).
+  * ''Table.getRows()'' -- get the list of rows
+  * ''Rows(kind)'' -- row constructor
+  * ''Row.getCells()'' -- get list of cells
+  * ''Cell(kind, align span) -- cell constructor
+
+The ''Row'' and ''Cell'' kind may either ''TAB_NORMAL'', or ''TAB_HEADER''.
+The align gives alignment for the cell (''TAB_CENTER'', ''TAB_LEFT'' or ''TAB_RIGHT'')
+and the span informs about how many cell positions this cell is spanning.
+
+Finally, the ''HorizontalLine()'' display a full-width horizontal line
+(mainly for compatibility with dokuwiki front-end).
+
+==== Header Level Classes ====
+
+A ''Header'' object allows to represents a document section. They takes
+as constructor the header level (starting at 0). Lower is the level
+upper is the section in the document structure:
+  * ''Header(level)'' -- constructor
+  * ''getTitle()'' -- get the title words of the header
+  * ''genTitle()'' -- called to generate the section title
+  * ''genBody(generator)'' -- called to generate the body of the section
+  * ''getHeaderLevel()'' -- get the header level
+
+
+==== Document Level Classes ====
+
+The document is represented by an object of type ''Doc'' that contains
+header-level object as paragraph levels. Paragraph level objects
+found before the first header object are considered as part of the
+preamble of the text and displayed before the first header.
+
+Use of module may require special processing on the document before
+generation. This is done by providing to the document object whose
+base class is ''Feature'':
+  * ''prepare(generator)'' -- method called just before performing
+the generation.
+
+To add a feature, used the ''addFeature(feature)'' method of ''Doc''.
+
+
+==== Event Classes ====
+
+As the initial text document is parsed, found token raises events
+on the document object structure. Usually, the parser maintain a reference
+on the current object where events are passed primarily. This one use
+the event to create new objects, to pass them to its ancestor in
+the document tree or change the current object in the parser manager.
+
+The base class of events is ''Event'':
+  * ''Event(level, id)'' -- constructor with the level (one of ''L_XXX'' constant) and an identifier
+  * ''level'' -- current attribute level
+  * ''id'' -- current event identifier
+  * 'make()'' -- method called to generate the object tied to the event
+
+The following event classes exists:
+  * ''ObjectEvent(level, id, object)'' -- simple event to insert an object in the document tree,
+  * ''TypedEvent(level, id, type)'' -- used for object with a starting tag (whose type is the tag),
+  * ''CloseEvent(level, id, type)'' -- used for object with a closing tag (whose type is the tag),
+  * ''OpenStyleEvent(type)'' -- event for opening a style,
+  * ''CloseStyleEvent(type)'' -- event for closing a style,
+  * ''ItemEvent(type, level)'' -- event for a new item in a list,
+  * ''QuoteEvent(depth)'' -- event for finding a new quoted text.
+
+
 ===== How to write a simple module ? =====
+
+==== Overview ====
+
+Modules are Python  programs installed in the ''THOT/mods'' directory
+and invoked by ''@use MOD'' syntax. The module is simply retrieved
+from the ''mods'' directory by appending ''.py'' to the //MOD// identifier.
+
+Module are usual Python programs that needs only to contain an ''init''
+function that will be install the module extension in the ''@(THOT)''
+parsing system. Usually, a module is used to add syntactic element
+to the parsed text file but they may also insert specific object
+in the document tree with specific effects at generation time.
+<code py>
+def init(manager):
+  # extension adding here
+</code>
+
+@(THOT) extracts the document syntax from two lists in the manager:
+  * ''addWord(word_scanner)'' -- to add a scanner at word level,
+  * ''addLine(line_scanner)'' -- to add a scanner at the line level.
+  
+The parser manager, each time a line is retrieved, first attempt to
+find a line scanner matching the full line. Else it splits the line
+in pieces according to the recognition of word-level scanners.
+
+A scanner, word or line, is composed by a pair whose second value
+is a regular expression string (as produced by Python ''re'' module)
+used to match text and, if match is succesful, the function of the first component
+is called passing it as argument the parser manager and the match resulting object.
+At this point, this function may invoke any method of the parser manager
+to build the document.
+
+==== Simple Example ====
+
+In this example, we just want to detect a smiley ''o||'' and replace
+it by a specific image ''cyclops.png''. We just have to add a word-level
+scanner as in the following:
+
+<code py>
+import doc
+
+def process(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Image("/PATH_TO_IMAGE/cyclops.png")))
+	
+def init(man):
+	man.addWord((process, "o||"))
+</code>
+
+The ''process'' function just generates an ''ObjectEvent'' (at word level)
+whose realization produces the given image.
+
+
+==== Open-Close Tag Example ====
+
+The open-close example is slightly more complex. We want to add a new
+style, for example a new style named ''flash'' that is introduced
+by ''!<'' starting tag and ended by ''>!'' ending tag.
+
+We have to recognize starting and ending words and generating the
+matching object creation:
+<code py>
+import doc
+
+def open(man, match):
+	man.send(doc.OpenStyleEvent("flash"))
+
+def close(man, match):
+	man.send(doc.CloseStyleEvent("flash"))
+
+def init(man):
+	man.addWord((open, "!<"))
+	man.addWord((close, ">!"))
+</code>
+
+Naturally, the result will be significant only if the back-end supports
+this kind of style.
+
+Things are even simpler if we use the same symbol for opening and
+closing the style (let be ''!!''):
+<code py>
+import doc
+
+def process(man, style):
+	man.send(doc.StyleEvent("flash"))
+
+def init(man):
+	man.addWord((process, "!!"))
+</code>
+
+The ''StyleEvent'' has a special behaviour: if a style of the same
+kind is already openeded, it acts as a closing style event.
+
+
+==== Embedding Example ====
+
+In this event, we will show how we can add a new style of paragraph-level
+item. The goal is to allows to output a code listing whose lines have
+been numbered using the syntax below:
+<code c>
+<ncode>
+#include <stdio.h>
+int main(void) {
+  printf("Hello, World !\n");
+}
+</ncode>
+</code>
+
+The output will be:
+<code c>
+   1 #include <stdio.h>
+   2 int main(void) {
+   3   printf("Hello, World !\n");
+   4 }
+</code>
+
+To do this, we have to:
+  * match the opening tag ''<ncode>'',
+  * avoid the parser manager to process the lines until close tag ''</ncode>'',
+  * generate an object that performs the document generation according to our needs.
+
+Basically, the module is defined as below. We just need to install a line scanner
+matching the open tag (notice that the regular expression must match
+the whole line):
+<code py>
+import doc
+import parser
+import re
+
+def process(man, match):
+	parser.BlockParser(man, MyBlock(), re.compile("^\s*<\/ncode>\s*$"))
+
+def init(man):
+	man.addLine((process, "^\s*<ncode>\s*$"))
+</code>
+
+The ''process'' is a bit more complex. It creates a parser that will
+install itself the parser manager. Now, read lines from the text file
+will go this parser (ignoring the top-level parser of @(THOT)) and will
+be stored in the ''MyBlock'' object (that must inherit from ''Container'').
+It stops processing text lines as soon as the third-argument regular
+expression is found. Then, it generates an ''ObjectEvent'' event with
+our object and re-activate the top-level parser in order to let
+normal processing to continue.
+
+Our ''MyBlock'' class will inherit from ''doc.Block()'' class and
+we will just overload the ''gen'' to give a number to each line.
+
+<code py>
+class MyBlock(doc.Block):
+	def gen(self, generator):
+		new_content = []
+		i = 1
+		for l in self.content:
+			new_content.append("% 4d %s" % (i, l))
+			i = i + 1
+		self.content = new_content
+		doc.Block(self, generator)
+</code>
+
+
 
 ===== How to write a front-end module ? =====
 
