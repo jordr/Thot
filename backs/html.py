@@ -301,7 +301,7 @@ class Generator(back.Generator):
 
 		# title
 		self.out.write('<h' + str(header.getLevel() + 1) + '>')
-		self.out.write('<a name="' + number + '"/>')
+		self.out.write('<a name="' + number + '"></a>')
 		self.out.write(number)
 		header.genTitle(self)
 		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
@@ -348,7 +348,7 @@ class Generator(back.Generator):
 		if styles:
 			for style in styles.split(':'):
 				new_style = self.importCSS(style)
-				self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '"/>\n')
+				self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '">\n')
 		short_icon = self.doc.getVar('HTML_SHORT_ICON')
 		if short_icon:
 			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
@@ -426,7 +426,7 @@ class Generator(back.Generator):
 			self.out.write('<a href="%s">' % ref)
 			self.out.write(number + ' ')
 			item.genTitle(self)
-			self.out.write('</a>')
+			self.out.write('</a>\n')
 			if self.policy.unfolds(item) and max > 1:
 				self.genContentItem(item.getContent(), max - 1, out)
 			self.out.write('</li>\n')
@@ -435,7 +435,7 @@ class Generator(back.Generator):
 	def genContent(self, max = 7, out = False):
 		self.resetCounters()
 		self.out.write('	<div class="toc">\n')
-		self.out.write('		<h1><a name="toc"/>' + cgi.escape(self.trans.get('Table of content')) + '</h1>\n')
+		self.out.write('		<h1><a name="toc">' + cgi.escape(self.trans.get('Table of content')) + '</name></h1>\n')
 		self.genContentItem(self.doc.getContent(), max, out)
 		self.out.write('	</div>\n')
 
