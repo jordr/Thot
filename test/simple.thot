@@ -81,6 +81,16 @@ Ume image !!!
 Image with relative name:
 {{gravure-thot.gif}}
 
+Image to left:
+{{gravure-thot.gif  }}
+
+Image to right:
+{{  gravure-thot.gif}}
+
+Image centered:
+{{  gravure-thot.gif  }}
+
+
 ====== tables ======
 
 This is a table:
@@ -205,7 +215,7 @@ And a nice example : $\LARGE e^x=\sum_{n=0}^\infty\frac{x^n}{n!}$
 
 ====== Example of GNUPlot ======
 
-@use gnuplot
+@@@use gnuplot
 
 An example of GNUPlot below:
 
@@ -224,6 +234,6 @@ set ylabel "Y axis" 3.000000,-2.000000  font ""
 set yrange [ -1.00000 : 1.00000 ] noreverse nowriteback
 set zlabel "Z axis" -5.000000,0.000000  font ""
 set zrange [ -0.500000 : 1.00000 ] noreverse nowriteback
-sinc(u,v) = sin(sqrt(u**2+v**2)) / sqrt(u**2+v**2)
+sinc(u,v) = sin(sqrt(u**2+v**2) ) / sqrt(u**2+v**2)
 splot [-12:12.01] [-12:12.01] sinc(u,v)
 @</gnuplot>

@@ -18,6 +18,7 @@ import i18n
 import os.path
 import shutil
 import common
+import doc as tdoc
 
 class Generator:
 	"""Abstract back-end generator."""
@@ -251,7 +252,7 @@ class Generator:
 	def genLinkEnd(self, url):
 		pass
 
-	def genImage(self, url, width = None, height = None, caption = None):
+	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE):
 		pass
 
 	def genGlyph(self, code):

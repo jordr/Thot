@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import common
 import doc
 import subprocess
+import sys
 
-MIMETEX_AVAILABLE = True
+MIMETEX_AVAILABLE = None
 count = 0
 formulae = { }
 
@@ -77,4 +79,8 @@ def handleMath(man, match):
 MATH_WORD = (handleMath, "\$(?P<latexmath>[^$]*)\$")
 
 def init(man):
-	man.addWord(MATH_WORD)
+	MIMETEX_AVAILABLE = common.which('mimetex')
+	if not MIMETEX_AVAILABLE:
+		common.onWarning('mimetex not found but required by latexmath module: ignoring latexmath tags')
+	else:
+		man.addWord(MATH_WORD)

@@ -25,6 +25,7 @@ import re
 import urlparse
 import common
 import back
+import doc as tdoc
 
 # supported variables
 #	TITLE: title of the document
@@ -58,6 +59,8 @@ STYLES = {
 	'monospace': ('<tt>', '</tt>'),
 	'deleted': ('<s>', '</s>')
 }
+
+
 def getStyle(style):
 	if STYLES.has_key(style):
 		return STYLES[style]
@@ -319,7 +322,9 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
 
-	def genImage(self, url, width = None, height = None, caption = None):
+	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE):
+		if align == tdoc.ALIGN_CENTER:
+			self.out.write('<center>')
 		new_url = self.loadFriendFile(url)
 		self.out.write('<img src="' + new_url + '"')
 		if width <> None:
@@ -328,7 +333,13 @@ class Generator(back.Generator):
 			self.out.write(' height="' + str(height) + '"')
 		if caption <> None:
 			self.out.write(' alt="' + cgi.escape(caption, True) + '"')
+		if align == tdoc.ALIGN_RIGHT:
+			self.out.write(' align="right"')
+		elif align == tdoc.ALIGN_LEFT:
+			self.out.write(' align="left"')
 		self.out.write('/>')
+		if align == tdoc.ALIGN_CENTER:
+			self.out.write('</center>')
 
 	def genGlyph(self, code):
 		self.out.write('&#' + str(code) + ';')

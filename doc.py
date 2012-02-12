@@ -55,6 +55,13 @@ VAR_RE = "@\((?P<varid>[a-zA-Z_0-9]+)\)"
 VAR_REC = re.compile(VAR_RE)
 
 
+# alignment
+ALIGN_NONE = 0
+ALIGN_LEFT = 1
+ALIGN_CENTER = 2
+ALIGN_RIGHT = 3
+
+
 # supported events
 class Event:
 	"""Base class of all events."""
@@ -266,18 +273,19 @@ class Word(Node):
 class Image(Node):
 	path = None
 
-	def __init__(self, path, width = None, height = None, caption = None):
+	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
 		self.path = path
 		self.width = width
 		self.height = height
 		self.caption = caption
+		self.align = align
 
 	def dump(self, tab):
 		print "%simage(%s, %s, %s, %s)" % \
 			(tab, self.path, str(self.width), str(self.height), self.caption)
 
 	def gen(self, gen):
-		gen.genImage(self.path, self.width, self.height, self.caption)
+		gen.genImage(self.path, self.width, self.height, self.caption, self.align)
 
 
 class Glyph(Node):

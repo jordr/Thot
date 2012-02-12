@@ -15,9 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import os
 import os.path
 import imp
 import re
+import traceback
+import common
 
 def onError(text):
 	"""Display the given error and stop the application."""
@@ -49,6 +52,8 @@ def loadModule(name, path):
 			else:
 				return None
 	except Exception, e:
+		#exc_type, exc_obj, exc_tb = sys.exc_info()
+		#traceback.print_tb(exc_tb)
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
 AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
@@ -71,3 +76,25 @@ def scanAuthors(text):
 			author['email'] = match.group(2)
 		authors.append(author)
 	return authors
+
+
+def is_exe(fpath):
+	return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+
+def which(program):
+	"""Function to test if an executable is available.
+	program: program to look for
+	return: the found path of None."""
+	
+	fpath, fname = os.path.split(program)
+	if fpath:
+		if is_exe(program):
+			return program
+	else:
+		for path in os.environ["PATH"].split(os.pathsep):
+			exe_file = os.path.join(path, program)
+			if is_exe(exe_file):
+				return exe_file
+	return None
+
