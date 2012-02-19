@@ -79,6 +79,7 @@ def handleMath(man, match):
 MATH_WORD = (handleMath, "\$(?P<latexmath>[^$]*)\$")
 
 def init(man):
+	global MIMETEX_AVAILABLE
 	MIMETEX_AVAILABLE = common.which('mimetex')
 	if not MIMETEX_AVAILABLE:
 		common.onWarning('mimetex not found but required by latexmath module: ignoring latexmath tags')

@@ -35,21 +35,23 @@ import sys
 #	LATEX_PAPER: latex paper format (a4paper, letter, etc)
 
 ESCAPES = {
-	'&': '\\&',
-	'$': '\\$',
-	'%': '\\%',
-	'#': '\\#',
-	'_': '\\_',
-	'{': '\\{',
-	'}': '\\}',
-	'~': '$\sim$',
-	'\\': '$\\backslash$'
+	'&'	: '\\&',
+	'$'	: '\\$',
+	'%'	: '\\%',
+	'#'	: '\\#',
+	'_'	: '\\_',
+	'{'	: '\\{',
+	'}'	: '\\}',
+	'~'	: '$\sim$',
+	'\\': '$\\backslash$',
+	'\U21D0'	: '$\Leftarrow$'
 }
 
 UNICODE_ESCAPES = {
 	0x2013: '--',
 	0x2014: '---',
-	0x22ef: '\ldots'
+	0x22ef: '\ldots',
+	0x21D0: '$\Leftarrow$'
 }
 
 LANGUAGES = {
@@ -427,7 +429,7 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('}')
 
-	def genImage(self, url, width = None, height = None, caption = None):
+	def genImage(self, url, width = None, height = None, caption = None, align = None):
 		# !!TODO!!
 		# It should to download the image if the URL is external
 
@@ -459,7 +461,10 @@ class Generator(back.Generator):
 		self.out.write('\includegraphics%s{%s}' % (args, link))
 
 	def genGlyph(self, code):
-		self.out.write(self.encoder.toText(code))
+		if UNICODE_ESCAPES.has_key(code):
+			self.out.write(UNICODE_ESCAPES[code])
+		else:
+			self.out.write(self.encoder.toText(code))
 
 	def genLineBreak(self):
 		self.out.write(' \\\\ ')

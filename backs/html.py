@@ -288,6 +288,14 @@ class Generator(back.Generator):
 
 		self.out.write(list_end + '\n')
 
+	def genDefList(self, deflist):
+		self.out.write("<dl>\n")
+		for item in deflist.getItems():
+			self.out.write("<dt>%s</dt><dd>" % item.term)
+			item.gen(self)
+			self.out.write("</dd>")
+		self.out.write("</dl>\n")
+
 	def genStyleBegin(self, kind):
 		tag, _ = getStyle(kind)
 		self.out.write(tag)

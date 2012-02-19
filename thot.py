@@ -42,6 +42,8 @@ oparser.add_option("-o", "--out", action="store", dest="out_path",
 	help="output path")
 oparser.add_option("-D", "--define", action="append", dest="defines",
 	help="add the given definition to the document environment.")
+oparser.add_option("--dump", dest = "dump", action="store_true", default=False,
+	help="only for debugging purpose, dump the database of Thot")
 
 # Parse arguments
 (options, args) = oparser.parse_args()
@@ -69,7 +71,8 @@ if options.defines:
 document = doc.Document(env)
 man = parser.Manager(document)
 man.parse(input, env['THOT_FILE'])
-#document.dump("")
+if options.dump:
+	document.dump("")
 
 # Output the result
 out_name = env["THOT_OUT_TYPE"]

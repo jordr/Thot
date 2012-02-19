@@ -219,6 +219,10 @@ class Generator:
 		"""Generate output for a list."""
 		pass
 
+	def genDefList(self, deflist):
+		"""Called to generate a definition list."""
+		pass
+
 	def genStyleBegin(self, kind):
 		pass
 
@@ -269,3 +273,5 @@ class Generator:
 	def genEmbeddedEnd(self):
 		"""End of generation for an embedded."""
 		pass
+
+

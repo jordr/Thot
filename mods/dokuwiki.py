@@ -40,20 +40,20 @@ def escape_re(str):
 	return res
 
 ENTITIES = {
-	'<->' : 0x2194,
-	'->' : 0x2192,
-	'<-' :      0x2190,
-	'<=>' :     0x21d4,
-	'=>' :      0x21d2,
-	'<=' :      0x21d0,
-	'>>' :      0xbb,
-	'<<' :      0xab,
-	'---' :     0x2014,
-	'--' :      0x2013,
-	'(c)' :     0xa9,
-	'(tm)' :    0x2122,
-	'(r)' :     0xae,
-	'...' :     0x22ef
+	'<->' 	: 0x2194,
+	'->' 	: 0x2192,
+	'<-' 	: 0x2190,
+	'<=>'	: 0x21d4,
+	'=>'	: 0x21d2,
+	'<='	: 0x21d0,
+	'>>'	: 0x00bb,
+	'<<'	: 0x00ab,
+	'---'	: 0x2014,
+	'--'	: 0x2013,
+	'(c)'	: 0x00a9,
+	'(tm)'	: 0x2122,
+	'(r)'	: 0x00ae,
+	'...'	: 0x22ef
 }
 ENTITIES_RE = ""
 for entity in ENTITIES.keys():
@@ -291,6 +291,11 @@ def handleList(man, kind, match):
 	man.send(doc.ItemEvent(kind, depth))
 	parser.handleText(man, match.group(3))
 
+def handle_def(man, match):
+	depth = computeDepth(match.group(1))
+	man.send(doc.DefEvent(depth, match.group(3)))
+	parser.handleText(man, match.group(4))
+
 def handleCode(man, match):
 	lang = match.group(2)
 	if lang == None:
@@ -377,6 +382,7 @@ LINES = [
 	(handleNewPar, re.compile("^$")),
 	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
 	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
+	(handle_def, re.compile("^((  |\t)\s*)\?([^:]*):(.*)")),
 	(handleCode, re.compile("^\s*<code(\s+(\S+))?\s*>\s*")),
 	(handleFile, re.compile("^\s*<file>\s*")),
 	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),

@@ -143,13 +143,12 @@ LANGS=[
 ]
 
 BACKS = {
-	'html': '',
-	'ansi': '--ansi',
-	'latex': '--latex',
-	'rtf': '--rtf',
-	'tex': '--tex',
-	'xhtml': '--xhtml',
-	'xml': '--xml'
+	'html'	: '',
+	'ansi'	: '--out-format=ansi',
+	'latex'	: '--out-format=latex',
+	'rtf'	: '--out-format=rtf',
+	'tex'	: '--out-format=tex',
+	'xhtml'	: '--out-format=xhtml'
 }
 
 DOCBOOK_LANGS = {

@@ -22,6 +22,38 @@ import re
 import traceback
 import common
 
+
+class ThotException(Exception):
+	"""Exception of the Thot system.
+	Any back-passed to the Thot system must inherit this exception.
+	Other exceptions will not be caught."""
+	
+	def __init__(self, msg):
+		self.msg = msg
+	
+	
+	def __str__(self):
+		return self.msg
+	
+	def __repr__(self):
+		return self.msg
+
+
+class ParseException(ThotException):
+	"""This exception may be thrown by any parser encountering an error.
+	File and line information will be added by the parser."""
+	
+	def __init__(self, msg):
+		ThotException.__init__(self, msg)
+
+
+class BackException(ThotException):
+	"""Exception thrown by a back-end."""
+	
+	def __init__(self, msg):
+		ThotException.__init__(self, msg)
+
+
 def onError(text):
 	"""Display the given error and stop the application."""
 	sys.stderr.write("ERROR: %s\n" % text)

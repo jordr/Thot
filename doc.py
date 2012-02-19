@@ -32,6 +32,8 @@ ID_TITLE = "title"
 
 ID_NEW_ITEM = "new_item"	# ItemEvent
 ID_END_ITEM = "end_item"
+ID_NEW_DEF  = "new_def"		# definition event
+ID_END_DEF  = "end_def"
 
 ID_NEW_TAB = "new_tab"
 ID_END_TAB = "end_tab"
@@ -149,6 +151,19 @@ class ItemEvent(TypedEvent):
 
 	def make(self):
 		return List(self.type, self.depth)
+
+
+class DefEvent(Event):
+	"""Event for list definition."""
+
+	def __init__(self, depth, term):
+		Event.__init__(self, L_PAR, ID_NEW_DEF)
+		self.depth = depth
+		self.term = term
+	
+	def make(self):
+		return DefList(self.depth, self.term)
+
 
 class QuoteEvent(Event):
 	"""An event designing a quoted text."""
@@ -295,7 +310,7 @@ class Glyph(Node):
 		self.code = code
 
 	def dump(self, tab):
-		print tab + "glyph(" + str(self.code) + ")"
+		print "%sglyph(%x)" % (tab, self.code)
 
 	def gen(self, gen):
 		gen.genGlyph(self.code)
@@ -541,6 +556,54 @@ class List(Container):
 
 	def gen(self, gen):
 		gen.genList(self)
+
+
+class DefItem(Container):
+	"""Description of a definition list item."""
+
+	def __init__(self, term):
+		Container.__init__(self)
+		self.term = term
+		self.content.append(Par())
+
+	def dumpHead(self, tab):
+		print tab + "item(" + self.term + ", "
+
+
+class DefList(Container):
+	"""Description of definition list."""
+	depth = None
+
+	def __init__(self, depth, term):
+		Container.__init__(self)
+		self.depth = depth
+		self.content.append(DefItem(term))
+
+	def onEvent(self, man, event):
+		if event.level is L_WORD:
+			self.last().last().add(man, event.make())
+		elif event.id is ID_NEW_DEF:
+			if event.depth < self.depth:
+				man.forward(event)
+			elif event.depth > self.depth:
+				self.last().add(man, event.make())
+			else:
+				self.content.append(DefItem(event.term))
+		elif event.id is ID_END_DEF:
+			man.pop()
+		else:
+			man.forward(event)
+
+	def dumpHead(self, tab):
+		print tab + "deflist(" + str(self.depth) + ", "
+
+	def getItems(self):
+		"""Get the list of items in the list."""
+		return self.content
+
+	def gen(self, gen):
+		gen.genDefList(self)
+		pass
 
 
 # Table
