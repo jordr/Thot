@@ -33,6 +33,7 @@ ID_TITLE = "title"
 ID_NEW_ITEM = "new_item"	# ItemEvent
 ID_END_ITEM = "end_item"
 ID_NEW_DEF  = "new_def"		# definition event
+ID_END_TERM = "end term"
 ID_END_DEF  = "end_def"
 
 ID_NEW_TAB = "new_tab"
@@ -156,13 +157,12 @@ class ItemEvent(TypedEvent):
 class DefEvent(Event):
 	"""Event for list definition."""
 
-	def __init__(self, depth, term):
-		Event.__init__(self, L_PAR, ID_NEW_DEF)
+	def __init__(self, id = ID_NEW_DEF, depth = -1):
+		Event.__init__(self, L_PAR, id)
 		self.depth = depth
-		self.term = term
 	
 	def make(self):
-		return DefList(self.depth, self.term)
+		return DefList(self.depth)
 
 
 class QuoteEvent(Event):
@@ -189,33 +189,45 @@ class Node:
 			self.line = line
 
 	def onError(self, msg):
+		"""Called to display an error."""
 		common.onError('%s:%d: %s' % (self.file, self.line, msg))
 
 	def onWarning(self, msg):
+		"""Called to display a warning."""
 		common.onWarning('%s:%d: %s' % (self.file, self.line, msg))
 
 	def onInfo(self, msg):
+		"""Called to display an information to the user."""
 		common.onInfo('%s:%d: %s' % (self.file, self.line, msg))
 
 	def onEvent(self, man, event):
+		"""Called each time a new word is found.
+		man -- current parser manager
+		event -- current event."""
 		man.forward(event)
 
 	def isEmpty(self):
+		"""Test if the node is empty (and can be removed)."""
 		return False
 
 	def dump(self, tab = ""):
+		"""Provided a textual output of the node."""
 		pass
 
 	def clean(self):
+		"""Cleanup the node: remove all nodes an dsub-nodes not required."""
 		pass
 
 	def getHeaderLevel(self):
+		"""For a heade node, get the level."""
 		return -1
 
 	def genTitle(self, gen):
+		"""generate the title for a header node."""
 		return None
 
 	def getContent(self):
+		"""Get the sub-nodes of the current ndoes."""
 		return []
 
 	def gen(self, gen):
@@ -225,7 +237,7 @@ class Node:
 
 	def setLabel(self, label):
 		"""Method called when a label is found after the current element."""
-		raise Exception("label unsupported here")
+		raise commo.ParseException("label unsupported here")
 
 
 class Container(Node):
@@ -279,10 +291,13 @@ class Word(Node):
 		self.text = text
 
 	def dump(self, tab):
-		print(tab + "word(" + self.text + ")")
+		print(tab + self)
 
 	def gen(self, gen):
 		gen.genText(self.text)
+	
+	def __str__(self):
+		return "word(%s)" % self.text
 
 
 class Image(Node):
@@ -561,10 +576,18 @@ class List(Container):
 class DefItem(Container):
 	"""Description of a definition list item."""
 
-	def __init__(self, term):
+	def __init__(self):
 		Container.__init__(self)
-		self.term = term
+		self.term = Par()
 		self.content.append(Par())
+
+	def get_term(self):
+		"""Get the defined term as a container of text-level items."""
+		return self.term
+		
+	def get_def(self):
+		"""Get the definition as a container of paragraph-level items."""
+		return self
 
 	def dumpHead(self, tab):
 		print tab + "item(" + self.term + ", "
@@ -574,21 +597,24 @@ class DefList(Container):
 	"""Description of definition list."""
 	depth = None
 
-	def __init__(self, depth, term):
+	def __init__(self, depth):
 		Container.__init__(self)
 		self.depth = depth
-		self.content.append(DefItem(term))
+		self.content.append(DefItem())
 
 	def onEvent(self, man, event):
 		if event.level is L_WORD:
-			self.last().last().add(man, event.make())
+			w = event.make()
+			self.last().get_term().add(man, w)
+		elif event.id is ID_END_TERM:
+			man.push(self.last().last())
 		elif event.id is ID_NEW_DEF:
 			if event.depth < self.depth:
 				man.forward(event)
 			elif event.depth > self.depth:
 				self.last().add(man, event.make())
 			else:
-				self.content.append(DefItem(event.term))
+				self.content.append(DefItem())
 		elif event.id is ID_END_DEF:
 			man.pop()
 		else:

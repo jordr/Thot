@@ -291,8 +291,10 @@ class Generator(back.Generator):
 	def genDefList(self, deflist):
 		self.out.write("<dl>\n")
 		for item in deflist.getItems():
-			self.out.write("<dt>%s</dt><dd>" % item.term)
-			item.gen(self)
+			self.out.write("<dt>")
+			item.get_term().gen(self)
+			self.out.write("</dt><dd>")
+			item.get_def().gen(self)
 			self.out.write("</dd>")
 		self.out.write("</dl>\n")
 
