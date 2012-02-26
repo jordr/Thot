@@ -397,6 +397,17 @@ class Generator(back.Generator):
 		else:
 			self.out.write('\\end{enumerate}\n')
 
+	def genDefList(self, deflist):
+		self.out.write("\\begin{itemize}\n")
+		for item in deflist.getItems():
+			self.out.write("\item[")
+			for text in item.get_term().getContent():
+				text.gen(self)
+			self.out.write("] ")
+			item.get_def().gen(self)
+		self.out.write("\\end{itemize}\n")
+
+
 	def genStyleBegin(self, kind):
 		if not kind in STYLES:
 			self.unsupported('%s style' % kind)
