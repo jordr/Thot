@@ -39,27 +39,29 @@ def escape_re(str):
 			res = res + c
 	return res
 
-ENTITIES = {
-	'<->' 	: 0x2194,
-	'->' 	: 0x2192,
-	'<-' 	: 0x2190,
-	'<=>'	: 0x21d4,
-	'=>'	: 0x21d2,
-	'<='	: 0x21d0,
-	'>>'	: 0x00bb,
-	'<<'	: 0x00ab,
-	'---'	: 0x2014,
-	'--'	: 0x2013,
-	'(c)'	: 0x00a9,
-	'(tm)'	: 0x2122,
-	'(r)'	: 0x00ae,
-	'...'	: 0x22ef
-}
+ENTITIES_INIT = [
+	('<->',	0x2194),
+	('->',	0x2192),
+	('<-',	0x2190),
+	('<=>',	0x21d4),
+	('=>',	0x21d2),
+	('<=',	0x21d0),
+	('>>',	0x00bb),
+	('<<',	0x00ab),
+	('---',	0x2014),
+	('--',	0x2013),
+	('(c)',	0x00a9),
+	('(tm)',0x2122),
+	('(r)',	0x00ae),
+	('...',	0x22ef)
+]
+ENTITIES = { }
 ENTITIES_RE = ""
-for entity in ENTITIES.keys():
+for (s, c) in ENTITIES_INIT:
+	ENTITIES[s] = c
 	if ENTITIES_RE <> "":
 		ENTITIES_RE = ENTITIES_RE + "|"
-	ENTITIES_RE = ENTITIES_RE + escape_re(entity)
+	ENTITIES_RE = ENTITIES_RE + escape_re(s)
 
 
 SMILEYS = {
