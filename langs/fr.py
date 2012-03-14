@@ -18,7 +18,7 @@
 import i18n
 
 dict = {
-	"Table of content": "Sommaire"
+	i18n.CONTENT : "Sommaire"
 }
 
 def getTranslator(doc, lang):

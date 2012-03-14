@@ -296,7 +296,9 @@ def handleList(man, kind, match):
 def handle_def(man, match):
 	depth = computeDepth(match.group(1))
 	man.send(doc.DefEvent(doc.ID_NEW_DEF, depth))
+	#print "DEBUG: NEW_DEF: handleText(%s)" % match.group(3)
 	parser.handleText(man, match.group(3))
+	#print "DEBUG: END_TERM: handleTex(%s)" % match.group(4)
 	man.send(doc.DefEvent(doc.ID_END_TERM))
 	parser.handleText(man, match.group(4))
 

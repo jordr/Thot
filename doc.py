@@ -94,6 +94,9 @@ class ObjectEvent(Event):
 
 	def make(self):
 		return self.object
+	
+	def __str__(self):
+		return "event(%s, %s, %s)" % (LEVELS[self.level], self.id, self.object)
 
 
 class TypedEvent(Event):
@@ -443,8 +446,8 @@ class Par(Container):
 	def onEvent(self, man, event):
 		if event.level is L_WORD:
 			self.add(man, event.make())
-		elif event.level is L_PAR and event.id is ID_END:
-			man.pop()
+		#elif event.level is L_PAR and event.id is ID_END:
+		#	man.pop()
 		else:
 			man.forward(event)
 
@@ -604,8 +607,8 @@ class DefList(Container):
 
 	def onEvent(self, man, event):
 		if event.level is L_WORD:
-			w = event.make()
-			self.last().get_term().add(man, w)
+			man.push(self.last().get_term())
+			man.send(event)
 		elif event.id is ID_END_TERM:
 			man.push(self.last().last())
 		elif event.id is ID_NEW_DEF:

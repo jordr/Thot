@@ -204,6 +204,12 @@ I say "@(V1)" !!!!
 
 ====== Example of inclusion ======
 
+<code>
+@include include.thot
+</code>
+
+gives :
+
 @include include.thot
 
 ====== Example of math module ======
@@ -252,3 +258,9 @@ This is a definition:
   ? term 3 : multiline definition
 And there ?
 And here !
+
+With only case:
+  ? lonely case : lonely definition
+
+And that continues...
+

@@ -4,6 +4,7 @@ import doc
 import common
 import os.path
 
+DEBUG = False
 
 ############### Word Parsing #####################
 
@@ -136,19 +137,32 @@ class Manager:
 	def get(self):
 		return self.item
 
+	def debug(self, msg):
+		"""Used to output message."""
+		print "DEBUG: %s" % msg
+
 	def send(self, event):
+		if DEBUG:
+			self.debug("send(%s)" % event) 
 		self.item.onEvent(self, event)
 
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
 		item.setFileLine(self.file_name, self.line_num)
+		if DEBUG:
+			self.debug("push(%s)" % item)
+			self.debug("stack = %s" % self.items)
 
 	def pop(self):
 		self.item = self.items.pop()
+		if DEBUG:
+			self.debug("pop(): %s" % self.item)
+			self.debug("stack = %s" % self.items)		
 
 	def forward(self, event):
-		#print "forward(" + str(event) + ")"
+		if DEBUG:
+			self.debug("forward(%s)" % event)
 		self.pop()
 		self.send(event)
 

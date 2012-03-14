@@ -20,6 +20,8 @@ import locale
 import string
 import common
 
+ID_CONTENT = "Content"
+
 class DefaultTranslator:
 	"""A translator that do nothing."""
 	
