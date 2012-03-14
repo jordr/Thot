@@ -74,7 +74,7 @@ def handleInclude(man, match):
 		file = open(path)
 		man.parseInternal(file, path)
 	except IOError, e:
-		common.onError('%s:%d: cannot include "%s": %s' % (path, str(e), man.file_name, man.line_num))
+		common.onError('%s:%d: cannot include "%s": %s' % (man.file_name, man.line_num, path, e))
 
 def handleLabel(man, match):
 	par = doc.Par()
