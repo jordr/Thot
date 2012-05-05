@@ -91,6 +91,9 @@ The table shows all variables that may be provided to @(THOT):
 | ''OUTPUT'' |Used by some back-end to precise output (pdf for example) |
 | ''TITLE'' |Title of the generated document. |
 | ''VERSION'' |Version of the document |
+| ''SUBTITLE'' |sub-title of the documeny (not supported by all back-ends) |
+| ''LOGO'' |logo(s) of the organization (separated by commas) (not supported by all back-ends) |
+| ''ORGANIZATION'' |organization producing the document (not supported by all back-ends) |
 
 The variable below are provided by @(THOT) but must not be changed
 (unless you know exactly what you do):
@@ -367,6 +370,9 @@ The following variables may be used to control the generation process:
 
 ^ Variable ^ Description ^
 | OUTPUT | ''latex'' for simple Latex generation, ''pdf'' for also generating PDF. |
+| SUBTITLE | document subtitle (only for Koma document classes) |
+| ORGANIZATION | producer organization (only for Koma document classes) |
+| LOGO | logo(s) to display |
 | LATEX_CLASS | Select the class of generated document (''book'' as a default). |
 | LATEX_PREAMBLE | The variable value is appended as-is just after class definition (it may be used to included specific Latex modules) |
 | LATEX_PAPER | Select the paper type of the generated document (''a4paper'' as a default). |

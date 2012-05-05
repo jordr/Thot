@@ -30,9 +30,19 @@ import sys
 #	LANG: document language
 #	OUTPUT: one of 'latex' or 'pdf'
 #	ENCODING: character encoding
+#	SUBTITLE: sub-title of the document
+#	ORGANIZATION: organization producing the document
+#	LOGO: logos of the supporting organizations
 #	LATEX_CLASS: latex class for document
 #	LATEX_PREAMBLE: insert just after document definition
 #	LATEX_PAPER: latex paper format (a4paper, letter, etc)
+
+KOMA_STYLES = [
+	"scrartcl",
+	"scrreprt",
+	"scrbook",
+	"scrlttr2"
+]
 
 ESCAPES = {
 	'&'	: '\\&',
@@ -225,6 +235,7 @@ class Generator(back.Generator):
 		#self.out.write('\\usepackage{fancyhdr}\n')
 		self.out.write(preamble)
 		self.out.write('\\usepackage[%s]{babel}\n' % lang)
+		is_koma = cls in KOMA_STYLES
 
 		# add custom definitions
 		self.out.write('\\newcommand{\\superscript}[1]{\\ensuremath{^{\\textrm{#1}}}}\n')
@@ -232,11 +243,44 @@ class Generator(back.Generator):
 		self.out.write('\\headheight=20pt\n')
 		self.out.write('\\headsep=10pt\n')
 
-		# write title
 		self.out.write('\\begin{document}\n')
-		self.out.write('\\title{%s}\n' % self.escape(self.doc.getVar('TITLE')))
-		self.out.write('\\author{%s}\n' % self.escape(self.doc.getVar('AUTHORS')))
-		self.out.write('\\maketitle\n\n')
+
+		# write title
+		latex_title = self.doc.getVar("LATEX_TITLE")
+		if not latex_title:
+			self.out.write('\\title{%s}\n' % self.escape(self.doc.getVar('TITLE')))
+			subtitle = self.doc.getVar("SUBTITLE")
+			if is_koma and subtitle:
+				self.out.write("\\subtitle{%s}\n" % self.escape(subtitle))
+			# NOTE: \thanks{...} allows to give the owner organization of an author
+			self.out.write('\\author{%s}\n' % self.escape(self.doc.getVar('AUTHORS')).replace(",", " \\and "))
+			organization = self.doc.getVar("ORGANIZATION")
+			if is_koma and organization:
+				self.out.write("\\publishers{%s}\n" % self.escape(organization))
+			self.out.write('\\maketitle\n\n')
+		else:
+			
+			self.out.write("\\begin{titlepage}\n")
+			self.out.write("\\newcommand{\\thotorganization}{%s}\n" % self.escape(self.doc.getVar("ORGANIZATION")))
+			self.out.write("\\newcommand{\\thottitle}{%s}\n" % self.escape(self.doc.getVar("TITLE")))
+			self.out.write("\\newcommand{\\thotsubtitle}{%s}\n" % self.escape(self.doc.getVar("SUBTITLE")))
+			self.out.write("\\newcommand{\\thotauthors}{%s}\n" % ("{" + self.escape(self.doc.getVar("AUTHORS")).replace(",", "} {") + "}"))
+			logos = self.doc.getVar("LOGO")
+			text = ""
+			fst = True
+			for logo in logos.split(","):
+				if not fst:
+					text = text + " \\hfill ";
+				else:
+					fst = False
+				text = text + "\includegraphics{%s}" % logo.strip()
+			self.out.write("\\newcommand{\\thotlogos}{%s}\n" % text)
+			file = open(latex_title)
+			for l in file:
+				self.out.write(l)
+			self.out.write("\\end{titlepage}\n")			
+				
+		# generate the content
 		self.out.write('\\tableofcontents\n\n')
 		self.out.write('\\pagebreak\n\n')
 
