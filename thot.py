@@ -17,7 +17,7 @@
 
 import doc
 import os
-import parser
+import tparser
 import locale
 import sys
 import optparse
@@ -69,7 +69,7 @@ if options.defines:
 
 # Parse the file
 document = doc.Document(env)
-man = parser.Manager(document)
+man = tparser.Manager(document)
 man.parse(input, env['THOT_FILE'])
 if options.dump:
 	document.dump("")
