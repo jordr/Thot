@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import doc
-import parser
+import tparser
 import subprocess
 import common
 import re
@@ -66,7 +66,7 @@ class DotBlock(doc.Block):
 DOT_CLOSE = re.compile("^@</dot>")
 
 def handleDot(man, match):
-	parser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
+	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
 
 DOT_LINE = (handleDot, re.compile("^@<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
 

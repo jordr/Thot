@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import parser
+import tparser
 import doc
 import re
 import highlight
@@ -285,34 +285,34 @@ def handleHeader(man, match):
 	level = 6 - len(match.group(1))
 	title = match.group(2)
 	man.send(doc.ObjectEvent(doc.L_HEAD, doc.ID_NEW, doc.Header(level)))
-	parser.handleText(man, title)
+	tparser.handleText(man, title)
 	man.send(doc.Event(doc.L_HEAD, doc.ID_TITLE))
 
 def handleList(man, kind, match):
 	depth = computeDepth(match.group(1))
 	man.send(doc.ItemEvent(kind, depth))
-	parser.handleText(man, match.group(3))
+	tparser.handleText(man, match.group(3))
 
 def handle_def(man, match):
 	depth = computeDepth(match.group(1))
 	man.send(doc.DefEvent(doc.ID_NEW_DEF, depth))
 	#print "DEBUG: NEW_DEF: handleText(%s)" % match.group(3)
-	parser.handleText(man, match.group(3))
+	tparser.handleText(man, match.group(3))
 	#print "DEBUG: END_TERM: handleTex(%s)" % match.group(4)
 	man.send(doc.DefEvent(doc.ID_END_TERM))
-	parser.handleText(man, match.group(4))
+	tparser.handleText(man, match.group(4))
 
 def handleCode(man, match):
 	lang = match.group(2)
 	if lang == None:
 		lang = ""
-	parser.BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
+	tparser.BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
 
 def handleFile(man, match):
-	parser.BlockParser(man, FileBlock(), END_FILE)
+	tparser.BlockParser(man, FileBlock(), END_FILE)
 
 def handleNoWiki(man, match):
-	parser.BlockParser(man, NonParsedBlock(), END_NOWIKI)
+	tparser.BlockParser(man, NonParsedBlock(), END_NOWIKI)
 
 TABLE_SEP = re.compile('\^|\|')
 def handleRow(man, match):
@@ -349,7 +349,7 @@ def handleRow(man, match):
 			continue
 		if object:
 			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))
-			parser.handleText(man, text)
+			tparser.handleText(man, text)
 
 		# strip and find align
 		total = len(cell)
@@ -371,7 +371,7 @@ def handleRow(man, match):
 
 	# dump final object
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))
-	parser.handleText(man, text)
+	tparser.handleText(man, text)
 
 def handleHLine(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, doc.HorizontalLine()))
@@ -381,7 +381,7 @@ def handleIndent(man, match):
 
 def handleQuote(man, match):
 	man.send(doc.QuoteEvent(len(match.group(1))))
-	parser.handleText(man, match.group(2))
+	tparser.handleText(man, match.group(2))
 
 LINES = [
 	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),

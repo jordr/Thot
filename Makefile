@@ -6,7 +6,7 @@ SOURCES = \
 	doc.py \
 	highlight.py \
 	i18n.py \
-	parser.py \
+	tparser.py \
 	thot.py \
 	back.py
 OBJECTS = $(SOURCES:.py=.pyc)
