@@ -170,11 +170,14 @@ def genCode(gen, lang, text):
 	type = gen.getType()
 	if lang in LANGS and type in BACKS:
 		try:
+			cfd = True
+			if os.name == "nt":
+				cfd = False
 			process = subprocess.Popen(
 				['highlight -f --syntax=%s %s' % (lang, BACKS[type])],
 				stdin = subprocess.PIPE,
 				stdout = subprocess.PIPE,
-				close_fds = True,
+				close_fds = cfd,
 				shell = True
 				)
 			res, _ = process.communicate(text)
@@ -205,11 +208,14 @@ class Feature(doc.Feature):
 			# build the CSS file
 			try:
 				css = gen.addFriendFile('/highlight/highlight.css')
+				cfd = True
+				if os.name == "nt":
+					cfd = False
 				process = subprocess.Popen(
 					['highlight -f --syntax=c --style-outfile=' + css],
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
-					close_fds = True,
+					close_fds = cfd,
 					shell = True
 				)
 				_ = process.communicate("")
