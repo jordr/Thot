@@ -232,9 +232,9 @@ Include the module with:
 
 The dot graph insertion must implements the syntax below:
 <code>
-@<dot DRAWER>
+<dot DRAWER>
 DOT syntax
-@</dot>
+</dot>
 </code>
 
 The //DOT syntax// must follows the rules of ''.dot''. See
@@ -246,6 +246,9 @@ The //DRAWER// is optional or may be one of the following with the matching effe
   * twopi -- radial layouts of graphs
   * circo -- circular layout of graphs
   * fdp -- undirected graphs
+
+**NOTE**: old form ''@<dot>'' is now deprecated.
+
 
 ==== latexmath Module ====
 
@@ -269,6 +272,34 @@ Short guide to this syntax may be found [[ftp://ftp.ams.org/ams/doc/amsmath/shor
 
 To have a lonely dollar, just put a double dollar, ''$$''.
 
+
+==== gnuplot Module ====
+
+This module must be imported with the following command at the beginning of the file:
+<code>
+@use gnuplot
+</code>
+@use gnuplot
+
+Use ''<gnuplot>'' and ''</gnuplot>'' tags lonely on a line and put inside
+the gnuplot script. The opening tag can also contains a dimension specification
+''?''//width//''x''//height// as in the example below:
+<code>
+<gnuplot?256x256>
+set key left box
+set samples 50
+plot [-10:10] sin(x),atan(x),cos(atan(x))
+</gnuplot>
+</code>
+
+This will gives:
+<gnuplot?256x256>
+set key left box
+set samples 50
+plot [-10:10] sin(x),atan(x),cos(atan(x))
+</gnuplot>
+
+Documentation about GnuPlot can be found [[http://gnuplot.info/documentation.html|here]].
 
 
 

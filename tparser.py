@@ -3,6 +3,7 @@ import re
 import doc
 import common
 import os.path
+import sys
 
 DEBUG = False
 
@@ -217,6 +218,11 @@ class Manager:
 		self.words.extend(words)
 		self.words_re = None
 
+	def deprecated(self, msg):
+		"""Display a deprecated message with the given message."""
+		sys.stderr.write("DEPRECATED: %s\n" % msg)
+
+
 class BlockParser:
 	old = None
 	block = None
@@ -234,3 +240,6 @@ class BlockParser:
 			man.setParser(self.old)
 		else:
 			self.block.add(line)
+
+
+	

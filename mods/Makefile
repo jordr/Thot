@@ -1,6 +1,7 @@
 SOURCES = \
 	dokuwiki.py \
 	dot.py \
+	gnuplot.py \
 	latexmath.py
 OBJECTS =  $(SOURCES:.py=.pyc)
 

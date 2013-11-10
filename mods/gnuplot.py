@@ -1,4 +1,4 @@
-# dot -- Thot dot module
+# gnuplot -- Thot gnuplot module
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -23,60 +23,70 @@ import sys
 
 
 count = 0
+has_gnuplot = True
 
-class DotBlock(doc.Block):
-	"""A block containing .dot graph.
-	See http://www.graphviz.org/ for more details."""
-	kind = None
+class GnuPlotBlock(doc.Block):
+	"""A block containing .gnu graph.
+	See http://gnuplot.info/ for more details."""
+	w = None
+	h = None
 
-	def __init__(self, kind):
+	def __init__(self, w, h):
 		doc.Block.__init__(self)
-		if not kind:
-			self.kind = 'dot'
-		else:
-			self.kind = kind
+		self.w = w
+		self.h = h
 
 	def dumpHead(self, tab):
-		print "%sblock.dot(" % tab
+		print "%sblock.gnuplot(" % tab
 
 	def gen(self, gen):
+		
+		# gnuplot exists ?
 		global count
-		path = gen.addFriendFile('/dot/graph-%s.png' % count)
+		global has_gnuplot
+		if not has_gnuplot:
+			return
+		
+		# prepare the size
+		opt = ""
+		if self.w:
+			if not self.h:
+				self.h = self.w
+			opt = "size %s,%s"  % (self.w, self.h)
+		
+		path = gen.addFriendFile('/gnuplot/graph-%s.png' % count)
 		count += 1
 		try:
 			process = subprocess.Popen(
-				['%s -Tpng -o %s' % (self.kind, path)],
+				[ 'gnuplot' ],
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,
 					close_fds = True,
 					shell = True
 				)
-			(out, err) = process.communicate(self.toText())
+			(out, err) = process.communicate("set terminal png transparent %s crop\nset output \"%s\"\n%s" % (opt, path, self.toText()))
+			if process.returncode == 127:
+				has_gnuplot = False
+				self.onWarning("gnuplot is not available")
+				return
 			if process.returncode:
+				print "ERROR: %d" % process.returncode
 				sys.stderr.write(err)
-				self.onError('error during dot call')
+				self.onError('error during gnuplot call')
 			gen.genEmbeddedBegin('figure', self.label)
 			gen.genImage(gen.getFriendRelativePath(path))
 			gen.genEmbeddedEnd()
 		except OSError, e:
-			self.onError('can not process dot graph: %s' % str(e))
+			self.onError('can not process gnuplot: %s' % str(e))
 
 
-DOT_CLOSE = re.compile("^</dot>")
-DOT_CLOSE_OLD = re.compile("^@</dot>")
+GNUPLOT_CLOSE = re.compile("^</gnuplot>")
 
-def handleDot(man, match):
-	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
+def handleGnuPlot(man, match):
+	tparser.BlockParser(man, GnuPlotBlock(match.group(2), match.group(4)), GNUPLOT_CLOSE)
 
-def handleDotOld(man, match):
-	man.deprecated("@<dot> form is now deprecared. Use <dot> instead.")
-	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE_OLD)
-
-DOT_LINE = (handleDot, re.compile("^<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
-DOT_LINE_OLD = (handleDotOld, re.compile("^@<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
-
+GNUPLOT_OPEN = (handleGnuPlot, re.compile("^<gnuplot(\?([0-9]+)(x([0-9]+)))?>"))
 
 def init(man):
-	man.addLine(DOT_LINE)
-	man.addLine(DOT_LINE_OLD)
+	man.addLine(GNUPLOT_OPEN)
