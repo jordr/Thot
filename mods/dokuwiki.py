@@ -237,7 +237,6 @@ def handleImage(man, match):
 	label = match.group("image_label")
 	left = len(match.group("left"))
 	right = len(match.group("right"))
-	cls = doc.L_WORD
 	if left == right:
 		if not left:
 			align = doc.ALIGN_NONE
@@ -248,8 +247,13 @@ def handleImage(man, match):
 		align = doc.ALIGN_RIGHT
 	else:
 		align = doc.ALIGN_LEFT
-	man.send(doc.ObjectEvent(cls, doc.ID_NEW,
-		doc.Image(image, width, height, label, align)))
+	if align == doc.ALIGN_NONE:
+		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW,
+			doc.Image(image, width, height, label)))
+	else:
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW,
+			doc.EmbeddedImage(image, width, height, label, align)))
+
 
 def handleNonParsed(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('nonparsed')[:-2])))
@@ -395,7 +399,8 @@ LINES = [
 	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
 	(handleHLine, re.compile("^-----*\s*$")),
 	(handleIndent, INDENT_RE),
-	(handleQuote, re.compile("^(>+)(.*)$"))
+	(handleQuote, re.compile("^(>+)(.*)$")),
+	(handleImage, re.compile("\s*{{(?P<left>\s*)(?P<image>[^}?\s]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}\s*"))
 ]
 
 def init(man):

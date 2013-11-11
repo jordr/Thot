@@ -122,14 +122,15 @@ class AllInOne(PagePolicy):
 		else:
 			
 			# set number
-			if num:
-				if not others.has_key(num):
-					others[num] = 1
-					n = 1
-				else:
-					n = others[num] + 1
-				self.gen.refs[node] = ("", str(n))
-				others[num] = n
+			if self.gen.doc.getLabelFor(node):
+				if num:
+					if not others.has_key(num):
+						others[num] = 1
+						n = 1
+					else:
+						n = others[num] + 1
+					self.gen.refs[node] = ("", str(n))
+					others[num] = n
 		
 			# look in children
 			for item in node.getContent():
@@ -502,7 +503,6 @@ class Generator(back.Generator):
 
 	def genBody(self):
 		self.out.write('<div class="page">\n')
-		self.resetCounters()
 		self.doc.gen(self)
 		self.genFootNotes()
 		self.out.write('</div>\n')
@@ -527,7 +527,7 @@ class Generator(back.Generator):
 			level = item.getHeaderLevel()
 			if level == -1:
 				continue
-			number = self.nextHeaderNumber(level)
+			number = self.refs[item][1]
 			self.out.write('			<li>')
 			self.out.write('<a href="%s">' % self.refs[item][0])
 			self.out.write(number + ' ')
@@ -539,7 +539,7 @@ class Generator(back.Generator):
 		self.out.write('		</ul>\n')
 
 	def genContent(self, max = 7, out = False):
-		self.resetCounters()
+		#self.resetCounters()
 		self.out.write('	<div class="toc">\n')
 		self.out.write('		<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
 		self.genContentItem(self.doc.getContent(), max, out)

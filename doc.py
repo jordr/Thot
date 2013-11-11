@@ -361,6 +361,27 @@ class Image(Node):
 	path = None
 	caption = None
 
+	def __init__(self, path, width = None, height = None, caption = None):
+		self.path = path
+		self.width = width
+		self.height = height
+		self.caption = caption
+
+	def dump(self, tab):
+		print "%simage(%s, %s, %s, %s)" % \
+			(tab, self.path, str(self.width), str(self.height), self.caption)
+
+	def gen(self, gen):
+		gen.genImage(self.path, self.width, self.height, self.caption, ALIGN_NONE, self)
+
+	def visit(self, visitor):
+		visitor.onImage(self)
+
+
+class EmbeddedImage(Node):
+	path = None
+	caption = None
+
 	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
 		self.path = path
 		self.width = width
@@ -371,27 +392,27 @@ class Image(Node):
 		self.align = align
 
 	def dump(self, tab):
-		print "%simage(%s, %s, %s, %s)" % \
+		print "%sembedded-image(%s, %s, %s, %s)" % \
 			(tab, self.path, str(self.width), str(self.height), self.caption)
 
 	def gen(self, gen):
 		gen.genImage(self.path, self.width, self.height, self.caption, self.align, self)
 
-	def acceptLabel(self):
-		return True
-
 	def visit(self, visitor):
-		visitor.onImage(self)
+		visitor.onEmbeddedImage(self)
 
 	def numbering(self):
-		if self.align == ALIGN_NONE:
-			return None
-		else:
-			return "figure"
+		return "figure"
 
 	def getCaption(self):
 		return self.caption
 
+	def acceptLabel(self):
+		return True
+	
+	def setCaption(self, caption):
+		self.caption = caption
+	
 
 class Glyph(Node):
 	code = None
@@ -1048,7 +1069,6 @@ class Document(Container):
 		"""Add a label for the given node."""
 		self.labels[label] = node
 		self.inv_labels[node] = label
-		print "%s: %s" % (label, node)
 	
 	def getLabel(self, label):
 		"""Find the node matching the given label.

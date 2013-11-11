@@ -149,15 +149,15 @@ main file. This ensures that the document is well built whatever the
 working directory of @(THOT) invocation.
 
 
-==== Assigning a label to an embedded part ====
+==== References, labels and captions ====
 
 In Thot terminology, an embedded part is a piece of document that is
 not part of the main flow of text. Usual embedded parts are figures,
 tables, listing, etc.
 
-Label may hooked to embedded in a standard way using the ''@label''
-syntax. The label is formed by any word and formatting following
-the ''@label'' keyword to the end of the file. It must be placed
+Captions may hooked to embedded in a standard way using the ''@caption''
+syntax. The caption is formed by any word and formatting following
+the ''@caption'' keyword to the end of the file. It must be placed
 just after the embedded part as in the example below.
 
 <file>
@@ -166,8 +166,29 @@ just after the embedded part as in the example below.
     return 0;
   }
   </code>
-  @label This is //my// listing
+  @caption This is //my// listing
 </file>
+
+In the same way, a label may be added to an embedded part or to an header by putting
+a ''@label'' definition after an embedded part. This tag is followed
+by an identifier that may be then used in a reference, ''@ ref:''//identifier//''@''.
+The reference is then replaced by the number of the referenced item as in the example below.
+
+<file>
+  ====== Title ======
+  @label my-title
+
+  <code c>
+  int main() {
+    return 0;
+  }
+  </code>
+  @label my-code
+  
+  The Listing @ref:my-code@ in Section @ref:my-title@.
+</file>
+
+
 
 ==== Command ====
 

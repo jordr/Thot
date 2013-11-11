@@ -23,7 +23,7 @@ import doc as tdoc
 class Generator:
 	"""Abstract back-end generator."""
 	doc = None
-	counters = None
+	#counters = None
 	path = None
 	root = None
 	out = None
@@ -38,7 +38,6 @@ class Generator:
 		self.trans  = i18n.getTranslator(self.doc)
 		self.from_files = { }
 		self.to_files = { }
-		self.resetCounters()
 
 	def getType(self):
 		"""Get type of the back-end: html, latex, xml."""
@@ -169,23 +168,6 @@ class Generator:
 
 		# build the HTML relative path
 		return self.getFriendRelativePath(tpath)
-
-	def resetCounters(self):
-		self.counters = {
-			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
-		}
-
-	def nextHeaderNumber(self, num):
-		self.counters[str(num)] = self.counters[str(num)] + 1
-		for i in xrange(num + 1, 6):
-			self.counters[str(i)] = 0
-		return self.getHeaderNumber(num)
-
-	def getHeaderNumber(self, num):
-		res = str(self.counters['0'])
-		for i in xrange(1, num + 1):
-			res = res + '.' + str(self.counters[str(i)])
-		return res
 
 	def genFootNote(self, note):
 		pass
