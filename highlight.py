@@ -161,27 +161,63 @@ CSS_BACKS = [ 'html', 'xhtml' ]
 
 unsupported = []
 unsupported_backs = []
+checked = False
+command = None
 
-def genCode(gen, lang, text):
+def getCommand():
+	global command
+	global checked
+	if not checked:
+		checked = True
+		(id, release) = common.getLinuxDistrib()
+		if id == "LinuxMint":
+			command = "/usr/bin/highlight"
+			common.onWarning("LinuxMint detected. Workaround to find 'highlight' command in /usr/bin/")
+		else:
+			command = common.which("highlight")
+			if not command:
+				common.onWarning("no highlight command found: code will not be colored.")
+	return command
+	
+
+def genCode(gen, lang, text, type):
 	"""Generate colorized code.
 	gen -- back-end generator
 	lang -- code language
 	lines -- lines of the code"""
+	global COMMAND
+	
 	type = gen.getType()
 	if lang in LANGS and type in BACKS:
+		command = getCommand()
+		
+		# default behaviour if no command
+		if not command:
+			if type == 'html':
+				gen.genText(text)
+			elif type == 'latex':
+				gen.genVerbatim("\\begin{verbatim}\n")
+				gen.genTex(text)
+				gen.genVerbatim("\n\\end{verbatim}\n")
+			return
+		
+		# perform the command
 		try:
 			cfd = True
 			if os.name == "nt":
 				cfd = False
 			process = subprocess.Popen(
-				['highlight -f --syntax=%s %s' % (lang, BACKS[type])],
+				['%s -f --syntax=%s %s' % (command, lang, BACKS[type])],
 				stdin = subprocess.PIPE,
 				stdout = subprocess.PIPE,
 				close_fds = cfd,
 				shell = True
 				)
 			res, _ = process.communicate(text)
+			
+			# generate the source
 			gen.genVerbatim(res)
+			
 		except OSError, e:
 			sys.stderr.write("ERROR: can not call 'highlight'\n")
 			sys.exit(1)
@@ -203,16 +239,19 @@ class Feature(doc.Feature):
 
 	def prepare(self, gen):
 		type = gen.getType()
+		command = getCommand()
+		if not command:
+			return
+		
+		# build the CSS file
 		if type in CSS_BACKS:
-
-			# build the CSS file
 			try:
 				css = gen.addFriendFile('/highlight/highlight.css')
 				cfd = True
 				if os.name == "nt":
 					cfd = False
 				process = subprocess.Popen(
-					['highlight -f --syntax=c --style-outfile=' + css],
+					['%s -f --syntax=c --style-outfile=%s' % (command, css)],
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
 					close_fds = cfd,
@@ -230,13 +269,12 @@ class Feature(doc.Feature):
 			styles += gen.getFriendRelativePath(css)
 			gen.doc.setVar('HTML_STYLES', styles)
 
+		# build .sty
 		if type == 'latex':
-
-			# build the .sty file
 			try:
 				css = gen.addFriendFile('/highlight/highlight.sty')
 				process = subprocess.Popen(
-					['highlight -f --syntax=c --style-outfile=%s %s' % (css, BACKS[type])],
+					['%s -f --syntax=c --style-outfile=%s %s' % (command, css, BACKS[type])],
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
 					close_fds = True,
@@ -282,11 +320,13 @@ class CodeBlock(doc.Block):
 		if type == 'html':
 			gen.genEmbeddedBegin(self)
 			gen.genVerbatim('<pre class="code">\n')
-			genCode(gen, self.lang, text)
+			genCode(gen, self.lang, text, type)
 			gen.genVerbatim('</pre>')
 			gen.genEmbeddedEnd(self)
 		elif type == 'latex':
-			genCode(gen, self.lang, text)
+			gen.genEmbeddedBegin(self)
+			genCode(gen, self.lang, text, type)
+			gen.genEmbeddedEnd(self)
 		elif type == 'docbook':
 			gen.genVerbatim('<programlisting xml:space="preserve" ')
 			if DOCBOOK_LANGS.has_key(self.lang):

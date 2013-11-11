@@ -112,6 +112,13 @@ UNSUPPORTED_IMAGE = [ '.gif' ]
 
 ALIGNMENT = ['l', 'c', 'r']
 
+REF_PREFIXES = {
+	"header": "sec",
+	"figure": "fig",
+	"table": "tab",
+	"listing": "lst"
+}
+
 class UnicodeEncoder:
 	"""Abstract for unicode character encoding."""
 
@@ -234,7 +241,8 @@ class Generator(back.Generator):
 		self.out.write('\\usepackage{verbatim}\n')
 		#self.out.write('\\usepackage{fancyhdr}\n')
 		self.out.write(preamble)
-		self.out.write('\\usepackage[%s]{babel}\n' % lang)
+		if lang:
+			self.out.write('\\usepackage[%s]{babel}\n' % lang)
 		is_koma = cls in KOMA_STYLES
 
 		# add custom definitions
@@ -341,8 +349,11 @@ class Generator(back.Generator):
 		self.out.write('\\end{quote}\n')
 
 	def genTable(self, table):
+		floatting = self.doc.getLabelFor(table) or table.getCaption()
 
 		# output prolog
+		if floatting:
+			self.out.write("\\begin{table}[htbp]\n")
 		self.out.write('\\vspace{4pt}\n')
 		self.out.write('\\begin{tabular}{|')
 		for i in xrange(0, table.getWidth()):
@@ -405,7 +416,11 @@ class Generator(back.Generator):
 		# epilog
 		self.out.write('\\hline\n')
 		self.out.write('\\end{tabular}\n')
-		self.out.write('\\vspace{4pt}\n\n')
+		self.out.write('\\vspace{4pt}\n')
+		if floatting:
+			self.genLabel(table)
+			self.out.write("\end{table}\n")
+		self.out.write("\n")
 
 	def genHorizontalLine(self):
 		self.out.write('\n\\vspace{4pt}\n')
@@ -460,20 +475,13 @@ class Generator(back.Generator):
 	def genStyleEnd(self, kind):
 		self.out.write('}')
 
-	def genHeaderBegin(self, level):
-		pass
-
-	def genHeaderTitleBegin(self, level):
-		self.out.write(SECTIONS[level])
-
-	def genHeaderTitleEnd(self, level):
+	def genHeader(self, header):
+		self.out.write(SECTIONS[header.level])
+		header.genTitle(self)
 		self.out.write('}\n')
-
-	def genHeaderBodyBegin(self, level):
-		pass
-
-	def genHeaderBodyEnd(self, level):
-		pass
+		self.genLabel(header)
+		header.genBody(self)
+		return True
 
 	def genHeaderEnd(self, level):
 		pass
@@ -484,9 +492,9 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('}')
 
-	def genImage(self, url, width = None, height = None, caption = None, align = None):
+	def genImage(self, url, width = None, height = None, caption = None, align = None, node = None):
 		# !!TODO!!
-		# It should to download the image if the URL is external
+		# It should download the image if the URL is external
 
 		# handle unsupported image format
 		root, ext = os.path.splitext(url)
@@ -513,7 +521,40 @@ class Generator(back.Generator):
 			args += 'height=%dpx' % height
 		if args:
 			args = "[%s]" % args
+		if align <> doc.ALIGN_NONE:
+			self.out.write("\\begin{figure}[htbp]\n")
 		self.out.write('\includegraphics%s{%s}' % (args, link))
+		if align <> doc.ALIGN_NONE:
+			self.genLabel(node)
+			self.out.write("\n\\end{figure}\n")
+
+	def genLabel(self, node):
+		label = None
+		caption = None
+		if node:
+			label = self.doc.getLabelFor(node)
+			caption = node.getCaption()
+		if label:
+			pref = node.numbering()
+			if REF_PREFIXES.has_key(pref):
+				pref = REF_PREFIXES[pref]
+			self.out.write("\\label{%s:%s}\n" % (pref, label))
+		if caption:
+			self.out.write("\\caption{")
+			for item in caption.getContent():
+				item.gen(self)
+			self.out.write("}")
+
+	def genEmbeddedBegin(self, node):
+		floatting = node.getCaption() or self.doc.getLabelFor(self)
+		if floatting:
+			self.out.write("\\begin{figure}[htbp]\n")
+
+	def genEmbeddedEnd(self, node):
+		floatting = node.getCaption() or self.doc.getLabelFor(self)
+		if floatting:
+			self.genLabel(node)
+			self.out.write("\\end{figure}\n")
 
 	def genGlyph(self, code):
 		if UNICODE_ESCAPES.has_key(code):
@@ -523,6 +564,13 @@ class Generator(back.Generator):
 
 	def genLineBreak(self):
 		self.out.write(' \\\\ ')
+
+	def genRef(self, ref):
+		node = self.doc.getLabel(ref.label)
+		pref = node.numbering()
+		if REF_PREFIXES.has_key(pref):
+			pref = REF_PREFIXES[pref]
+		self.out.write("\\ref{%s:%s} " % (pref, ref.label))
 
 
 def output(doc):

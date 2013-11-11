@@ -19,7 +19,8 @@ import doc
 import subprocess
 import sys
 
-MIMETEX_AVAILABLE = None
+mimetex = common.CommandRequirement("mimetex", 'mimetex not found but required by latexmath module: ignoring latexmath tags')
+
 count = 0
 formulae = { }
 
@@ -32,24 +33,25 @@ class LatexMath(doc.Word):
 		print "%slatexmath(%s)" % (tab, self.text)
 	
 	def gen(self, gen):
-		global MIMETEX_AVAILABLE
+		global mimetex
 		global count
 		global formulae
 		
 		if gen.getType() == "latex":
 			gen.genVerbatim("$%s$" % self.text)
 		else:
+			cmd = mimetex.get()
+			if not cmd:
+				return
 			rpath = ''
 			if formulae.has_key(self.text):
 				rpath = formulae[self.text]
 			else:
-				if not MIMETEX_AVAILABLE:
-					return
 				path = gen.addFriendFile("/latexmath/latexmath-%s.gif" % count);
 				count += 1
 				try:
 					proc = subprocess.Popen(
-						["mimetex -d '%s' -e %s" % (self.text, path)],
+						["%s -d '%s' -e %s" % (cmd, self.text, path)],
 						stdout = subprocess.PIPE,
 						stderr = subprocess.PIPE,
 						shell = True
@@ -79,9 +81,4 @@ def handleMath(man, match):
 MATH_WORD = (handleMath, "\$(?P<latexmath>[^$]*)\$")
 
 def init(man):
-	global MIMETEX_AVAILABLE
-	MIMETEX_AVAILABLE = common.which('mimetex')
-	if not MIMETEX_AVAILABLE:
-		common.onWarning('mimetex not found but required by latexmath module: ignoring latexmath tags')
-	else:
-		man.addWord(MATH_WORD)
+	man.addWord(MATH_WORD)

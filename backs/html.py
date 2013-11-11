@@ -111,7 +111,8 @@ class AllInOne(PagePolicy):
 		# number for header
 		num = node.numbering()
 		if num == 'header':
-			self.gen.refs[node] = ("", makeRef(nums))
+			r = makeRef(nums)
+			self.gen.refs[node] = ("#%s" % r, r)
 			nums.append(1)
 			for item in node.getContent():
 				self.makeRefs(nums, others, item)
@@ -129,7 +130,7 @@ class AllInOne(PagePolicy):
 						n = 1
 					else:
 						n = others[num] + 1
-					self.gen.refs[node] = ("", str(n))
+					self.gen.refs[node] = ("#%s-%d" % (num, n), str(n))
 					others[num] = n
 		
 			# look in children

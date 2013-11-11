@@ -186,9 +186,13 @@ class Generator:
 		pass
 
 	def genVerbatim(self, line):
+		"""Put the given line as is in the generated code.
+		The output line must meet the conventions of the output language."""
 		pass
 
 	def genText(self, text):
+		"""Put the given text as normal in the output, possibly escaping some
+		character to maintain right display."""
 		pass
 
 	def genParBegin(self):

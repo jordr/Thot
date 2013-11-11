@@ -138,3 +138,47 @@ def which(program):
 				return exe_file
 	return None
 
+
+def getLinuxDistrib():
+	"""Look for the current linux distribution.
+	Return (distribution, release) or None if version cannot be found."""
+	try:
+		f = open("/etc/lsb-release")
+		id = None
+		release = None
+		for line in f:
+			if line.startswith("DISTRIB_ID="):
+				id = line[11:-1]
+			elif line.startswith("DISTRIB_RELEASE="):
+				release = int(line[16:-1])
+		if id and release:
+			return (id, release)
+		return None
+	except IOError,e:
+		return None
+
+
+class CommandRequirement:
+	checked = False
+	path = None
+	cmd = None
+	msg = None
+	failing = False
+	
+	def __init__(self, cmd, msg = None, failing = False):
+		self.cmd = cmd
+		self.msg = msg
+		self.failing = failing
+	
+	def get(self):
+		if not self.checked:
+			self.checked = True
+			self.path = which(self.cmd)
+			if not self.path and self.msg:
+				if self.failing:
+					onError(self.msg)
+				else:
+					onWarning(self.msg)
+		return self.path 
+	
+

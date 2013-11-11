@@ -225,28 +225,26 @@ And a nice example : $\LARGE e^x=\sum_{n=0}^\infty\frac{x^n}{n!}$
 
 ====== Example of GNUPlot ======
 
-@@@use gnuplot
+@use gnuplot
 
 An example of GNUPlot below:
 
-@<gnuplot>
+<gnuplot>
+# set terminal png transparent nocrop enhanced font arial 8 size 420,320 
+# set output 'surface2.6.png'
 set dummy u,v
-set label 1 "This is equal to 1" at -5, -2, 1.5 centre norotate back nopoint
-set arrow 1 from -5, -2.1, 1.4 to 0, 0, 1  back nofilled linetype 1 linewidth 1.000
-set view 70, 20, 1, 1
-set samples 51, 51
-set isosamples 21, 21
-set ztics border nomirror norotate -1.00000,0.25,1.00000
-set title "Sinc function" 0.000000,0.000000  font ""
-set xlabel "X axis" -3.000000,-2.000000  font ""
-set xrange [ -1.00000 : 1.00000 ] noreverse nowriteback
-set ylabel "Y axis" 3.000000,-2.000000  font ""
-set yrange [ -1.00000 : 1.00000 ] noreverse nowriteback
-set zlabel "Z axis" -5.000000,0.000000  font ""
-set zrange [ -0.500000 : 1.00000 ] noreverse nowriteback
-sinc(u,v) = sin(sqrt(u**2+v**2) ) / sqrt(u**2+v**2)
-splot [-12:12.01] [-12:12.01] sinc(u,v)
-@</gnuplot>
+set key bmargin center horizontal Right noreverse enhanced autotitles nobox
+set parametric
+set view 45, 50, 1, 1
+set isosamples 100, 20
+set hidden3d offset 1 trianglepattern 3 undefined 1 altdiagonal bentover
+set ticslevel 0
+set title "Parametric Helix" 
+set urange [ 0.00000 : 31.4159 ] noreverse nowriteback
+set vrange [ 0.00000 : 6.28319 ] noreverse nowriteback
+set zrange [ * : * ] noreverse nowriteback  # (currently [-1.00000:1.00000] )
+splot (1-0.1*cos(v))*cos(u),(1-0.1*cos(v))*sin(u),0.1*(sin(v)+u/1.7-10)
+</gnuplot>
 
 
 ====== Definitions ======
