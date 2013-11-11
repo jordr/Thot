@@ -52,6 +52,17 @@ ID_END_LINK = "end_link"
 ID_NEW_QUOTE = "new_quote"
 ID_END_QUOTE = "end_quote"
 
+ID_NUM_HEADER = "header"
+ID_NUM_TABLE = "table"
+ID_NUM_FIGURE = "figure"
+ID_NUM_LISTING = "listing"
+
+ID_EMBED_RAW = "raw"
+ID_EMBED_FILE = "file"
+ID_EMBED_CODE = "code"
+ID_EMBED_DOT = "dot"
+ID_EMBED_GNUPLOT = "gnuplot"
+
 
 # variable reduction
 VAR_RE = "@\((?P<varid>[a-zA-Z_0-9]+)\)"
@@ -230,7 +241,7 @@ class Node:
 		return None
 
 	def getContent(self):
-		"""Get the sub-nodes of the current ndoes."""
+		"""Get the sub-nodes of the current nodes."""
 		return []
 
 	def gen(self, gen):
@@ -238,9 +249,31 @@ class Node:
 		gen -- used generator."""
 		pass
 
-	def setLabel(self, label):
-		"""Method called when a label is found after the current element."""
-		raise commo.ParseException("label unsupported here")
+	def setCaption(self, text):
+		"""Method called when a caption is found after the current element.
+		Return True if the caption is accepted. """
+		return False
+		
+	def getCaption(self):
+		"""Return the associated caption. return none if there is no caption."""
+		return None
+
+	def acceptLabel(self):
+		"""Method called called when a label is found. Nodes not supporting
+		just return False (default behaviour) else node return True."""
+		return False
+	
+	def visit(self, visitor):
+		"""Visit the current node, that is, call the method in
+		visitor that matches the node."""
+		pass
+
+	def numbering(self):
+		"""Return the group of numbering the node belongs to.
+		Return None if there is no numbering (default).
+		"header" for header numbering, "figure" pour image and the like,
+		"listing" for code, etc."""
+		return None
 
 
 class Container(Node):
@@ -302,15 +335,39 @@ class Word(Node):
 	def __str__(self):
 		return "word(%s)" % self.text
 
+	def visit(self, visitor):
+		visitor.onWord(self)
+
+class Ref(Node):
+	label = None
+	
+	def __init__(self, label):
+		self.label = label
+	
+	def dump(self, tab):
+		print("%sref(%s)" % (tab, self.label))
+
+	def gen(self, gen):
+		gen.genRef(self)
+	
+	def __str__(self):
+		return "ref(%s)" % self.label
+
+	def visit(self, visitor):
+		visitor.onRef(self)
+	
 
 class Image(Node):
 	path = None
+	caption = None
 
 	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
 		self.path = path
 		self.width = width
 		self.height = height
-		self.caption = caption
+		if caption:
+			self.caption = Par()
+			self.caption.content.append(Word(caption))
 		self.align = align
 
 	def dump(self, tab):
@@ -318,7 +375,22 @@ class Image(Node):
 			(tab, self.path, str(self.width), str(self.height), self.caption)
 
 	def gen(self, gen):
-		gen.genImage(self.path, self.width, self.height, self.caption, self.align)
+		gen.genImage(self.path, self.width, self.height, self.caption, self.align, self)
+
+	def acceptLabel(self):
+		return True
+
+	def visit(self, visitor):
+		visitor.onImage(self)
+
+	def numbering(self):
+		if self.align == ALIGN_NONE:
+			return None
+		else:
+			return "figure"
+
+	def getCaption(self):
+		return self.caption
 
 
 class Glyph(Node):
@@ -333,6 +405,9 @@ class Glyph(Node):
 	def gen(self, gen):
 		gen.genGlyph(self.code)
 
+	def visit(self, visitor):
+		visitor.onGlyph(self)
+
 
 class LineBreak(Node):
 
@@ -341,6 +416,9 @@ class LineBreak(Node):
 
 	def gen(self, gen):
 		gen.genLineBreak()
+
+	def visit(self, visitor):
+		visitor.onLineBreak(self)
 
 
 # Style family
@@ -369,6 +447,9 @@ class Style(Container):
 		Container.gen(self, gen)
 		gen.genStyleEnd(self.style)
 
+	def visit(self, visitor):
+		visitor.onStyle(self)
+
 
 class OpenStyle(Container):
 	style = None
@@ -390,11 +471,13 @@ class OpenStyle(Container):
 	def dumpHead(self, tab):
 		print tab + "style(" + self.style + ","
 
-
 	def gen(self, gen):
 		gen.genStyleBegin(self.style)
 		Container.gen(self, gen)
 		gen.genStyleEnd(self.style)
+
+	def visit(self, visitor):
+		visitor.onStyle(self)
 
 
 class FootNote(OpenStyle):
@@ -410,6 +493,9 @@ class FootNote(OpenStyle):
 
 	def gen(self, gen):
 		gen.genFootNote(self.content)
+
+	def visit(self, visitor):
+		visitor.onFootNote(self)
 
 
 class Link(Container):
@@ -436,6 +522,9 @@ class Link(Container):
 		Container.gen(self, gen)
 		gen.genLinkEnd(self.ref)
 
+	def visit(self, visitor):
+		visitor.onLink(self)
+
 
 # Par family
 class Par(Container):
@@ -458,6 +547,9 @@ class Par(Container):
 		gen.genParBegin()
 		Container.gen(self, gen)
 		gen.genParEnd()
+
+	def visit(self, visitor):
+		visitor.onPar(self)
 
 
 class Quote(Par):
@@ -487,21 +579,43 @@ class Quote(Par):
 		Container.gen(self, gen)
 		gen.genQuoteEnd(self.level)
 
+	def visit(self, visitor):
+		visitor.onQuote(self)
+
 
 class Embedded(Node):
 	"""Class representing document part not part of the main
 	text like figures, listing, tables, etc.
 	It defines mainly a label."""
-	label = None
+	caption = None
 
-	def setLabel(self, label):
-		self.label = label
+	def setCaption(self, caption):
+		self.caption = caption
+		return True
+
+	def getCaption(self):
+		return self.caption
+
+	def acceptLabel(self):
+		return True
+
+	def visit(self, visitor):
+		visitor.onEmbedded(self)
+
+	def getKind(self):
+		"""Get the kind of embed object."""
+		return "none"
+
+	def numbering(self):
+		return "figure"
 
 
 class Block(Embedded):
+	kind = None
 	content = None
 
-	def __init__(self):
+	def __init__(self, kind):
+		self.kind = kind
 		self.content = []
 
 	def add(self, line):
@@ -533,6 +647,9 @@ class ListItem(Container):
 
 	def dumpHead(self, tab):
 		print tab + "item("
+
+	def visit(self, visitor):
+		visitor.onListItem(self)
 
 
 class List(Container):
@@ -575,6 +692,9 @@ class List(Container):
 	def gen(self, gen):
 		gen.genList(self)
 
+	def visit(self, visitor):
+		visitor.onList(self)
+
 
 class DefItem(Container):
 	"""Description of a definition list item."""
@@ -594,6 +714,9 @@ class DefItem(Container):
 
 	def dumpHead(self, tab):
 		print tab + "item(" + self.term + ", "
+
+	def visit(self, visitor):
+		visitor.onDefItem(self)
 
 
 class DefList(Container):
@@ -634,6 +757,9 @@ class DefList(Container):
 		gen.genDefList(self)
 		pass
 
+	def visit(self, visitor):
+		visitor.onDefList(self)
+
 
 # Table
 TAB_CENTER = 0
@@ -664,6 +790,9 @@ class Cell(Par):
 
 	def gen(self, gen):
 		Container.gen(self, gen)
+
+	def visit(self, visitor):
+		visitor.onCell(self)
 
 
 class Row(Container):
@@ -699,11 +828,15 @@ class Row(Container):
 		"""Get the list of cells."""
 		return self.content
 
+	def visit(self, visitor):
+		visitor.onRow(self)
+
 
 class Table(Container):
 	"""Repreentation of a table, that is composed or Rows that are
 	composed, in turn, of cells."""
 	width = None
+	caption = None
 
 	def __init__(self):
 		Container.__init__(self)
@@ -735,6 +868,22 @@ class Table(Container):
 	def dumpHead(self, tab):
 		print tab + 'table('
 
+	def visit(self, visitor):
+		visitor.onTable(self)
+
+	def numbering(self):
+		return "table"
+
+	def acceptLabel(self):
+		return True
+
+	def setCaption(self, caption):
+		self.caption = caption
+		return True
+	
+	def getCaption(self):
+		return self.caption
+
 
 # main family
 class HorizontalLine(Node):
@@ -745,6 +894,9 @@ class HorizontalLine(Node):
 
 	def gen(self, gen):
 		gen.genHorizontalLine()
+
+	def visit(self, visitor):
+		visitor.onHorizontalLine(self)
 
 
 class Header(Container):
@@ -816,6 +968,15 @@ class Header(Container):
 	def isEmpty(self):
 		return False
 
+	def acceptLabel(self):
+		return True
+
+	def visit(self, visitor):
+		visitor.onHeader(self)
+
+	def numbering(self):
+		return "header"
+
 
 class Feature:
 	"""A feature allows to add special services at generation time.
@@ -830,6 +991,8 @@ class Document(Container):
 	and also the configuration environment."""
 	env = None
 	features = None
+	labels = { }
+	inv_labels = { }
 
 	def __init__(self, env):
 		Container.__init__(self)
@@ -880,3 +1043,60 @@ class Document(Container):
  	def pregen(self, gen):
  		for feature in self.features:
  			feature.prepare(gen)
+
+	def addLabel(self, label, node):
+		"""Add a label for the given node."""
+		self.labels[label] = node
+		self.inv_labels[node] = label
+		print "%s: %s" % (label, node)
+	
+	def getLabel(self, label):
+		"""Find the node matching the given label.
+		Return None if there is no node matching the label."""
+		if self.labels.has_key(label):
+			return self.labels[label]
+		else:
+			return None
+
+	def getLabelFor(self, node):
+		"""Get the label, if any, for the given node."""
+		if self.inv_labels.has_key(node):
+			return self.inv_labels[node]
+		else:
+			return None
+
+	def visit(self, visitor):
+		visitor.onDocument(self)
+
+
+class Visitor:
+	"""Visitor default class."""
+	
+	def onDocument(self, doc):
+		pass
+	
+	def onHeader(self, header):
+		pass
+
+	def onPar(self, par):
+		pass
+	
+	def onQuote(self, quote):
+		pass
+	
+	def onEmbedded(self, embeddded):
+		pass
+	
+	def onList(self, list):
+		pass
+	
+	def onDefList(self, list):
+		pass
+	
+	def onTable(self, table):
+		pass
+	
+	def onHeader(self, header):
+		pass
+
+		

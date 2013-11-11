@@ -18,6 +18,7 @@ set title "3D gnuplot demo - contour plot"
 set contour
 splot x*y
 </gnuplot>
+@label This is my first gnuplot.
 
 <gnuplot?256x256>
 set xlabel "x"

@@ -256,7 +256,7 @@ class Generator:
 	def genLinkEnd(self, url):
 		pass
 
-	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE):
+	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE, node = None):
 		pass
 
 	def genGlyph(self, code):
@@ -265,13 +265,16 @@ class Generator:
 	def genLineBreak(self):
 		pass
 
-	def genEmbeddedBegin(self, kind, label):
+	def genEmbeddedBegin(self, node):
 		"""Start an embedded area with the given label (a paragraph).
 		Usual kinds include "listing", "figure", "table", "algo"."""
 		pass
 
-	def genEmbeddedEnd(self):
+	def genEmbeddedEnd(self, node):
 		"""End of generation for an embedded."""
 		pass
 
+	def genRef(self, ref):
+		"""Called to generate a reference."""
+		pass
 

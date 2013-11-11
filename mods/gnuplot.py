@@ -32,7 +32,7 @@ class GnuPlotBlock(doc.Block):
 	h = None
 
 	def __init__(self, w, h):
-		doc.Block.__init__(self)
+		doc.Block.__init__(self, "gnuplot")
 		self.w = w
 		self.h = h
 
@@ -74,11 +74,14 @@ class GnuPlotBlock(doc.Block):
 				print "ERROR: %d" % process.returncode
 				sys.stderr.write(err)
 				self.onError('error during gnuplot call')
-			gen.genEmbeddedBegin('figure', self.label)
+			gen.genEmbeddedBegin(self)
 			gen.genImage(gen.getFriendRelativePath(path))
-			gen.genEmbeddedEnd()
+			gen.genEmbeddedEnd(self)
 		except OSError, e:
 			self.onError('can not process gnuplot: %s' % str(e))
+
+	def numbering(self):
+		return "figure"
 
 
 GNUPLOT_CLOSE = re.compile("^</gnuplot>")

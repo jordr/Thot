@@ -70,6 +70,14 @@ def onInfo(message):
 	sys.stderr.write("INFO: %s\n" % message)
 
 
+DEPRECATED = []
+def onDeprecated(msg):
+	"""Display a deprecated message with the given message."""
+	if msg not in DEPRECATED:
+		sys.stderr.write("DEPRECATED: %s\n" % msg)
+		DEPRECATED.append(msg)
+
+
 def loadModule(name, path):
 	"""Load a module by its name and its path
 	and return its object."""

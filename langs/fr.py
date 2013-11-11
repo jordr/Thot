@@ -16,10 +16,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import i18n
+import doc
 
-dict = {
-	i18n.CONTENT : "Sommaire"
+DICT = {
+	i18n.ID_CONTENT : "Sommaire"
 }
 
+CAPTIONS = {
+	doc.ID_NUM_TABLE:	"Tableau %s: ",
+	doc.ID_NUM_FIGURE:	"Figure %s: ",
+	doc.ID_NUM_FIGURE:	"Listing %s: "
+}
+
+class FrTranslator(i18n.DictTranslator):
+	
+	def __init__(self):
+		i18n.DictTranslator.__init__(self, DICT)
+
+	def caption(sself, numbering, number):
+		if CAPTIONS.has_key(numbering):
+			return CAPTIONS[numbering] % number
+		else:
+			return "%s %s: " % (numbering, number)
+
+
 def getTranslator(doc, lang):
-	return i18n.DictTranslator(dict)
+	return FrTranslator()

@@ -30,7 +30,7 @@ class DotBlock(doc.Block):
 	kind = None
 
 	def __init__(self, kind):
-		doc.Block.__init__(self)
+		doc.Block.__init__(self, "dot")
 		if not kind:
 			self.kind = 'dot'
 		else:
@@ -56,11 +56,17 @@ class DotBlock(doc.Block):
 			if process.returncode:
 				sys.stderr.write(err)
 				self.onError('error during dot call')
-			gen.genEmbeddedBegin('figure', self.label)
+			gen.genEmbeddedBegin(self)
 			gen.genImage(gen.getFriendRelativePath(path))
-			gen.genEmbeddedEnd()
+			gen.genEmbeddedEnd(self)
 		except OSError, e:
 			self.onError('can not process dot graph: %s' % str(e))
+
+	def kind(self):
+		return "figure"
+	
+	def numerating(self):
+		return "figure"
 
 
 DOT_CLOSE = re.compile("^</dot>")
@@ -70,7 +76,7 @@ def handleDot(man, match):
 	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
 
 def handleDotOld(man, match):
-	man.deprecated("@<dot> form is now deprecared. Use <dot> instead.")
+	common.onDeprecated("@<dot> form is now deprecared. Use <dot> instead.")
 	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE_OLD)
 
 DOT_LINE = (handleDot, re.compile("^<dot(\s+(dot|neato|twopi|circo|fdp))?>"))

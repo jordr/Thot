@@ -101,13 +101,13 @@ for smiley in SMILEYS.keys():
 class FileBlock(doc.Block):
 
 	def __init__(self):
-		doc.Block.__init__(self)
+		doc.Block.__init__(self, "file")
 
 	def dumpHead(self, tab):
 		print "%sblock.file(" % tab
 
 	def gen(self, gen):
-		gen.genEmbeddedBegin('listing', self.label)
+		gen.genEmbeddedBegin(self)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<pre class="file">\n')
@@ -126,19 +126,19 @@ class FileBlock(doc.Block):
 			gen.genVerbatim('</screen>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
-		gen.genEmbeddedEnd()
+		gen.genEmbeddedEnd(self)
 
 
 class NonParsedBlock(doc.Block):
 
 	def __init__(self):
-		doc.Block.__init__(self)
+		doc.Block.__init__(self, "raw")
 
 	def dumpHead(self, tab):
 		print "%sblock.nonparsed(" % tab
 
 	def gen(self, gen):
-		gen.genEmbeddedBegin('listing', self.label)
+		gen.genEmbeddedBegin(self)
 		type = gen.getType()
 		if type == 'html':
 			gen.genVerbatim('<p>\n')
@@ -155,7 +155,7 @@ class NonParsedBlock(doc.Block):
 			gen.genVerbatim('</para>\n')
 		else:
 			common.onWarning('%s back-end is not supported by file block' % type)
-		gen.genEmbeddedEnd()
+		gen.genEmbeddedEnd(self)
 
 
 ### code parse ###

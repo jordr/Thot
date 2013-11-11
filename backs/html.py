@@ -68,6 +68,11 @@ def getStyle(style):
 		raise Exception('style ' + style + ' not supported')
 
 
+def makeRef(nums):
+	"""Generate a reference from an header number array."""
+	return ".".join([str(i) for i in nums])
+
+
 class PagePolicy:
 	"""A page policy allows to organize the generated document
 	according the preferences of the user."""
@@ -88,12 +93,47 @@ class PagePolicy:
 	def ref(self, header, number):
 		return	"#" + number
 
-
+	
 class AllInOne(PagePolicy):
 	"""Simple page policy doing nothing: only one page."""
 
 	def __init__(self, gen):
 		PagePolicy.__init__(self, gen)
+
+	def genRefs(self):
+		"""Generate and return the references for the given generator."""
+		self.gen.refs = { }
+		self.makeRefs([1], { }, self.gen.doc)
+
+	def makeRefs(self, nums, others, node):
+		"""Traverse the document tree and generate references in the given map."""
+		
+		# number for header
+		num = node.numbering()
+		if num == 'header':
+			self.gen.refs[node] = ("", makeRef(nums))
+			nums.append(1)
+			for item in node.getContent():
+				self.makeRefs(nums, others, item)
+			nums.pop()
+			nums[-1] = nums[-1] + 1
+		
+		# number for embedded
+		else:
+			
+			# set number
+			if num:
+				if not others.has_key(num):
+					others[num] = 1
+					n = 1
+				else:
+					n = others[num] + 1
+				self.gen.refs[node] = ("", str(n))
+				others[num] = n
+		
+			# look in children
+			for item in node.getContent():
+				self.makeRefs(nums, others, item)
 
 
 class PerChapter(PagePolicy):
@@ -111,10 +151,7 @@ class PerChapter(PagePolicy):
 			self.gen.openPage(header)
 			self.gen.genDocHeader()
 			self.gen.genTitle()
-			counters = self.gen.counters
-			self.gen.counters = {}
 			self.gen.genContent()
-			self.gen.counters = counters
 			self.gen.out.write('<div class="page">\n')
 
 	def onHeaderEnd(self, header):
@@ -135,12 +172,52 @@ class PerChapter(PagePolicy):
 		else:
 			return PagePolicy.ref(self, header, number)
 
+	def genRefs(self):
+		"""Generate and return the references for the given generator."""
+		self.gen.refs = { }
+		self.makeRefs([1], { }, self.gen.doc, '')
+
+	def makeRefs(self, nums, others, node, page):
+		"""Traverse the document tree and generate references in the given map."""
+		
+		# number for header
+		num = node.numbering()
+		if num == 'header':
+			if node.level == 0:
+				page = "%s-%d.html" % (self.gen.root, nums[0] - 1)
+				self.gen.refs[node] = ("%s" % page, str(nums[0]))
+			else:
+				r = makeRef(nums)
+				self.gen.refs[node] = ("%s#%s" % (page, r), r)
+			nums.append(1)
+			for item in node.getContent():
+				self.makeRefs(nums, others, item, page)
+			nums.pop()
+			nums[-1] = nums[-1] + 1
+		
+		# number for embedded
+		else:
+			
+			# set number
+			if num:
+				if not others.has_key(num):
+					others[num] = 1
+					n = 1
+				else:
+					n = others[num] + 1
+				r = str(n)
+				self.gen.refs[node] = ("%s#%s-%s" % (page, num, r), r)
+				others[num] = n + 1
+		
+			# look in children
+			for item in node.getContent():
+				self.makeRefs(nums, others, item, page)
+
 
 class Generator(back.Generator):
 	"""Generator for HTML output."""
 	trans = None
 	doc = None
-	counters = None
 	path = None
 	root = None
 	from_files = None
@@ -152,6 +229,7 @@ class Generator(back.Generator):
 	page_count = None
 	stack = None
 	label = None
+	refs = None
 
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
@@ -161,6 +239,7 @@ class Generator(back.Generator):
 		self.pages = { }
 		self.page_count = 0
 		self.stack = []
+		self.refs = { }
 
 	def getType(self):
 		return 'html'
@@ -200,11 +279,6 @@ class Generator(back.Generator):
 		# return path
 		return cpath
 
-	def resetCounters(self):
-		self.counters = {
-			'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0
-		}
-
 	def genFootNote(self, note):
 		self.footnotes.append(note)
 		cnt = len(self.footnotes)
@@ -235,6 +309,7 @@ class Generator(back.Generator):
 		self.out.write('\n')
 
 	def genTable(self, table):
+		self.out.write('<div class="table">')
 		self.out.write('<table>\n')
 		for row in table.getRows():
 			self.out.write('<tr>\n')
@@ -261,6 +336,8 @@ class Generator(back.Generator):
 
 			self.out.write('</tr>\n')
 		self.out.write('</table>\n')
+		self.genLabel(table)
+		self.out.write('</div>')
 
 	def genHorizontalLine(self):
 		self.out.write('<hr/>')
@@ -309,7 +386,7 @@ class Generator(back.Generator):
 	def genHeader(self, header):
 
 		# prolog
-		number = self.nextHeaderNumber(header.getLevel())
+		number = self.refs[header][1]
 		self.policy.onHeaderBegin(header)
 
 		# title
@@ -332,7 +409,9 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
 
-	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE):
+	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE, node = None):
+		if align <> tdoc.ALIGN_NONE:
+			self.out.write("<div class=\"figure\">")
 		if align == tdoc.ALIGN_CENTER:
 			self.out.write('<center>')
 		new_url = self.loadFriendFile(url)
@@ -342,14 +421,18 @@ class Generator(back.Generator):
 		if height <> None:
 			self.out.write(' height="' + str(height) + '"')
 		if caption <> None:
-			self.out.write(' alt="' + cgi.escape(caption, True) + '"')
+			self.out.write(' alt="' + cgi.escape(str(caption), True) + '"')
 		if align == tdoc.ALIGN_RIGHT:
 			self.out.write(' align="right"')
 		elif align == tdoc.ALIGN_LEFT:
 			self.out.write(' align="left"')
 		self.out.write('/>')
+		if node:
+			self.genLabel(node)
 		if align == tdoc.ALIGN_CENTER:
 			self.out.write('</center>')
+		if align <> tdoc.ALIGN_NONE:
+			self.out.write("</div>")
 
 	def genGlyph(self, code):
 		self.out.write('&#' + str(code) + ';')
@@ -396,20 +479,23 @@ class Generator(back.Generator):
 		self.out.write('</div>\n')
 		self.out.write('</div>')
 
-	def genLabel(self, par):
-		self.out.write('<div class="label">')
-		par.gen(self)
-		self.out.write('</div>')
+	def genLabel(self, node):
+		caption = node.getCaption()
+		if caption or self.refs.has_key(node):
+			self.out.write('<div class="label">')
+			if self.refs.has_key(node):
+				r = self.refs[node]
+				self.out.write("<a name=\"%s\" class=\"label-ref\">%s</a>" % (r[1], self.trans.caption(node.numbering(), r[1])))
+			if caption:
+				for item in caption.getContent():
+					item.gen(self)
+			self.out.write('</div>')
 
-	def genEmbeddedBegin(self, kind, label):
-		self.out.write('<div class="%s">' % kind)
-		if label and kind == 'listing':
-			self.genLabel(label)
-			self.label = None
-		else:
-			self.label = label
+	def genEmbeddedBegin(self, node):
+		self.out.write('<div class="%s">' % node.numbering())
+		self.genLabel(node)
 
-	def genEmbeddedEnd(self):
+	def genEmbeddedEnd(self, node):
 		if self.label:
 			self.genLabel(self.label)
 		self.out.write('</div>')
@@ -442,9 +528,8 @@ class Generator(back.Generator):
 			if level == -1:
 				continue
 			number = self.nextHeaderNumber(level)
-			ref = self.policy.ref(item, number)
 			self.out.write('			<li>')
-			self.out.write('<a href="%s">' % ref)
+			self.out.write('<a href="%s">' % self.refs[item][0])
 			self.out.write(number + ' ')
 			item.genTitle(self)
 			self.out.write('</a>\n')
@@ -459,6 +544,14 @@ class Generator(back.Generator):
 		self.out.write('		<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
 		self.genContentItem(self.doc.getContent(), max, out)
 		self.out.write('	</div>\n')
+
+	def genRef(self, ref):
+		node = self.doc.getLabel(ref.label)
+		if not node:
+			common.onWarning("label\"%s\" cannot be resolved" % ref.label)
+		else:
+			r = self.refs[node]
+			self.out.write("<a href=\"%s\">%s</a>" % (r[0], r[1]))
 
 	def getPage(self, header):
 		if not self.pages.has_key(header):
@@ -485,12 +578,13 @@ class Generator(back.Generator):
 		elif self.struct == 'chapter':
 			self.policy = PerChapter(self)
 		elif self.struct == 'section':
-			pass
+			common.onError("HTML_ONE_FILE_PER=section not yet supported.")
 		else:
 			common.onError('one_file_per %s structure is not supported' % self.struct)
 
 		# generate the document
 		self.openMain('.html')
+		self.policy.genRefs()
 		self.doc.pregen(self)
 		self.genDocHeader()
 		self.genTitle()

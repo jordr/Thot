@@ -22,11 +22,24 @@ import common
 
 ID_CONTENT = "Content"
 
+CAPTIONS = {
+	"table": "Table %s: ",
+	"figure": "Figure %s: ",
+	"listing": "Listing %s: "
+}
+
 class DefaultTranslator:
 	"""A translator that do nothing."""
 	
 	def get(self, text):
 		return text
+
+	def caption(sself, numbering, number):
+		"""Generate a caption number."""
+		if CAPTIONS.has_key(numbering):
+			return CAPTIONS[numbering] % number
+		else:
+			return "%s %s: " % (numbering, number)
 
 
 class DictTranslator:

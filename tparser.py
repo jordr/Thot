@@ -14,8 +14,12 @@ def handleVar(man, match):
 	val = man.doc.getVar(id)
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(val)))
 
+def handleRef(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Ref(match.group("ref"))))
+
 INITIAL_WORDS = [
-	(handleVar, doc.VAR_RE)
+	(handleVar, doc.VAR_RE),
+	(handleRef, "@ref:(?P<ref>[^@]+)@")
 ]
 
 def handleText(man, line):
@@ -77,14 +81,25 @@ def handleInclude(man, match):
 	except IOError, e:
 		common.onError('%s:%d: cannot include "%s": %s' % (man.file_name, man.line_num, path, e))
 
-def handleLabel(man, match):
+def handleCaption(man, match):
 	par = doc.Par()
 	man.push(par)
 	man.getParser().parse(man, match.group(1))
 	while par <> man.get():
 		man.pop()
 	man.pop()
-	man.get().setLabel(par)
+	for item in man.iter():
+		if item.setCaption(par):
+			return
+	raise common.ParseException("caption unsupported here")
+
+
+def handleLabel(man, match):
+	for item in man.iter():
+		if item.acceptLabel():
+			man.doc.addLabel(match.group(1), item)
+			return
+	common.onWarning(man.message("label %s out of any container" % match.group(1)))
 
 
 INITIAL_LINES = [
@@ -92,6 +107,7 @@ INITIAL_LINES = [
 	(handleAssign, re.compile("^@([a-zA-Z_0-9]+)\s*=(.*)")),
 	(handleUse, re.compile("^@use\s+(\S+)")),
 	(handleInclude, re.compile('^@include\s+(.*)')),
+	(handleCaption, re.compile('^@caption\s+(.*)')),
 	(handleLabel, re.compile('^@label\s+(.*)'))
 ]
 
@@ -147,6 +163,12 @@ class Manager:
 			self.debug("send(%s)" % event) 
 		self.item.onEvent(self, event)
 
+	def iter(self):
+		"""Generate an iterator on the stack of items (from top to bottom)."""
+		yield self.item
+		for i in xrange(len(self.items) - 1, -1, -1):
+			yield self.items[i]
+	
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
@@ -192,7 +214,11 @@ class Manager:
 			self.send(doc.Event(doc.L_DOC, doc.ID_END))
 			self.doc.clean()
 		except common.ParseException, e:
-			common.onError('%s:%d: %s' % (self.file_name, self.line_num, str(e)))
+			common.onError(self.message(str(e)))
+
+	def message(self, msg):
+		"""Generate a message prefixed with error line and file."""
+		return "%s:%d: %s" % (self.file_name, self.line_num, msg)
 
 	def addLine(self, line):
 		self.added_lines.append(line)
@@ -217,10 +243,6 @@ class Manager:
 		self.words.extend(self.added_words)
 		self.words.extend(words)
 		self.words_re = None
-
-	def deprecated(self, msg):
-		"""Display a deprecated message with the given message."""
-		sys.stderr.write("DEPRECATED: %s\n" % msg)
 
 
 class BlockParser:

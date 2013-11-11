@@ -261,7 +261,7 @@ class CodeBlock(doc.Block):
 	lang = None
 
 	def __init__(self, man, lang):
-		doc.Block.__init__(self)
+		doc.Block.__init__(self, "code")
 		self.lang = lang
 		man.doc.addFeature(FEATURE)
 
@@ -280,11 +280,11 @@ class CodeBlock(doc.Block):
 		# generate the code
 		type = gen.getType()
 		if type == 'html':
-			gen.genEmbeddedBegin("listing", self.label)
+			gen.genEmbeddedBegin(self)
 			gen.genVerbatim('<pre class="code">\n')
 			genCode(gen, self.lang, text)
 			gen.genVerbatim('</pre>')
-			gen.genEmbeddedEnd()
+			gen.genEmbeddedEnd(self)
 		elif type == 'latex':
 			genCode(gen, self.lang, text)
 		elif type == 'docbook':
@@ -296,3 +296,9 @@ class CodeBlock(doc.Block):
 			gen.genVerbatim('</programlisting>\n')
 		else:
 			common.onWarning('backend %s unsupported for code block' % type)
+
+	def kind(self):
+		return "listing"
+
+	def numbering(self):
+		return "listing"
