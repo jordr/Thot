@@ -275,6 +275,10 @@ class Node:
 		"listing" for code, etc."""
 		return None
 
+	def toText(self):
+		"""Produce only the raw text of the node."""
+		return ""
+
 
 class Container(Node):
 	"""A container is an item containing other items."""
@@ -318,6 +322,12 @@ class Container(Node):
 		for item in self.content:
 			item.gen(gen)
 
+	def toText(self):
+		r = ""
+		for item in self.content:
+			r = r + item.toText()
+		return r
+	
 
 # Word family
 class Word(Node):
@@ -337,6 +347,9 @@ class Word(Node):
 
 	def visit(self, visitor):
 		visitor.onWord(self)
+
+	def toText(self):
+		return self.text
 
 class Ref(Node):
 	label = None
@@ -429,7 +442,6 @@ class Glyph(Node):
 	def visit(self, visitor):
 		visitor.onGlyph(self)
 
-
 class LineBreak(Node):
 
 	def dump(self, tab):
@@ -517,6 +529,9 @@ class FootNote(OpenStyle):
 
 	def visit(self, visitor):
 		visitor.onFootNote(self)
+
+	def toText(self):
+		return ""
 
 
 class Link(Container):

@@ -155,7 +155,7 @@ def getLinuxDistrib():
 			return (id, release)
 		return None
 	except IOError,e:
-		return None
+		return ("", 0)
 
 
 class CommandRequirement:

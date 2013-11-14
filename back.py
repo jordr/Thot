@@ -43,6 +43,16 @@ class Generator:
 		"""Get type of the back-end: html, latex, xml."""
 		return None
 
+	def friendFiles(self):
+		"""Get the friend files of the document."""
+		print self.from_files
+		print self.to_files
+		return self.to_files
+
+	def getImportDir(self):
+		"""Get the directory containing the imports."""
+		return self.root + "-imports"
+
 	def openMain(self, suff):
 		"""Create and open an out file for the given document.
 		suff -- suffix of the out file.
@@ -114,7 +124,7 @@ class Generator:
 
 		# make target path
 		file, ext = os.path.splitext(path)
-		file = os.path.join(self.root + "-imports", file)
+		file = os.path.join(self.getImportDir(), file)
 		tpath = file + ext
 		cnt = 0
 		while self.to_files.has_key(tpath):
