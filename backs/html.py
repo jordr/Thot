@@ -540,7 +540,6 @@ class Generator(back.Generator):
 		self.out.write('		</ul>\n')
 
 	def genContent(self, max = 7, out = False):
-		#self.resetCounters()
 		self.out.write('	<div class="toc">\n')
 		self.out.write('		<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
 		self.genContentItem(self.doc.getContent(), max, out)

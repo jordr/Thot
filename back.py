@@ -29,19 +29,29 @@ class Generator:
 	out = None
 	from_files = None
 	to_files = None
+	added_files = None
 
 	def __init__(self, doc):
 		"""Build the abstract generator.
 		doc -- document to generate."""
-
 		self.doc = doc
 		self.trans  = i18n.getTranslator(self.doc)
 		self.from_files = { }
 		self.to_files = { }
+		self.added_files = []
 
 	def getType(self):
 		"""Get type of the back-end: html, latex, xml."""
 		return None
+
+	def addedFiles(self):
+		"""Get the added files."""
+		return self.added_files
+
+	def addFile(self, file):
+		"""Add a file to the list of files linked to the document."""
+		if file not in self.added_files:
+			self.added_files.append(file)
 
 	def friendFiles(self):
 		"""Get the friend files of the document."""
@@ -142,6 +152,7 @@ class Generator:
 		# record all
 		self.from_files[apath] = tpath
 		self.to_files[tpath] = apath;
+		self.addFile(tpath)
 		return tpath
 
 	def computeRelative(self, file, base):
@@ -162,6 +173,7 @@ class Generator:
 
 		# get the target path
 		if base == '' and not os.path.isabs(path):
+			self.addFile(path)
 			return path
 		tpath = self.getFriendFile(path, base)
 

@@ -20,7 +20,7 @@ import os.path
 import imp
 import re
 import traceback
-import common
+import subprocess
 
 
 class ThotException(Exception):
@@ -53,6 +53,13 @@ class BackException(ThotException):
 	def __init__(self, msg):
 		ThotException.__init__(self, msg)
 
+
+class CommandException(ThotException):
+	"""Thrown if there is an error during a command call."""
+	
+	def __init__(self, msg):
+		ThotException.__init__(self, msg)
+	
 
 def onError(text):
 	"""Display the given error and stop the application."""
@@ -143,7 +150,6 @@ def getLinuxDistrib():
 	"""Look for the current linux distribution.
 	Return (distribution, release) or None if version cannot be found."""
 	try:
-		f = open("/etc/lsb-release")
 		id = None
 		release = None
 		for line in f:
@@ -158,27 +164,79 @@ def getLinuxDistrib():
 		return ("", 0)
 
 
+def onRaise(msg):
+	raise CommandError(msg)
+
+def onIgnore(msg):
+	pass
+
+ERROR_FAIL = onError
+ERROR_RAISE = onRaise
+ERROR_WARN = onWarning
+ERROR_IGNORE = onIgnore
+
 class CommandRequirement:
 	checked = False
 	path = None
 	cmd = None
 	msg = None
-	failing = False
+	error = False
 	
-	def __init__(self, cmd, msg = None, failing = False):
+	def __init__(self, cmd, msg = None, error = ERROR_WARN):
 		self.cmd = cmd
 		self.msg = msg
-		self.failing = failing
+		self.error = error
 	
 	def get(self):
 		if not self.checked:
 			self.checked = True
 			self.path = which(self.cmd)
-			if not self.path and self.msg:
-				if self.failing:
-					onError(self.msg)
-				else:
-					onWarning(self.msg)
+			if not self.path:
+				self.error(self.msg)
 		return self.path 
+
+
+class Command(CommandRequirement):
+	"""Handle the operation of an external command."""
+	
+	def __init__(self, cmd, msg = None, error = False):
+		CommandRequirement.__init__(self, cmd, msg, error)
+	
+	def call(self, args = [], input = None, quiet = False):
+		"""Call the command. Throw CommandException if there is an error.
+		args -- list of arguments.
+		input -- input to pass to the called command.
+		quiet -- do not produce any output."""
+		cmd = self.get()
+		if not cmd:
+			return
+		out = None
+		if quiet:
+			out = open(os.devnull, "w")
+		cmd = " ".join([ cmd ] + args)
+		try:
+			code = subprocess.check_call( cmd, close_fds = True, shell = True, stdout = out, stderr = out, stdin = input )
+		except (OSError, subprocess.CalledProcessError) as e:
+			self.error("command %s failed: %s" % (self.cmd, e))
+
+	def scan(self, args = [], input = None, err = False):
+		"""Launch a command and return the output if successful, a CommandException is raise else.
+		input -- optional input stream.
+		err -- if True, redirect also the standard error."""
+		cmd = self.get()
+		if not cmd:
+			return
+		errs = None
+		if err:
+			errs = subprocess.PIPE
+		cmd = " ".join([ cmd ] + args)
+		try:
+			out = subprocess.check_output( cmd, close_fds = True, shell = True, stdout = subprocess.PIPE, stderr = errs, stdin = input )
+			return out
+		except (OSError, subprocess.CalledProcessError) as e:
+			self.error("command %s failed: %s" % (self.cmd, e))
+		
+	
+	
 	
 

@@ -27,7 +27,7 @@ import common
 
 # Prepare environment
 env = { } # os.environ.copy()
-env["THOT_VERSION"] = "0.5"
+env["THOT_VERSION"] = "0.6"
 env["ENCODING"] = locale.getpreferredencoding()
 base = os.path.realpath(os.path.abspath(__file__))
 env["THOT_BASE"] = os.path.dirname(base) + '/'
