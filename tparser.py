@@ -244,6 +244,14 @@ class Manager:
 		self.words.extend(words)
 		self.words_re = None
 
+	def warn(self, msg):
+		"""Display a warning with file and line."""
+		common.onWarning(self.message(msg))
+
+	def error(self, msg):
+		"""Display an error with file and line."""
+		common.onError(self.message(msg))
+
 
 class BlockParser:
 	old = None

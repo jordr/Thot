@@ -2,6 +2,7 @@
 include ../Makefile.std
 
 THOT_FILES = \
+	caption.thot \
 	dot.thot \
 	gnuplot.thot \
 	ref.thot \

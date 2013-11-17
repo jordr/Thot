@@ -59,7 +59,11 @@ class CommandException(ThotException):
 	
 	def __init__(self, msg):
 		ThotException.__init__(self, msg)
-	
+
+
+def onParseError(msg):
+	raise BackException(msg)
+
 
 def onError(text):
 	"""Display the given error and stop the application."""
@@ -152,7 +156,7 @@ def getLinuxDistrib():
 	try:
 		id = None
 		release = None
-		for line in f:
+		for line in open("/etc/lsb-release"):
 			if line.startswith("DISTRIB_ID="):
 				id = line[11:-1]
 			elif line.startswith("DISTRIB_RELEASE="):

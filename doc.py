@@ -196,11 +196,34 @@ class Node:
 	"""Base definition of document nodes."""
 	file = None
 	line = None
+	info = None
+
+	def __init__(self):
+		self.info = { }
 
 	def setFileLine(self, file, line):
 		if self.file == None:
 			self.file = file
 			self.line = line
+
+	def setInfo(self, id, val):
+		"""Set an information value."""
+		self.info[id] = val
+	
+	def appendInfo(self, id, val):
+		"""Append the given value to identifier with identifier processed as a list."""
+		try:
+			self.info[id].append(val)
+		except KeyError:
+			self.info[id] = [ val ]
+			
+	
+	def getInfo(self, id):
+		"""Get an information value. None if it not defined."""
+		try:
+			return self.info[id]
+		except KeyError:
+			return None
 
 	def onError(self, msg):
 		"""Called to display an error."""
@@ -285,6 +308,7 @@ class Container(Node):
 	content = None
 
 	def __init__(self):
+		Node.__init__(self)
 		self.content = []
 
 	def add(self, man, item):
@@ -334,6 +358,7 @@ class Word(Node):
 	text = None
 
 	def __init__(self, text):
+		Node.__init__(self)
 		self.text = text
 
 	def dump(self, tab):
@@ -355,6 +380,7 @@ class Ref(Node):
 	label = None
 	
 	def __init__(self, label):
+		Node.__init__(self)
 		self.label = label
 	
 	def dump(self, tab):
@@ -375,6 +401,7 @@ class Image(Node):
 	caption = None
 
 	def __init__(self, path, width = None, height = None, caption = None):
+		Node.__init__(self)
 		self.path = path
 		self.width = width
 		self.height = height
@@ -396,6 +423,7 @@ class EmbeddedImage(Node):
 	caption = None
 
 	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
+		Node.__init__(self)
 		self.path = path
 		self.width = width
 		self.height = height
@@ -425,12 +453,14 @@ class EmbeddedImage(Node):
 	
 	def setCaption(self, caption):
 		self.caption = caption
-	
+		return True
+
 
 class Glyph(Node):
 	code = None
 
 	def __init__(self, code):
+		Node.__init__(self)
 		self.code = code
 
 	def dump(self, tab):
@@ -443,6 +473,9 @@ class Glyph(Node):
 		visitor.onGlyph(self)
 
 class LineBreak(Node):
+
+	def __init__(self):
+		Node.__init__(self)
 
 	def dump(self, tab):
 		print tab + "linebreak"
@@ -624,6 +657,9 @@ class Embedded(Node):
 	text like figures, listing, tables, etc.
 	It defines mainly a label."""
 	caption = None
+
+	def __init__(self):
+		Node.__init__(self)
 
 	def setCaption(self, caption):
 		self.caption = caption
@@ -924,6 +960,9 @@ class Table(Container):
 # main family
 class HorizontalLine(Node):
 	"""A simple horizontal line."""
+
+	def __init__(self):
+		Node.__init__(self)
 
 	def dump(self, tab):
 		print "%shorizontal-line()" % tab

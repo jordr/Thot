@@ -201,7 +201,7 @@ class PerChapter(PagePolicy):
 		else:
 			
 			# set number
-			if num:
+			if num and self.gen.doc.getLabelFor(node):
 				if not others.has_key(num):
 					others[num] = 1
 					n = 1
@@ -209,7 +209,7 @@ class PerChapter(PagePolicy):
 					n = others[num] + 1
 				r = str(n)
 				self.gen.refs[node] = ("%s#%s-%s" % (page, num, r), r)
-				others[num] = n + 1
+				others[num] = n
 		
 			# look in children
 			for item in node.getContent():
