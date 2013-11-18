@@ -137,42 +137,22 @@ class AllInOne(PagePolicy):
 			for item in node.getContent():
 				self.makeRefs(nums, others, item)
 
+	def run(self):
+		self.gen.openMain('.html')
+		self.genRefs()
+		self.gen.doc.pregen(self.gen)
+		self.gen.genDocHeader()
+		self.gen.genTitle()
+		self.gen.genContent([], 100)
+		self.gen.genBody()
+		self.gen.genFooter()
+
 
 class PerChapter(PagePolicy):
 	"""This page policy ensures there is one page per chapter."""
-	ctx = None
-	chapter = None
 
 	def __init__(self, gen):
 		PagePolicy.__init__(self, gen)
-		ctx = []
-
-	def onHeaderBegin(self, header):
-		if header.getLevel() == 0:
-			self.chapter = header
-			self.gen.openPage(header)
-			self.gen.genDocHeader()
-			self.gen.genTitle()
-			self.gen.genContent()
-			self.gen.out.write('<div class="page">\n')
-
-	def onHeaderEnd(self, header):
-		if header.getLevel() == 0:
-			self.header = None
-			self.gen.genFootNotes()
-			self.gen.out.write('</div>\n')
-			self.gen.genFooter()
-			self.gen.closePage()
-			print "generated %s" % (self.gen.getPage(header))
-
-	def unfolds(self, header):
-		return header == self.chapter or header.getLevel() <> 0
-
-	def ref(self, header, number):
-		if header.level == 0:
-			return os.path.basename(self.gen.getPage(header))
-		else:
-			return PagePolicy.ref(self, header, number)
 
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
@@ -215,6 +195,38 @@ class PerChapter(PagePolicy):
 			for item in node.getContent():
 				self.makeRefs(nums, others, item, page)
 
+	def run(self):
+		chapters = []
+
+		# generate main page
+		self.gen.openMain('.html')
+		self.genRefs()
+		self.gen.doc.pregen(self.gen)
+		self.gen.genDocHeader()
+		self.gen.genTitle()
+		self.gen.genContent([], 0)
+		self.gen.genBodyHeader()
+		for node in self.gen.doc.getContent():
+				if node.getHeaderLevel() == 0:
+					chapters.append(node)
+		self.gen.genBodyFooter()
+		self.gen.genFooter()
+		print "generated %s" % self.gen.path
+
+		# generate chapter pages
+		for node in chapters:
+			self.gen.openPage(node)
+			self.gen.genDocHeader()
+			self.gen.genTitle()
+			self.gen.genContent([node], 100)
+			self.gen.genBodyHeader()
+			node.gen(self.gen)
+			self.gen.genFootNotes()
+			self.gen.genBodyFooter()
+			self.gen.genFooter()
+			self.gen.closePage()
+			print "generated %s" % (self.gen.getPage(node))
+
 
 class Generator(back.Generator):
 	"""Generator for HTML output."""
@@ -226,7 +238,6 @@ class Generator(back.Generator):
 	to_files = None
 	footnotes = None
 	struct = None
-	policy = None
 	pages = None
 	page_count = None
 	stack = None
@@ -237,7 +248,6 @@ class Generator(back.Generator):
 		back.Generator.__init__(self, doc)
 		self.footnotes = []
 		self.pages = { }
-		self.policy = AllInOne(self)
 		self.pages = { }
 		self.page_count = 0
 		self.stack = []
@@ -386,23 +396,13 @@ class Generator(back.Generator):
 		self.out.write(tag)
 
 	def genHeader(self, header):
-
-		# prolog
 		number = self.refs[header][1]
-		self.policy.onHeaderBegin(header)
-
-		# title
 		self.out.write('<h' + str(header.getLevel() + 1) + '>')
 		self.out.write('<a name="' + number + '"></a>')
 		self.out.write(number)
 		header.genTitle(self)
 		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
-
-		# body
 		header.genBody(self)
-
-		# epilog
-		self.policy.onHeaderEnd(header)
 		return True
 
 	def genLinkBegin(self, url):
@@ -502,48 +502,78 @@ class Generator(back.Generator):
 			self.genLabel(self.label)
 		self.out.write('</div>')
 
-	def genBody(self):
+	def genBodyHeader(self):
 		self.out.write('<div class="page">\n')
+
+	def genBodyFooter(self):
+		self.out.write('</div>\n')
+
+	def genBody(self):
+		self.genBodyHeader()
 		self.doc.gen(self)
 		self.genFootNotes()
-		self.out.write('</div>\n')
+		self.genBodyFooter()
 
 	def genFooter(self):
 		self.out.write("</div>\n</body>\n</html>\n")
 
-	def genContentItem(self, content, max = 7, out = False):
+	#def traverseContentItem(self, node, enter, 0):
+	#	if i <> 0:
+	#		self.out.write('<a href="%s">' % self.refs[node][0])
+	#	for item in node.getContent():
+		
+	def genContentEntry(self, node, indent):
+		"""Generate a content entry (including numbering, title and link)."""
+		self.out.write('%s<a href="%s">' % (indent, self.refs[node][0]))
+		self.out.write(self.refs[node][1])
+		self.out.write(' ')
+		node.genTitle(self)
+		self.out.write('</a>\n')
 
-		# look if there is some content
-		some = False
-		for item in content:
-			if item.getHeaderLevel() >= 0:
-				some = True
-				break
-		if not some:
+	def expandContent(self, node, level, indent):
+		"""Expand recursively the content and to the given level."""
+		if node.getHeaderLevel() >= level:
 			return
+		one = False
+		for child in node.getContent():
+			if child.getHeaderLevel() >= 0:
+				if not one:
+					one = True
+					self.out.write('%s<ul class="toc">\n' % indent)
+				self.out.write("%s<li>\n" % indent)
+				self.genContentEntry(child, indent)
+				self.expandContent(child, level, indent + "  ")
+				self.out.write("%s</li>\n" % indent)
+		if one:
+			self.out.write('%s</ul>\n' % indent)
 
-		# generate the content
-		self.out.write('		<ul class="toc">\n')
-		for item in content:
-			level = item.getHeaderLevel()
-			if level == -1:
-				continue
-			number = self.refs[item][1]
-			self.out.write('			<li>')
-			self.out.write('<a href="%s">' % self.refs[item][0])
-			self.out.write(number + ' ')
-			item.genTitle(self)
-			self.out.write('</a>\n')
-			if self.policy.unfolds(item) and max > 1:
-				self.genContentItem(item.getContent(), max - 1, out)
-			self.out.write('</li>\n')
-		self.out.write('		</ul>\n')
-
-	def genContent(self, max = 7, out = False):
-		self.out.write('	<div class="toc">\n')
-		self.out.write('		<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
-		self.genContentItem(self.doc.getContent(), max, out)
-		self.out.write('	</div>\n')
+	def expandContentTo(self, node, path, level, indent):
+		"""Expand, not recursively, the content until reaching the end of the path.
+		From this, expand recursively the sub-nodes."""
+		if not path:
+			self.expandContent(node, level, indent)
+		else:
+			one = False
+			for child in node.getContent():
+				if child.getHeaderLevel() >= 0:
+					if not one:
+						one = True
+						self.out.write('%s<ul class="toc">\n' % indent)
+					self.out.write("%s<li>\n" % indent)
+					self.genContentEntry(child, indent)
+					if path[0] == child:
+						self.expandContentTo(child, path[1:], level, indent + '  ')
+					self.out.write("%s</li>\n" % indent)
+			if one:
+				self.out.write('%s</ul>\n' % indent)
+				
+	def genContent(self, path, level):
+		"""Generate the content without expanding until ending the path
+		with an expanding maximum level."""
+		self.out.write('<div class="toc">\n')
+		self.out.write('<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
+		self.expandContentTo(self.doc, path, level, '  ')
+		self.out.write('</div>\n')
 
 	def genRef(self, ref):
 		node = self.doc.getLabel(ref.label)
@@ -574,23 +604,16 @@ class Generator(back.Generator):
 		# select the policy
 		self.struct = self.doc.getVar('HTML_ONE_FILE_PER')
 		if self.struct == 'document' or self.struct == '':
-			pass
+			policy = AllInOne(self)
 		elif self.struct == 'chapter':
-			self.policy = PerChapter(self)
+			policy = PerChapter(self)
 		elif self.struct == 'section':
 			common.onError("HTML_ONE_FILE_PER=section not yet supported.")
 		else:
 			common.onError('one_file_per %s structure is not supported' % self.struct)
 
 		# generate the document
-		self.openMain('.html')
-		self.policy.genRefs()
-		self.doc.pregen(self)
-		self.genDocHeader()
-		self.genTitle()
-		self.genContent()
-		self.genBody()
-		self.genFooter()
+		policy.run()
 		print "SUCCESS: result in %s" % self.path
 
 
