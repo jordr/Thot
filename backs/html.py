@@ -148,6 +148,119 @@ class AllInOne(PagePolicy):
 		self.gen.genFooter()
 
 
+class PerSection(PagePolicy):
+	"""This page policy ensures there is one page per section."""
+
+	def __init__(self, gen):
+		PagePolicy.__init__(self, gen)
+
+	def genRefs(self):
+		"""Generate and return the references for the given generator."""
+		self.gen.refs = { }
+		self.makeRefs([1], { }, self.gen.doc, 0)
+
+	def makeRefs(self, nums, others, node, page):
+		"""Traverse the document tree and generate references in the given map."""
+		my_page = page
+		
+		# number for header
+		num = node.numbering()
+		if num == 'header':
+			page = page + 1
+			self.gen.refs[node] = ("%s-%d.html" % (self.gen.root, my_page), ".".join([str(n) for n in nums]))
+			nums.append(1)
+			for item in node.getContent():
+				page = self.makeRefs(nums, others, item, page)
+			nums.pop()
+			nums[-1] = nums[-1] + 1
+		
+		# number for embedded
+		else:
+			
+			# set number
+			if num and self.gen.doc.getLabelFor(node):
+				if not others.has_key(num):
+					others[num] = 1
+					n = 1
+				else:
+					n = others[num] + 1
+				r = str(n)
+				self.gen.refs[node] = ("%s-%s#%s-%s" % (self.gen.root, my_page, page, num, r), r)
+				others[num] = n
+		
+			# look in children
+			for item in node.getContent():
+				page = self.makeRefs(nums, others, item, page)
+
+		return page
+
+	def process(self, header, path):
+
+		# generate the page header
+		subheaders = []
+		self.gen.openPage(header)
+		self.gen.genDocHeader()
+		self.gen.genTitle()
+		path = path + [header]
+		self.gen.genContent(path, 100)
+		self.gen.genBodyHeader()
+		
+		# generate the title
+		for h in path:
+			self.gen.genHeaderTitle(h)
+		
+		# generate the content
+		for child in header.getContent():
+			if child.getHeaderLevel() >= 0:
+				subheaders.append(child)
+			else:
+				child.gen(self.gen)
+		
+		# generate the page footer
+		self.gen.genFootNotes()
+		self.gen.genBodyFooter()
+		self.gen.genFooter()
+		self.gen.closePage()
+		print "generated %s" % (self.gen.getPage(header))
+		
+		# generate the children header pages
+		#path = path + [header]
+		for subheader in subheaders:
+			self.process(subheader, path)
+		path.pop()
+		
+
+	def run(self):
+		
+		# preparation
+		self.gen.openMain('.html')
+		self.gen.doc.pregen(self.gen)
+		self.genRefs()
+
+		# generate header
+		self.gen.genDocHeader()
+		self.gen.genTitle()
+		self.gen.genContent([], 0)
+		self.gen.genBodyHeader()
+
+		# generate main page
+		chapters = []
+		for node in self.gen.doc.getContent():
+				if node.getHeaderLevel() == 0:
+					chapters.append(node)
+				else:
+					node.gen(self.gen)
+		
+		# generate footer
+		self.gen.genBodyFooter()
+		self.gen.genFooter()
+		print "generated %s" % self.gen.path
+
+		# generate chapter pages
+		for chapter in chapters:
+			self.process(chapter, [])
+
+
 class PerChapter(PagePolicy):
 	"""This page policy ensures there is one page per chapter."""
 
@@ -395,13 +508,18 @@ class Generator(back.Generator):
 		_, tag = getStyle(kind)
 		self.out.write(tag)
 
-	def genHeader(self, header):
+	def genHeaderTitle(self, header):
+		"""Generate the title of a header."""
 		number = self.refs[header][1]
 		self.out.write('<h' + str(header.getLevel() + 1) + '>')
 		self.out.write('<a name="' + number + '"></a>')
 		self.out.write(number)
 		header.genTitle(self)
 		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
+
+	def genHeader(self, header):
+		"""Generate a whole header element (title + content)."""
+		self.genHeaderTitle(header)
 		header.genBody(self)
 		return True
 
@@ -569,7 +687,8 @@ class Generator(back.Generator):
 				
 	def genContent(self, path, level):
 		"""Generate the content without expanding until ending the path
-		with an expanding maximum level."""
+		(of headers) with an expanding maximum level.
+		"""
 		self.out.write('<div class="toc">\n')
 		self.out.write('<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
 		self.expandContentTo(self.doc, path, level, '  ')
@@ -608,7 +727,7 @@ class Generator(back.Generator):
 		elif self.struct == 'chapter':
 			policy = PerChapter(self)
 		elif self.struct == 'section':
-			common.onError("HTML_ONE_FILE_PER=section not yet supported.")
+			policy = PerSection(self)
 		else:
 			common.onError('one_file_per %s structure is not supported' % self.struct)
 

@@ -1116,6 +1116,7 @@ class Document(Container):
 			self.features.append(feature)
 
  	def pregen(self, gen):
+		"""Call the prepare method of features of the document."""
  		for feature in self.features:
  			feature.prepare(gen)
 
