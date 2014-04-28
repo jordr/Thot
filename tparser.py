@@ -12,10 +12,10 @@ DEBUG = False
 def handleVar(man, match):
 	id = match.group('varid')
 	val = man.doc.getVar(id)
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(val)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeWord(val)))
 
 def handleRef(man, match):
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Ref(match.group("ref"))))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeRef(match.group("ref"))))
 
 INITIAL_WORDS = [
 	(handleVar, doc.VAR_RE),
@@ -42,13 +42,13 @@ def handleText(man, line):
 		fun, wre = man.words[idx]
 		word = line[:match.start()]
 		if word:
-			man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(word)))
+			man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeWord(word)))
 		line = line[match.end():]
 		fun(man, match)
 		match = man.words_re.search(line)
 
 	# end of line
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(line + ' ')))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeWord(line + ' ')))
 
 
 ############### Line Parsing ######################
@@ -130,7 +130,7 @@ class Manager:
 	item = None
 	items = None
 	parser = None
-	doc = None
+	#doc = None
 	lines = None
 	words = None
 	words_re = None
@@ -139,10 +139,11 @@ class Manager:
 	line_num = None
 	file_name = None
 	used_mods = None
+	factory = None
 
-	def __init__(self, doc):
-		self.item = doc
-		self.doc = doc
+	def __init__(self, document, factory = doc.Factory()):
+		self.item = document
+		self.doc = document
 		self.parser = DefaultParser()
 		self.items = []
 		self.lines = INITIAL_LINES[:]
@@ -150,6 +151,7 @@ class Manager:
 		self.added_lines = []
 		self.added_words = []
 		self.used_mods = []
+		self.factory = factory
 
 	def get(self):
 		return self.item

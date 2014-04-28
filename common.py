@@ -154,8 +154,8 @@ def getLinuxDistrib():
 	"""Look for the current linux distribution.
 	Return (distribution, release) or None if version cannot be found."""
 	try:
-		id = None
-		release = None
+		id = ""
+		release = 0
 		for line in open("/etc/lsb-release"):
 			if line.startswith("DISTRIB_ID="):
 				id = line[11:-1]

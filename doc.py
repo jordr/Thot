@@ -75,7 +75,6 @@ ALIGN_LEFT = 1
 ALIGN_CENTER = 2
 ALIGN_RIGHT = 3
 
-
 # supported events
 class Event:
 	"""Base class of all events."""
@@ -1174,4 +1173,82 @@ class Visitor:
 	def onHeader(self, header):
 		pass
 
-		
+
+class Factory:
+	"""Factory to customize the building of objects."""
+	
+	def makeDocument(self, env):
+		"""Build a document."""
+		return Document(env)
+	
+	def makeHeader(self, level):
+		"""Build a new header."""
+		return Header(env)
+
+	def makePar(self):
+		"""Build a new paragraph."""
+		return Par()
+	
+	def makeQuote(self, level):
+		"""Build a new quote."""
+		return Quote(level)
+	
+	def makeBlock(self, kind):
+		"""Build a new block."""
+		return Block(kind)
+	
+	def makeList(self, kind, depth):
+		"""Build a new list."""
+		return List(kind, depth)
+	
+	def makeListItem(self):
+		"""Build a new list item."""
+		return ListItem()
+
+	def makeDefList(self, depth):
+		"""Build a new definition list."""
+		return DefList(depth)
+
+	def makeDefItem(self):
+		"""Build a definition list item."""
+		return DefItem()
+	
+	def makeTable(self):
+		"""Build a new table."""
+		return Table()
+	
+	def makeRow(self, kind):
+		"""Build a new table row."""
+		return Row()
+
+	def makeCell(self, kind, align = TAB_CENTER, span = 1):
+		"""Build a new table cell."""
+		return Cell(kind, align, span)
+
+	def makeWord(self, text):
+		"""Build a word."""
+		return Word(text)
+
+	def makeImage(self, path, width = None, height = None, caption = None):
+		"""Build an image."""
+		return Image(path, width, height, caption)
+
+	def makeEmbeddedImage(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
+		"""Build an embedded image."""
+		return EmbeddedImage(path, width, height, caption, align)
+
+	def makeGlyph(self, code):
+		"""Build a glyph."""
+		return Glyph(code)
+
+	def makeStyle(self, style):
+		"""Build a style."""
+		return Style(style)
+
+	def makeFootNote(self):
+		"""Build a footnote."""
+		return FootNote()
+
+	def makeLink(self, ref):
+		"""Make a link."""
+		return Link(ref)
