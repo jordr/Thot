@@ -160,7 +160,7 @@ def getLinuxDistrib():
 			if line.startswith("DISTRIB_ID="):
 				id = line[11:-1]
 			elif line.startswith("DISTRIB_RELEASE="):
-				release = int(line[16:-1])
+				release = line[16:-1]
 		return (id, release)
 	except IOError,e:
 		return ("", 0)
