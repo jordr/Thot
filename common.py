@@ -238,7 +238,7 @@ class Command(CommandRequirement):
 		except (OSError, subprocess.CalledProcessError) as e:
 			self.error("command %s failed: %s" % (self.cmd, e))
 		
-	
+
 	
 	
 

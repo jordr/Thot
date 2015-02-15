@@ -44,6 +44,8 @@ oparser.add_option("-D", "--define", action="append", dest="defines",
 	help="add the given definition to the document environment.")
 oparser.add_option("--dump", dest = "dump", action="store_true", default=False,
 	help="only for debugging purpose, dump the database of Thot")
+oparser.add_option("-u", "--use", action="append", dest="uses",
+	help="given module is loaded before the generation.")
 
 # Parse arguments
 (options, args) = oparser.parse_args()
@@ -65,11 +67,14 @@ if options.defines:
 			common.onError('-D' + d + ' must follow syntax -Didentifier=value')
 		else:
 			env[d[:p]] = d[p+1:]
-
+		
 
 # Parse the file
 document = doc.Document(env)
 man = tparser.Manager(document)
+if options.uses:
+	for u in options.uses:
+		man.use(u)
 man.parse(input, env['THOT_FILE'])
 if options.dump:
 	document.dump("")

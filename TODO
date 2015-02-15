@@ -1,9 +1,14 @@
 ====== Improvement to Thot ======
 
+===== Tools =====
+
+  [ ] Add option ''-u''/''--use'' //module// -- to select externaly a module (like a front-end).
+
 ===== Front-Ends =====
 
   * Support of reStructuredText: http://docutils.sourceforge.net/rst.html.
   * Support Textile.
+  * Support for Markdown.
 
 ==== DokuWiki ====
 

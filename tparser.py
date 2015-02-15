@@ -61,15 +61,7 @@ def handleAssign(man, match):
 
 def handleUse(man, match):
 	name = match.group(1).strip()
-	if name in man.used_mods:
-		return
-	path = man.doc.getVar("THOT_USE_PATH")
-	mod = common.loadModule(name, path)
-	if mod:
-		man.used_mods.append(mod)
-		mod.init(man)
-	else:
-		common.onError('cannot load module %s' % name)
+	man.use(name)
 
 def handleInclude(man, match):
 	path = match.group(1).strip()
@@ -253,6 +245,18 @@ class Manager:
 	def error(self, msg):
 		"""Display an error with file and line."""
 		common.onError(self.message(msg))
+
+	def use(self, name):
+		"""Use a module in the current parser."""
+		if name in self.used_mods:
+			return
+		path = self.doc.getVar("THOT_USE_PATH")
+		mod = common.loadModule(name, path)
+		if mod:
+			self.used_mods.append(mod)
+			mod.init(self)
+		else:
+			common.onError('cannot load module %s' % name)
 
 
 class BlockParser:

@@ -275,3 +275,20 @@ With a table.
 | //italic// | %%//not italic//%% |
 | %%/%% | %%^%% |
 | harder | %%**not bold**%% **bold** |
+
+
+====== Dot Example ======
+
+@use dot
+
+Voici un exemple de fichier dot:
+<dot>
+digraph mine {
+	1 -> 2 ;
+	1 -> 3 ;
+	3 -> 4 ;
+	4 -> 5 ;
+	2 -> 5 ;
+}
+</dot>
+

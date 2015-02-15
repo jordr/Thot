@@ -203,7 +203,8 @@ this chapter. The //OPTIONS// are described below:
   * ''-o'', ''--out'' //FILE//: select the output file ;
   * ''-D'', ''--define'' //NAME//''=''//VALUE'': defines a variable with its value ;
   * ''-t'', ''--type'' //TYPE//: define the type of chosen back-end
-(default value ''html'', or one of ''docbook'' and ''latex'').
+(default value ''html'', or one of ''docbook'' and ''latex'') ;
+  * ''-u'', ''--use'' //MODULE//: load the given module before generation.
 
 
 ===== Modules =====
