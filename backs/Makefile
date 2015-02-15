@@ -1,6 +1,7 @@
 SOURCES = \
 	html.py \
-	latex.py
+	latex.py \
+	docbook.py
 OBJECTS =  $(SOURCES:.py=.pyc)
 
 ALL = $(OBJECTS)

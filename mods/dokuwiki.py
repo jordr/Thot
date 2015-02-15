@@ -258,6 +258,11 @@ def handleImage(man, match):
 def handleNonParsed(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('nonparsed')[:-2])))
 
+
+def handlePercent(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('percent'))))
+
+
 WORDS = [
 	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
 	(lambda man, match: handleStyle(man, "italic"), "\/\/"),
@@ -270,6 +275,7 @@ WORDS = [
 	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
 	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),
 	(handleFootNote, '\(\('),
+	(handlePercent, '%%(?P<percent>([^%]|%[^%])*)%%'),
 	(lambda man, match: handleCloseStyle(man, "footnote"), "\)\)"),
 	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
 	(handleEMail, "([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])"),
@@ -318,7 +324,7 @@ def handleFile(man, match):
 def handleNoWiki(man, match):
 	tparser.BlockParser(man, NonParsedBlock(), END_NOWIKI)
 
-TABLE_SEP = re.compile('\^|\|')
+TABLE_SEP = re.compile('\^|\||%%')
 def handleRow(man, match):
 	table = doc.Table()
 	if match.group(4) == '^':
@@ -337,14 +343,25 @@ def handleRow(man, match):
 			kind = doc.TAB_HEADER
 		else:
 			kind = doc.TAB_NORMAL
+		row = row[1:]
 
 		# find end
-		match = TABLE_SEP.search(row, 1)
+		pref = ""
+		match = TABLE_SEP.search(row)
+		while match and match.group() == "%%":
+			p = row.find("%%", match.end())
+			if p < 0:
+				pref = pref + row[:match.end()]
+				row = row[match.end():]
+			else:
+				pref = pref + row[:p + 2]
+				row = row[p + 2:]
+			match = TABLE_SEP.search(row)
 		if match:
 			last = match.start()
 		else:
 			last = len(row)
-		cell = row[1:last]
+		cell = pref + row[:last]
 		row = row[last:]
 
 		# dump object if required
