@@ -1,6 +1,6 @@
 @TITLE=Thot  @(THOT_VERSION) Manual
 @AUTHORS=H. Cassé <hugues.casse@laposte.net>
-@VERSION=0.6
+@VERSION=0.7
 @LANG=en_EN
 @THOT=//**Thot**//
 @HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css

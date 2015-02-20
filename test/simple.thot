@@ -281,7 +281,7 @@ With a table.
 
 @use dot
 
-Voici un exemple de fichier dot:
+Below is a //dot// mebedding example:
 <dot>
 digraph mine {
 	1 -> 2 ;
@@ -292,3 +292,20 @@ digraph mine {
 }
 </dot>
 
+
+====== //aafig// Example ======
+
+@use aafig
+
+A sample of //aafig// embedding in **THOT**:
+<aafig textual=yes>
+                              /-------\
+                          /-->| HTML  |
+                          |   \-------/
+/-----------\   +------+  |   /-------\    
+| Thot text |-->| Thot |--O-->| Latex |---+    /-----\  
+\-----------/   +------+  |   \-------/   o--->| PDF |
+                          |   /-------\   |    \-----/
+                          +-->|DocBook|---+
+                              \-------/
+</aafig>

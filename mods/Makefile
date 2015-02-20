@@ -2,7 +2,8 @@ SOURCES = \
 	dokuwiki.py \
 	dot.py \
 	gnuplot.py \
-	latexmath.py
+	latexmath.py \
+	aafig.py
 OBJECTS =  $(SOURCES:.py=.pyc)
 
 ALL = $(OBJECTS)

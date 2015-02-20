@@ -8,7 +8,8 @@ SOURCES = \
 	i18n.py \
 	tparser.py \
 	thot.py \
-	back.py
+	back.py \
+	extern.py
 OBJECTS = $(SOURCES:.py=.pyc)
 
 ALL = $(OBJECTS)

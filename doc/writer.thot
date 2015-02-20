@@ -190,6 +190,45 @@ The reference is then replaced by the number of the referenced item as in the ex
 
 
 
+==== External Blocks ====
+
+Several additional modules of @(THOT) allows including texts, images, etc
+produced by external tools. This includes, for example, //dot//, //aafig//,
+//gnuplot// or //code//.
+
+This means that  @(THOT) embeds blocks of text targetting a different
+tool but is able to replace this block by the result (often an image
+but not only) of an external tool. 
+
+To mark beginning and end of this black, tag between ''<'' and ''>'' are used
+with the name of the external module. For example, the block below
+target the //dot// utility:
+<code>
+<dot>
+digraph {
+	0 -> 1;
+	1 -> 2;
+</dot>
+</code>
+Notice the ''/'' character prefixing the closing tag.
+
+The beginning tag accepts also a list of arguments
+separated by commas '',''. Depending on the module, this argument may
+also be structured as an identifier, following an ''='' sign and
+followed by the value itself.
+
+In the example below, the //aafig// block accepts two arguments:
+  * ''foreground'' whose value is ''#ff0000'',
+  * ''proportional'' whose value is ''off''.
+
+<code>
+<aafig foreground=#ff0000,proportional=off>
+...
+</aafig>
+</code>
+
+
+
 ==== Command ====
 
 The ''thot'' command supports the syntax below:
@@ -323,8 +362,48 @@ plot [-10:10] sin(x),atan(x),cos(atan(x))
 
 Documentation about GnuPlot can be found [[http://gnuplot.info/documentation.html|here]].
 
+==== aafig Module ====
 
+//aafig// is tool generating figures from textual description. To use it
+in @(THOT), import the module in your text:
+<code>
+@use aafig
+</code>
+and ensure that the [[https://launchpad.net/aafigure|aafigure]] is available on your system.
 
+And insert your figure between ''<aafig>'' tags:
+<code>
+<aafig>
++------+    +-----+
+| here |--->|there|
++------+    +-----+
+</aafig>
+</code>
+
+For details on //aafig// format, look at https://launchpadlibrarian.net/41870218/aafigure.pdf .
+
+As other figures, //aafig// blocks supports labelling and several
+options:
+^ Option ^ Argument ^
+| wide-chars | yes/no |
+| textual | yes/no |
+| scale | real |
+| aspect | ... |
+| linewidth | real |
+| proportional | yes/no |
+| foreground | #RRGGBB |
+| fill | #RRGGBB |
+| background | #RRGGBB |
+| option | ... |
+
+If ''aafigure'' command is available, the example above will give:
+
+@use aafig
+<aafig>
++------+    +-----+
+| here |--->|there|
++------+    +-----+
+</aafig>
 
 ===== Back-ends =====
 
