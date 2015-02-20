@@ -16,11 +16,12 @@
 
 import re
 import subprocess
+import tempfile
 
 import common
 import doc
+import sys
 import tparser
-
 
 ARG_RE = re.compile("[\s]*([\S]+)[\s]*=(.*)")
 
@@ -100,12 +101,14 @@ class ExternalBlock(doc.Block):
 	meta = None
 	args = None
 	path = None
+	temps = None
 	
 	def __init__(self, meta):
 		"""Build an external block. meta is an ExternalModule meta-descriptor."""
 		doc.Block.__init__(self, meta.name)
 		self.meta = meta
 		self.args = []
+		self.temps = []
 
 	def is_ready(self):
 		"""Test if the module is ready for generation."""
@@ -140,6 +143,29 @@ class ExternalBlock(doc.Block):
 		gen.genImage(gen.getFriendRelativePath(self.get_path(gen)))
 		gen.genEmbeddedEnd(self)
 
+	def cleanup(self):
+		for t in self.temps:
+			t.file.close()
+
+	def get_temporary(self):
+		"""Open a temporary file and return an object whose name is the pah and file the file handle.
+		The created file will be cleaned automatically."""
+		t = tempfile.NamedTemporaryFile()
+		self.temps.append(t)
+		return t
+
+	def dump_temporary(self, text):
+		"""Dump given text to temporary and return its path."""
+		tmp = self.get_temporary()
+		tmp.file.write(text)
+		tmp.file.flush()
+		return tmp.name
+
+	def prepare_input(self, gen, opts, input):
+		"""Prepare the input of the external command, modifying either options
+		or the input. Do nothing as a default."""
+		pass
+
 	def run(self, cmd, opts, input):
 		"""Run the command. Return True for success, False else."""
 		try:
@@ -151,7 +177,7 @@ class ExternalBlock(doc.Block):
 					close_fds = True,
 					shell = True
 				)
-			(out, err) = process.communicate("".join(input) + self.toText())
+			(out, err) = process.communicate("".join(input))
 			if process.returncode == 127:
 				return False
 			if not self.meta.cmd:
@@ -194,10 +220,9 @@ class ExternalBlock(doc.Block):
 			return
 		opts = []
 		input = []
+		self.prepare_input(gen, opts, input)
 		self.make_input(input)
 		self.make_options(opts, input)
-		if self.meta.out:
-			opts.append(self.meta.out % self.get_path(gen))
 		if self.run_command(opts, input):
 			self.gen_output(gen)
 
@@ -236,11 +261,11 @@ class ExternalModule:
 	cmds = None
 	cmd = None		# None=not tested, ""=tested but not found, "..."=tested and found
 	count = 0
-	out = None
 	close = None
 	ext = None
+	maker = None
 	
-	def __init__(self, man, name, out=None, ext="", options=[], cmds=[]):
+	def __init__(self, man, name, ext="", options=[], cmds=[], maker = ExternalBlock):
 		"""Build an external module with the given name
 		and given options.
 		man: Thot manager.
@@ -250,9 +275,9 @@ class ExternalModule:
 
 		# initialize attributes
 		self.name = name
-		self.out = out
 		self.ext = ext
 		self.cmds = cmds
+		self.maker = maker
 		self.options = { }
 		for option in options:
 			self.options[option.name] = option
@@ -271,7 +296,7 @@ class ExternalModule:
 	
 	def make(self):
 		"""Build a block for the module."""
-		return ExternalBlock(self)
+		return self.maker(self)
 	
 	def test_command(self):
 		"""Look for a command for the block."""

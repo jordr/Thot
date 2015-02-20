@@ -1,4 +1,4 @@
-# aafig -- Thot aafig module
+# ditaa -- Thot ditaa module
 # Copyright (C) 2015  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,31 +19,28 @@ See https://launchpad.net/aafigure for more details."""
 
 import extern
 
-class AafigBlock(extern.ExternalBlock):
+
+class DitaaBlock(extern.ExternalBlock):
 	
 	def __init__(self, meta):
 		extern.ExternalBlock.__init__(self, meta)
 
 	def prepare_input(self, gen, opts, input):
-		opts.append("-o '%s'" % self.get_path(gen))
-		input.append(self.toText())
-		
+		tmp = self.dump_temporary(self.toText())
+		opts.append(tmp);
+		opts.append(self.get_path(gen))
+
 
 def init(man):
-	extern.ExternalModule(man,
-		name = "aafig",
-		ext=".png",
-		cmds=['aafigure'],
-		maker = AafigBlock,
-		options=[
-			extern.SwitchOption("wide-chars", "-w"),
-			extern.SwitchOption("textual", "-T"),
-			extern.Option("scale", "-s"),
-			extern.Option("aspect", "-a"),
-			extern.Option("linewidth", "-l"),
-			extern.SwitchOption("proportional", "--proportional", True),
-			extern.Option("foreground", "-f"),
-			extern.Option("fill", "-x"),
-			extern.Option("background", "-n"),
-			extern.Option("option", "-O")
-		])
+	extern.ExternalModule(man, name = "ditaa",
+	ext=".png",
+	cmds=['ditaa'],
+	maker = DitaaBlock, 
+	options=[
+		extern.SwitchOption("no-antilias", "-A"),
+		extern.SwitchOption("no-separation", "-E"),
+		extern.SwitchOption("round-corners", "-r"),
+		extern.Option("scale", "-r"),
+		extern.SwitchOption("no-shadows", "-S"),
+		extern.Option("tabs", "-t")
+	])

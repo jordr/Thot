@@ -309,3 +309,21 @@ A sample of //aafig// embedding in **THOT**:
                           +-->|DocBook|---+
                               \-------/
 </aafig>
+
+
+====== //ditaa// Example ======
+
+@use ditaa
+
+A sample of //ditaa// embedding in **THOT**:
+<ditaa>
+    +--------+   +-------+    +-------+
+    |cBLU    | --+ ditaa +--> | cRED  |
+    |  Text  |   +-------+    |diagram|
+    |Document|   |!magic!|    |       |
+    |     {d}|   |       |    |       |
+    +---+----+   +-------+    +-------+
+        :                         ^
+        |       Lots of work      |
+        +-------------------------+
+</ditaa>
