@@ -75,6 +75,28 @@ ALIGN_LEFT = 1
 ALIGN_CENTER = 2
 ALIGN_RIGHT = 3
 
+
+# standard styles
+STYLE_BOLD = "bold"
+STYLE_STRONG = "string"
+STYLE_ITALIC = "italic"
+STYLE_EMPHASIZED = "emphasized"
+STYLE_MONOSPACE = "monospace"
+STYLE_UNDERLINE = "underline"
+STYLE_SUBSCRIPT = "subscript"
+STYLE_SUPERSCRIPT = "superscript"
+STYLE_STRIKE = "strike"
+STYLE_BIGGER = "bigger"
+STYLE_SMALLER = "smaller"
+STYLE_CITE = "cite"
+STYLE_CODE = "code"
+
+
+# standard lists
+LIST_ITEM = "ul"
+LIST_NUMBER = "ol"
+
+
 # supported events
 class Event:
 	"""Base class of all events."""

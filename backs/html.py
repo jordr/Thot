@@ -51,13 +51,19 @@ def getList(list):
 		raise Exception('list ' + list + ' not supported')
 
 STYLES = {
-	'bold': ('<b>', '</b>'),
-	'italic': ('<i>', '</i>'),
-	'underline': ('<u>', '</u>'),
-	'subscript': ('<sub>', '</sub>'),
-	'superscript': ('<sup>', '</sup>'),
-	'monospace': ('<tt>', '</tt>'),
-	'deleted': ('<s>', '</s>')
+	doc.STYLE_BOLD: 		('<b>', '</b>'),
+	doc.STYLE_STRONG: 		('<strong>', '</strong>'),
+	doc.STYLE_ITALIC: 		('<i>', '</i>'),
+	doc.STYLE_EMPHASIZED:	('<em>', '</em>'),
+	doc.STYLE_UNDERLINE: 	('<u>', '</u>'),
+	doc.STYLE_SUBSCRIPT: 	('<sub>', '</sub>'),
+	doc.STYLE_SUPERSCRIPT: 	('<sup>', '</sup>'),
+	doc.STYLE_MONOSPACE: 	('<tt>', '</tt>'),
+	doc.STYLE_STRIKE: 		('<strike>', '</strike>'),
+	doc.STYLE_BIGGER:		('<big>', '</big>'),
+	doc.STYLE_SMALLER:		('<small>', '</small>'),
+	doc.STYLE_CITE:			('<cite>', '</cite>'),
+	doc.STYLE_CODE:			('<code>', '</code>')
 }
 
 

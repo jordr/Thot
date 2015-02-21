@@ -22,7 +22,7 @@ INITIAL_WORDS = [
 	(handleRef, "@ref:(?P<ref>[^@]+)@")
 ]
 
-def handleText(man, line):
+def handleText(man, line, suffix = ' '):
 
 	# init RE_WORDS
 	if man.words_re == None:
@@ -48,7 +48,7 @@ def handleText(man, line):
 		match = man.words_re.search(line)
 
 	# end of line
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeWord(line + ' ')))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeWord(line + suffix)))
 
 
 ############### Line Parsing ######################

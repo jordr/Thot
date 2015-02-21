@@ -1,29 +1,30 @@
 ====== Improvement to Thot ======
 
-===== Tools =====
+===== Core =====
 
-  [ ] Add option ''-u''/''--use'' //module// -- to select externaly a module (like a front-end).
+  [x] Add option ''-u''/''--use'' //module// -- to select externaly a module (like a front-end).
+  [ ] Add more standard paragraph types (like blockquote, file, verse, etc).
 
 ===== Front-Ends =====
 
-  * Support of reStructuredText: http://docutils.sourceforge.net/rst.html.
-  * Support Textile.
-  * Support for Markdown.
+  [ ] Support of reStructuredText: http://docutils.sourceforge.net/rst.html.
+  [ ] Support Textile.
+  [ ] Support for Markdown.
 
 ==== DokuWiki ====
 
-  * '':::'' in table for vertical spanning.
-  * Use of internal links [[...]] for inetr-document linking.
-  * Support of InterWiki links.
-  * Support for "~~NOTOC~~"
-  * Support for "wiki:" protocol.
-  * ''<html>'' ... ''</html>'' -- HTML embedding (''<php>'' ... ''</ph>'' -- currently, no meaning).
+  [ ] '':::'' in table for vertical spanning.
+  [ ] Use of internal links [[...]] for inetr-document linking.
+  [ ] Support of InterWiki links.
+  [ ] Support for "~~NOTOC~~"
+  [ ] Support for "wiki:" protocol.
+  [ ] ''<html>'' ... ''</html>'' -- HTML embedding (''<php>'' ... ''</ph>'' -- currently, no meaning).
 
 
 ===== Modules =====
 
-  * Proposes alternatives to ''highlight''.
+  [ ] Proposes alternatives to ''highlight''.
 
 ==== SCORM ===
 
-  * Finalize.
+  [ ] Finalize.

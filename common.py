@@ -238,3 +238,14 @@ class Command(CommandRequirement):
 		except (OSError, subprocess.CalledProcessError) as e:
 			self.error("command %s failed: %s" % (self.cmd, e))
 
+
+ESCAPES = [ '(', ')', '+', '.', '*', '/', '?', '^', '$', '\\', '|' ]
+def escape_re(str):
+	res = ""
+	for c in str:
+		if c in ESCAPES:
+			res = res + "\\" + c
+		else:
+			res = res + c
+	return res
+
