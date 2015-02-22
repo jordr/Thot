@@ -24,15 +24,15 @@
 #	[x]	[L]			language
 #
 # Paragrah Styling (PS, includes TS)
-#	[ ]	<			align left
-#	[ ]	>			align right
-#	[ ]	=			centered
-#	[ ]	<>			justified
-#	[ ]	-			align middle
-#	[ ]	^			align top
-#	[ ]	~			align bottom
-#	[ ]	(+			indentation
-#	[ ]	)+			indentation
+#	[x]	<			align left
+#	[x]	>			align right
+#	[x]	=			centered
+#	[x]	<>			justified
+#	[x]	-			align middle
+#	[x]	^			align top
+#	[x]	~			align bottom
+#	[x]	(+			indentation
+#	[x]	)+			indentation
 #
 # Text format (supports TS)
 #	[x]	_xxx_		emphasize / italics
@@ -138,6 +138,9 @@ TS_CSS_DEF = "{([^}]+)}"
 TS_CLASS_RE = re.compile(TS_CLASS_DEF)
 TS_LANG_RE = re.compile(TS_LANG_DEF)
 TS_CSS_RE = re.compile(TS_CSS_DEF)
+PS_ALIGN_DEF = "<>|<|>|=|-|\^|~|\(+|\)+"
+PS_ALIGN_RE = re.compile(PS_ALIGN_DEF)
+PS_DEF = "((%s|%s|%s|%s)*)" % (TS_CLASS_DEF, TS_LANG_DEF, TS_CSS_DEF, PS_ALIGN_DEF)
 
 def use_text_style(node, text):
 	"""Extract text style information from the match
@@ -164,6 +167,31 @@ def use_text_style(node, text):
 			text = text[match.end():]
 			continue
 		return text
+
+ALIGN_MAP = {
+	'<':	(doc.INFO_ALIGN, doc.ALIGN_LEFT),
+	'>':	(doc.INFO_ALIGN, doc.ALIGN_RIGHT),
+	'=':	(doc.INFO_ALIGN, doc.ALIGN_CENTER),
+	'<>':	(doc.INFO_ALIGN, doc.ALIGN_JUSTIFY),
+	'-':	(doc.INFO_VALIGN, doc.ALIGN_CENTER),
+	'^':	(doc.INFO_VALIGN, doc.ALIGN_TOP),
+	'~':	(doc.INFO_VALIGN, doc.ALIGN_BOTTOM)
+}
+def use_par_style(node, text):
+	while text:
+		match = PS_ALIGN_RE.match(text)
+		if match:
+			m = match.group()
+			if m[0] == '(':
+				node.setInfo(doc.INFO_LEFT_PAD, len(m))
+			elif m[0] == ')':
+				node.setInfo(doc.INFO_LEFT_PAD, len(m))
+			else:
+				info, val = ALIGN_MAP[m]
+				node.setInfo(info, val) 
+			text = text[match.end():]
+		else:
+			text = use_text_style(node, text)
 
 
 class BlockQuote(doc.Par):
@@ -328,7 +356,8 @@ def new_par(man, match):
 
 def new_par_ext(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, doc.Par()))
-	tparser.handleText(man, match.group(1))
+	use_par_style(man.get(), match.group(1))
+	tparser.handleText(man, match.group('text'))
 
 def new_single_blockquote(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, BlockQuote()))
@@ -428,9 +457,9 @@ def new_footnote_multi(man, match):
 
 
 LINES = [
-	(new_par, re.compile("^$")),
+	(new_par, re.compile("^\s*$")),
 	(new_header, re.compile("^h([1-6])\.(.*)")),
-	(new_par_ext, re.compile("^p\.(.*)")),
+	(new_par_ext, re.compile("^p" + PS_DEF + "\.(?P<text>.*)")),
 	(new_multi_blockquote, re.compile("^bq\.\.(.*)")),
 	(new_single_blockquote, re.compile("^bq\.(.*)")),
 	(new_list_item, re.compile("^([#\*]+)(.*)")),
