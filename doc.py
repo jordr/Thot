@@ -868,12 +868,14 @@ class Cell(Par):
 	kind = None
 	align = None
 	span = None
+	vspan = None
 
-	def __init__(self, kind, align = TAB_CENTER, span = 1):
+	def __init__(self, kind, align = TAB_CENTER, span = 1, vspan = 1):
 		Par.__init__(self)
 		self.kind = kind
 		self.align = align
 		self.span = span
+		self.vspan = vspan
 
 	def isEmpty(self):
 		return False

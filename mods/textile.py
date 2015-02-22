@@ -73,13 +73,13 @@
 #
 # Tables
 #	table style (TaS) includes
-#		PS
-#		_	header
-#		\i	column span
-#		/i	row span
+#	[ ] PS
+#	[x] _	header
+#	[x] \i	column span
+#	[x] /i	row span
 #	[ ]	tablePS?.
-#	[ ]	TaS?|TaS?_. ... |TaS?_. ... |	header
-#	[ ]	TaS?|TaS? ... |TaS? ... |		row
+#	[x]	TaS?|TaS?_. ... |TaS?_. ... |	header
+#	[x]	TaS?|TaS? ... |TaS? ... |		row
 #
 # Notes
 #	[ ]	[i]			foot note reference
@@ -88,10 +88,11 @@
 #	[ ]	note#R. ...	foot note definition
 #
 # Links
-#	[ ]	"(CSS)?...(tooltip)?":U		link to URL U
-#	[ ]	'(CSS)?...(tooltip)?':U		link to URL U
-#	[ ]	["(CSS)?...(tooltip)?":U]	link to URL U
-#	[ ]	[...]U						alternate form
+#	[x]	"(CSS)?...(tooltip)?":U		link to URL U
+#	[x]	'(CSS)?...(tooltip)?':U		link to URL U
+#	[x]	["(CSS)?...(tooltip)?":U]	link to URL U
+#	[x]	[...]U						alternate form
+#	[ ]	"(CSS)? ... (tooltip)?" in text
 #
 # Images
 #	[x]	!PS?U!			Image whose URL is U.
@@ -109,6 +110,8 @@ import doc
 import re
 import highlight
 import common
+
+URL='[a-z]+:[a-zA-Z0-9_/?*@;%+.\-&#]+'
 
 SPEC_MAP = {
 	'(c)' : 0x00a9,
@@ -217,6 +220,15 @@ def new_spec(man, match):
 	glyph = doc.Glyph(SPEC_MAP[match.group(0)])
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, glyph))
 
+def new_link(man, match, ltag, utag):
+	target = match.group(utag)
+	label = match.group(ltag)
+	if not label:
+		label = target
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_LINK, doc.Link(target)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(label)))
+	man.send(doc.CloseEvent(doc.L_WORD, doc.ID_END_LINK, "link"))
+
 	
 WORDS = [
 	(lambda man, match: new_style(man, match, doc.STYLE_BOLD, "t1"),
@@ -249,7 +261,18 @@ WORDS = [
 		'==(?P<esc>\S([^=]|=[^=])*\S)=='),
 	(new_image,
 		'!(?P<image>[^!\s(]*)(\s+((?P<wxh>[0-9]+[xX][0-9]+)|((?P<w>[0-9]+)w\s+(?P<h>[0-9]+)h)))?(?P<alt>\([^)]*\))?!'),
-	(new_spec, SPEC_RE)
+	(new_spec,
+		SPEC_RE),
+	(lambda man, match: new_link(man, match, 'qtext', 'qurl'),
+		'"(?P<qtext>[^"]*)":(?P<qurl>%s)' % URL),
+	(lambda man, match: new_link(man, match, 'atext', 'aurl'),
+		'\'(?P<atext>[^\']*)\':(?P<aurl>%s)' % URL),
+	(lambda man, match: new_link(man, match, 'btext', 'burl'),
+		'\["(?P<btext>[^"]*)":(?P<burl>%s)\]' % URL),
+	(lambda man, match: new_link(man, match, 'batext', 'baurl'),
+		'\[\'(?P<batext>[^\']*)\':(?P<baurl>%s)\]' % URL),
+	(lambda man, match: new_link(man, match, 'bstext', 'bsurl'),
+		'\[(?P<bstext>[^\']*)\](?P<bsurl>%s)' % URL),
 ]
 
 def new_header(man, match):
@@ -295,6 +318,62 @@ def new_multi_def(man, match):
 	man.send(MyDefEvent(doc.ID_NEW_DEF, 1))
 	tparser.handleText(man, match.group(1), '')
 
+TABLE_SEP = re.compile('\||==')
+def new_row(man, match):
+	table = doc.Table()
+	row_node = None
+	row = match.group(1)
+	while row:
+		kind = doc.TAB_NORMAL
+		hspan = 1
+		vspan = 1
+	
+		# scan the cell
+		while row:
+			if row[0] == '_':
+				kind = doc.TAB_HEADER
+				row = row[1:]
+				continue
+			elif len(row) < 2:
+				break
+			elif row[0] == '\\' and row[1] >= '0' and row[1] <= '9':
+				hspan = int(row[1])
+				row = row[2:]
+			elif row[0] == '/' and row[1] >= '0' and row[1] <= '9':
+				vspan = int(row[1])
+				row = row[2:]
+			else:
+				break
+
+		# find end
+		pref = ""
+		match = TABLE_SEP.search(row)
+		while match and match.group() == "==":
+			p = row.find("))", match.end())
+			if p < 0:
+				pref = pref + row[:match.end()]
+				row = row[match.end():]
+			else:
+				pref = pref + row[:p + 2]
+				row = row[p + 2:]
+			match = TABLE_SEP.search(row)
+		if match:
+			cell = pref + row[:match.start()]
+			row = row[match.start() + 1:]
+		else:
+			cell = pref + row
+			row = ''
+
+		# if needed create the node
+		if not row_node:
+			row_node = doc.Row(kind)
+			table.content.append(row_node)
+			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, table))
+
+		# dump object if required
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, doc.Cell(kind, doc.ALIGN_CENTER, hspan, vspan)))
+		tparser.handleText(man, cell)
+
 
 LINES = [
 	(new_par, re.compile("^$")),
@@ -304,7 +383,8 @@ LINES = [
 	(new_single_blockquote, re.compile("^bq\.(.*)")),
 	(new_list_item, re.compile("^([#\*]+)(.*)")),
 	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
-	(new_multi_def, re.compile("^;(.*)"))
+	(new_multi_def, re.compile("^;(.*)")),
+	(new_row, re.compile("^\|(.*)\|\s*"))
 ]
 
 def init(man):
