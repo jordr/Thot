@@ -72,8 +72,11 @@ VAR_REC = re.compile(VAR_RE)
 # alignment
 ALIGN_NONE = 0
 ALIGN_LEFT = 1
-ALIGN_CENTER = 2
+ALIGN_CENTER = 2	
 ALIGN_RIGHT = 3
+ALIGN_TOP = 4
+ALIGN_BOTTOM = 5
+ALIGN_VCENTER = 6	# vertical centered
 
 
 # standard styles
@@ -100,6 +103,18 @@ FOOTNOTE_DEF = "def"
 # standard lists
 LIST_ITEM = "ul"
 LIST_NUMBER = "ol"
+
+
+# external optional information
+#	Back-end are free or not the information attributes.
+INFO_CLASS = "thot:class"
+INFO_CSS = "thot:css"
+INFO_ALIGN = "thot:align"
+INFO_VALIGN = "thot:valign"
+INFO_ID = "thot:id"
+INFO_LANG = "thot:lang"
+INFO_LEFT_PAD = "thot:left_pad"
+INFO_RIGHT_PAD = "thot:right_pad"
 
 
 # supported events
@@ -223,9 +238,9 @@ class Node:
 	file = None
 	line = None
 	info = None
-
+	
 	def __init__(self):
-		self.info = { }
+		pass
 
 	def setFileLine(self, file, line):
 		if self.file == None:
@@ -234,10 +249,14 @@ class Node:
 
 	def setInfo(self, id, val):
 		"""Set an information value."""
+		if not self.info:
+			self.info = { }
 		self.info[id] = val
 	
 	def appendInfo(self, id, val):
 		"""Append the given value to identifier with identifier processed as a list."""
+		if not self.info:
+			return None
 		try:
 			self.info[id].append(val)
 		except KeyError:
@@ -246,6 +265,8 @@ class Node:
 	
 	def getInfo(self, id):
 		"""Get an information value. None if it not defined."""
+		if not self.info:
+			return None
 		try:
 			return self.info[id]
 		except KeyError:

@@ -17,11 +17,11 @@
 # Supported syntax
 #
 # Text Styling (TS)
-#	[ ]	(class)		style class
-#	[ ]	(#id)		identifier
-#	[ ]	(class#id)
-#	[ ]	{CSS}
-#	[ ]	[L]			language
+#	[x]	(class)		style class
+#	[x]	(#id)		identifier
+#	[x]	(class#id)
+#	[x]	{CSS}
+#	[x]	[L]			language
 #
 # Paragrah Styling (PS, includes TS)
 #	[ ]	<			align left
@@ -132,6 +132,40 @@ for k in SPEC_MAP.keys():
 	SPEC_RE = SPEC_RE + common.escape_re(k)
 
 
+TS_CLASS_DEF = "\(([^)#]*)?(#([^)]+))?\)"
+TS_LANG_DEF = "\[([^\]]+)\]"
+TS_CSS_DEF = "{([^}]+)}"
+TS_CLASS_RE = re.compile(TS_CLASS_DEF)
+TS_LANG_RE = re.compile(TS_LANG_DEF)
+TS_CSS_RE = re.compile(TS_CSS_DEF)
+
+def use_text_style(node, text):
+	"""Extract text style information from the match
+	and put them on the given node."""
+	while True:
+		match = TS_CLASS_RE.match(text)
+		if match:
+			v = match.group(1)
+			if v:
+				node.setInfo(doc.INFO_CLASS, v)
+			v = match.group(3)
+			if v:
+				node.setInfo(doc.INFO_ID, v[1:])
+			text = text[match.end():]
+			continue
+		match = TS_CSS_RE.match(text)
+		if match:
+			node.setInfo(doc.INFO_CSS, match.group(1))
+			text = text[match.end():]
+			continue
+		match = TS_LANG_RE.match(text)
+		if match:
+			node.setInfo(doc.INFO_LANG, match.group(1))
+			text = text[match.end():]
+			continue
+		return text
+
+
 class BlockQuote(doc.Par):
 
 	def __init__(self):
@@ -186,14 +220,11 @@ class MyDefEvent(doc.DefEvent):
 	
 
 def new_style(man, match, style, id):
-	man.send(doc.StyleEvent(style))
-	tparser.handleText(man, match.group(id), '')
-	man.send(doc.StyleEvent(style))
-
-def new_style(man, match, style, id):
+	text = match.group(id)
 	if style:
 		man.send(doc.StyleEvent(style))
-	tparser.handleText(man, match.group(id), '')
+		text = use_text_style(man.get(), text)
+	tparser.handleText(man, text, '')
 	if style:
 		man.send(doc.StyleEvent(style))
 
@@ -391,7 +422,6 @@ def new_footnote_def(man, match):
 	man.send(doc.CloseStyleEvent(doc.STYLE_FOOTNOTE))
 
 def new_footnote_multi(man, match):
-	print "multi-line note"
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
 		doc.FootNote(doc.FOOTNOTE_DEF, match.group(1))))
 	tparser.handleText(man, match.group(2))
