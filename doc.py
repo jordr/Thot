@@ -90,7 +90,12 @@ STYLE_BIGGER = "bigger"
 STYLE_SMALLER = "smaller"
 STYLE_CITE = "cite"
 STYLE_CODE = "code"
+STYLE_FOOTNOTE = "footnote"
 
+# standard footnote
+FOOTNOTE_EMBED = "embed"
+FOOTNOTE_REF = "ref"
+FOOTNOTE_DEF = "def"
 
 # standard lists
 LIST_ITEM = "ul"
@@ -333,8 +338,9 @@ class Container(Node):
 		self.content = []
 
 	def add(self, man, item):
-		self.content.append(item)
-		man.push(item)
+		if item:
+			self.content.append(item)
+			man.push(item)
 
 	def last(self):
 		return self.content[-1]
@@ -568,18 +574,34 @@ class OpenStyle(Container):
 
 
 class FootNote(OpenStyle):
+	"""A foot note. There a 3 kinds of note:
+	* FOOTNOTE_EMBEDDED -- the note content is embedded in the text and the number automatically generated.
+	* FOOTNOTE_REF -- only the note reference is given and the note content will be provide thereafter.
+	* FOOTNOTE_DEF -- provide the content of a foot note whose reference is given by FOOTNOTE_REF.
+	"""
+	kind = None
+	id = None		# footnote identifier as displayed to the user
+	ref = None		# footnote identifier as used in the links
 
-	def __init__(self):
+	def __init__(self, kind = FOOTNOTE_EMBED, ref = None, id = None):
 		OpenStyle.__init__(self, 'footnote')
+		self.kind = kind
+		if not id:
+			id = ref
+		self.ref = ref
+		self.id = id
 
 	def dumpHead(self, tab):
-		print '%sfootnote(' % tab
+		if self.kind == FOOTNOTE_EMBED:
+			print '%sfootnote(' % tab
+		else:
+			print '%sfootnote#%s(' % (tab, self.ref)
 
 	def isEmpty(self):
 		return False
 
 	def gen(self, gen):
-		gen.genFootNote(self.content)
+		gen.genFootNote(self)
 
 	def visit(self, visitor):
 		visitor.onFootNote(self)

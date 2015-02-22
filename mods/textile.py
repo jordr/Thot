@@ -82,10 +82,11 @@
 #	[x]	TaS?|TaS? ... |TaS? ... |		row
 #
 # Notes
-#	[ ]	[i]			foot note reference
-#	[ ]	fni. ...	foot note definition
-#	[ ]	[#R]		foot note reference
-#	[ ]	note#R. ...	foot note definition
+#	[x]	[i]			foot note reference
+#	[x]	fni. ...	foot note definition
+#	[x]	[#R]		foot note reference
+#	[x]	note#R. ...	foot note definition
+#	[x] fnxxx..		multi-line foot note
 #
 # Links
 #	[x]	"(CSS)?...(tooltip)?":U		link to URL U
@@ -229,6 +230,11 @@ def new_link(man, match, ltag, utag):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(label)))
 	man.send(doc.CloseEvent(doc.L_WORD, doc.ID_END_LINK, "link"))
 
+def new_footnote_ref(man, match, tag):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
+		doc.FootNote(doc.FOOTNOTE_REF, match.group(tag))))
+	man.send(doc.CloseStyleEvent(doc.STYLE_FOOTNOTE))
+
 	
 WORDS = [
 	(lambda man, match: new_style(man, match, doc.STYLE_BOLD, "t1"),
@@ -273,6 +279,10 @@ WORDS = [
 		'\[\'(?P<batext>[^\']*)\':(?P<baurl>%s)\]' % URL),
 	(lambda man, match: new_link(man, match, 'bstext', 'bsurl'),
 		'\[(?P<bstext>[^\']*)\](?P<bsurl>%s)' % URL),
+	(lambda man, match: new_footnote_ref(man, match, 'fnref'),
+		'\[(?P<fnref>[0-9]+)\]'),
+	(lambda man, match: new_footnote_ref(man, match, 'fndref'),
+		'\[#(?P<fndref>[^\]]+)\]'),
 ]
 
 def new_header(man, match):
@@ -374,6 +384,18 @@ def new_row(man, match):
 		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, doc.Cell(kind, doc.ALIGN_CENTER, hspan, vspan)))
 		tparser.handleText(man, cell)
 
+def new_footnote_def(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
+		doc.FootNote(doc.FOOTNOTE_DEF, match.group(1))))
+	tparser.handleText(man, match.group(2))
+	man.send(doc.CloseStyleEvent(doc.STYLE_FOOTNOTE))
+
+def new_footnote_multi(man, match):
+	print "multi-line note"
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
+		doc.FootNote(doc.FOOTNOTE_DEF, match.group(1))))
+	tparser.handleText(man, match.group(2))
+
 
 LINES = [
 	(new_par, re.compile("^$")),
@@ -384,7 +406,11 @@ LINES = [
 	(new_list_item, re.compile("^([#\*]+)(.*)")),
 	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
 	(new_multi_def, re.compile("^;(.*)")),
-	(new_row, re.compile("^\|(.*)\|\s*"))
+	(new_row, re.compile("^\|(.*)\|\s*")),
+	(new_footnote_multi, re.compile("fn([0-9]+)\.\.(.*)")),
+	(new_footnote_multi, re.compile("fn#([^.]+)\.\.(.*)")),
+	(new_footnote_def, re.compile("fn([0-9]+)\.(.*)")),
+	(new_footnote_def, re.compile("fn#([^.]+)\.(.*)"))
 ]
 
 def init(man):

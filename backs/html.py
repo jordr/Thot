@@ -411,9 +411,16 @@ class Generator(back.Generator):
 		return cpath
 
 	def genFootNote(self, note):
-		self.footnotes.append(note)
-		cnt = len(self.footnotes)
-		self.out.write('<a class="footnumber" href="#footnote-%d">%d</a>' % (cnt, cnt))
+		if note.kind <> doc.FOOTNOTE_REF:
+			self.footnotes.append(note)
+		if note.kind <> doc.FOOTNOTE_DEF:
+			if note.ref:
+				id = note.id
+				ref = "#footnote-custom-%s" % note.ref
+			else:
+				id = str(len(self.footnotes))
+				ref = "#footnote-%s" % id
+			self.out.write('<a class="footnumber" href="%s">%s</a>' % (ref, id))
 
 	def genFootNotes(self):
 		if not self.footnotes:
@@ -422,9 +429,15 @@ class Generator(back.Generator):
 		self.out.write('<div class="footnotes">\n')
 		for note in self.footnotes:
 			self.out.write('<p class="footnote">\n')
-			self.out.write('<a class="footnumber" name="footnote-%d">%d</a> ' % (num, num))
+			if note.ref:
+				id = note.id 
+				ref = "footnote-custom-%s" % note.ref
+			else:
+				id = str(num)
+				ref = "footnote-%d" % num
+			self.out.write('<a class="footnumber" name="%s">%s</a> ' % (ref, id))
 			num = num + 1
-			for item in note:
+			for item in note.content:
 				item.gen(self)
 			self.out.write('</p>\n')
 		self.out.write('</div>')
