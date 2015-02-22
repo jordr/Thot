@@ -458,6 +458,8 @@ class Generator(back.Generator):
 					self.out.write(' align="center"')
 				if cell.span <> 1:
 					self.out.write(' colspan="' + str(cell.span) + '"')
+				if cell.vspan <> 1:
+					self.out.write(' rowspan="' + str(cell.vspan) + '"')
 				self.out.write('>')
 				cell.gen(self)
 				if cell.kind == doc.TAB_HEADER:
