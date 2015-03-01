@@ -63,7 +63,7 @@
 #	[ ]	clear
 #	[ ] clear style
 #	[ ] dl style
-#	[ ] table style
+#	[x] table style
 #	[x] fn style
 #
 # Lists
@@ -84,8 +84,8 @@
 #	[x]	tablePS?.
 #	[x]	TaS?|TaS?_. ... |TaS?_. ... |	header
 #	[x]	TaS?|TaS? ... |TaS? ... |		row
-#	[ ] Style in row
-#	[ ] style in cell
+#	[x] Style in row
+#	[x] style in cell
 #
 # Notes
 #	[x]	[i]			foot note reference
@@ -427,30 +427,40 @@ def new_styled_table(man, match):
 
 TABLE_SEP = re.compile('\||==')
 def new_row(man, match):
+	
+	# build the row
 	table = doc.Table()
-	row_node = None
-	row = match.group(1)
+	row_kind = doc.TAB_HEADER
+	row_node = doc.Row(row_kind)
+	table.content.append(row_node)
+	use_par_style(row_node, match.group(1))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, table))
+
+	row = match.group("row")
 	while row:
-		kind = doc.TAB_NORMAL
-		hspan = 1
-		vspan = 1
 	
 		# scan the cell
+		cell_node = doc.Cell(doc.TAB_NORMAL)
 		while row:
+			kind = doc.TAB_NORMAL
 			if row[0] == '_':
+				cell_node.kind = doc.TAB_HEADER
 				kind = doc.TAB_HEADER
 				row = row[1:]
 				continue
-			elif len(row) < 2:
+			elif len(row) >= 2:
+				if row[0] == '\\' and row[1] >= '0' and row[1] <= '9':
+					cell_node.setInfo(doc.INFO_HSPAN, int(row[1]))
+					row = row[2:]
+					continue
+				elif row[0] == '/' and row[1] >= '0' and row[1] <= '9':
+					cell_node.setInfo(doc.INFO_VSPAN, int(row[1]))
+					row = row[2:]
+					continue
+			new_row = consume_par_style(cell_node, row)
+			if row == new_row:
 				break
-			elif row[0] == '\\' and row[1] >= '0' and row[1] <= '9':
-				hspan = int(row[1])
-				row = row[2:]
-			elif row[0] == '/' and row[1] >= '0' and row[1] <= '9':
-				vspan = int(row[1])
-				row = row[2:]
-			else:
-				break
+			row = new_row
 
 		# find end
 		pref = ""
@@ -471,15 +481,12 @@ def new_row(man, match):
 			cell = pref + row
 			row = ''
 
-		# if needed create the node
-		if not row_node:
-			row_node = doc.Row(kind)
-			table.content.append(row_node)
-			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, table))
-
 		# dump object if required
-		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, doc.Cell(kind, doc.ALIGN_CENTER, hspan, vspan)))
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, cell_node))
 		tparser.handleText(man, cell)
+		if cell_node.kind == doc.TAB_NORMAL:
+			row_node.kind = doc.TAB_NORMAL
+
 
 def new_footnote_def(man, match):
 	fn = doc.FootNote(doc.FOOTNOTE_DEF, match.group(1)) 
@@ -504,7 +511,7 @@ LINES = [
 	(new_list_item, re.compile("^" + PS_DEF + "(?P<dots>[#\*]+)(?P<text>.*)")),	
 	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
 	(new_multi_def, re.compile("^;(.*)")),
-	(new_row, re.compile("^\|(.*)\|\s*")),
+	(new_row, re.compile("^" + PS_DEF + "\|(?P<row>.*)\|\s*")),
 	(new_footnote_multi, re.compile("fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)")),
 	(new_footnote_multi, re.compile("fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)")),
 	(new_footnote_def, re.compile("fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)")),
