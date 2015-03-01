@@ -51,13 +51,11 @@
 #	[x]	@xxx@			inline code
 #
 # paragraphs
-#	[ ]	IPS?.		switch to paragraph I (p default)
-#	[ ]	IPS?..		multiline paragraph
 #	[x]	p (default)
 #	[x]	p style
 #	[x]	bq -- blockquote,
 #	[x] bq style
-#	[ ]	bc -- block of code, 
+#	[x]	bc -- block of code, 
 #	[x]	hi -- header level i,
 #	[x]	hi style
 #	[ ]	clear
@@ -501,6 +499,17 @@ def new_footnote_multi(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE, fn))
 	tparser.handleText(man, match.group("text"))
 
+def new_single_code(man, match):
+	block = highlight.CodeBlock(man, "")
+	block.add(match.group(1))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, block))
+
+END_CODE = re.compile("^p\.")
+def new_multi_code(man, match):
+	block = highlight.CodeBlock(man, "")
+	block.add(match.group(1))
+	tparser.BlockParser(man, block, END_CODE)
+
 
 LINES = [
 	(new_par, re.compile("^\s*$")),
@@ -512,11 +521,13 @@ LINES = [
 	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
 	(new_multi_def, re.compile("^;(.*)")),
 	(new_row, re.compile("^" + PS_DEF + "\|(?P<row>.*)\|\s*")),
-	(new_footnote_multi, re.compile("fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)")),
-	(new_footnote_multi, re.compile("fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)")),
-	(new_footnote_def, re.compile("fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)")),
-	(new_footnote_def, re.compile("fn#([^.]+)" + PS_DEF + "\.(?P<text>.*)")),
-	(new_styled_table, re.compile("table" + PS_DEF + "\.$"))
+	(new_footnote_multi, re.compile("^fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)")),
+	(new_footnote_multi, re.compile("^fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)")),
+	(new_footnote_def, re.compile("^fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)")),
+	(new_footnote_def, re.compile("^fn#([^.]+)" + PS_DEF + "\.(?P<text>.*)")),
+	(new_styled_table, re.compile("^table" + PS_DEF + "\.$")),
+	(new_multi_code, re.compile("^bc\.\.(.*)")),
+	(new_single_code, re.compile("^bc\.(.*)"))
 ]
 
 def init(man):
