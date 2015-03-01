@@ -107,16 +107,19 @@ LIST_NUMBER = "ol"
 
 # external optional information
 #	Back-end are free or not the information attributes.
-INFO_CLASS = "thot:class"
-INFO_CSS = "thot:css"
-INFO_ALIGN = "thot:align"
-INFO_VALIGN = "thot:valign"
-INFO_ID = "thot:id"
-INFO_LANG = "thot:lang"
-INFO_LEFT_PAD = "thot:left_pad"
-INFO_RIGHT_PAD = "thot:right_pad"
-INFO_HSPAN = "thot:hspan"
-INFO_VSPAN = "thit:vspan"
+INFO_CLASS = "thot:class"				# string (class in CSS)
+INFO_CSS = "thot:css"					# string (CSS code)
+INFO_ALIGN = "thot:align"				# one of ALIGN_LEFT, ALIGN_CENTER or ALIGN_RIGHT
+INFO_VALIGN = "thot:valign"				# one of ALIGN_TOP, ALIGN_CENTER or ALIGN_BOTTOM
+INFO_ID = "thot:id"						# string (id in XML format)
+INFO_LANG = "thot:lang"					# ISO 639-1 language code
+INFO_LEFT_PAD = "thot:left_pad"			# real (number of 1 em)
+INFO_RIGHT_PAD = "thot:right_pad"		# real (number of 1 em)
+INFO_HSPAN = "thot:hspan"				# integer (number of cells)
+INFO_VSPAN = "thot:vspan"				# integer (number of cells)
+INFO_PERCENT_SIZE = "thot:percent_size"	# real (percent)
+INFO_WIDTH = "thot:width"				# integer (pixels)
+INFO_HEIGHT = "thot:height"				# integer (pixels)
 
 
 # supported events
@@ -452,16 +455,18 @@ class Image(Node):
 	def __init__(self, path, width = None, height = None, caption = None):
 		Node.__init__(self)
 		self.path = path
-		self.width = width
-		self.height = height
 		self.caption = caption
+		if width:
+			self.setInfo(INFO_WIDTH, width)
+		if height:
+			self.setInfo(INFO_HEIGHT, height)
 
 	def dump(self, tab):
 		print "%simage(%s, %s, %s, %s)" % \
 			(tab, self.path, str(self.width), str(self.height), self.caption)
 
 	def gen(self, gen):
-		gen.genImage(self.path, self.width, self.height, self.caption, ALIGN_NONE, self)
+		gen.genImage(self.path, node = self, caption = self.caption)
 
 	def visit(self, visitor):
 		visitor.onImage(self)
@@ -474,19 +479,22 @@ class EmbeddedImage(Node):
 	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
 		Node.__init__(self)
 		self.path = path
-		self.width = width
-		self.height = height
 		if caption:
 			self.caption = Par()
 			self.caption.content.append(Word(caption))
-		self.align = align
+		if width:
+			self.setInfo(INFO_WIDTH, width)
+		if height:
+			self.setInfo(INFO_HEIGHT, height)
+		if align:
+			self.setInfo(INFO_ALIGN, align)
 
 	def dump(self, tab):
-		print "%sembedded-image(%s, %s, %s, %s)" % \
-			(tab, self.path, str(self.width), str(self.height), self.caption)
+		print "%sembedded-image(%s, %s)" % \
+			(tab, self.path, self.caption)
 
 	def gen(self, gen):
-		gen.genImage(self.path, self.width, self.height, self.caption, self.align, self)
+		gen.genImage(self.path, caption = self.caption, node = self)
 
 	def visit(self, visitor):
 		visitor.onEmbeddedImage(self)

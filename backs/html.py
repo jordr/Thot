@@ -553,15 +553,19 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
 
-	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE, node = None):
-		if align <> tdoc.ALIGN_NONE:
+	def genImage(self, url, caption = None, node = None):
+		assert node
+		align = node.getInfo(tdoc.INFO_ALIGN)
+		if align:
 			self.out.write("<div class=\"figure\">")
 		if align == tdoc.ALIGN_CENTER:
 			self.out.write('<center>')
 		new_url = self.loadFriendFile(url)
 		self.out.write('<img src="' + new_url + '"')
+		width = node.getInfo(tdoc.INFO_WIDTH)
 		if width <> None:
 			self.out.write(' width="' + str(width) + '"')
+		height = node.getInfo(tdoc.INFO_WIDTH)
 		if height <> None:
 			self.out.write(' height="' + str(height) + '"')
 		if caption <> None:
@@ -575,7 +579,7 @@ class Generator(back.Generator):
 			self.genLabel(node)
 		if align == tdoc.ALIGN_CENTER:
 			self.out.write('</center>')
-		if align <> tdoc.ALIGN_NONE:
+		if align:
 			self.out.write("</div>")
 
 	def genGlyph(self, code):
