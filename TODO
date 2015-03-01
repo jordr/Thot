@@ -4,6 +4,9 @@
 
   [x] Add option ''-u''/''--use'' //module// -- to select externaly a module (like a front-end).
   [ ] Add more standard paragraph types (like blockquote, file, verse, etc).
+  [ ] Add inclusion from shell with syntax like @{command line}.
+  [ ] Proposes alternatives to ''highlight''.
+
 
 ===== Front-Ends =====
 
@@ -22,8 +25,6 @@
 
 
 ===== Modules =====
-
-  [ ] Proposes alternatives to ''highlight''.
 
 ==== SCORM ===
 

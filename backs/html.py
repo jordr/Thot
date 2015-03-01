@@ -463,16 +463,19 @@ class Generator(back.Generator):
 					self.out.write('<th')
 				else:
 					self.out.write('<td')
-				if cell.align == doc.TAB_LEFT:
+				align = cell.getInfo(doc.INFO_ALIGN)
+				if not align or align == doc.TAB_LEFT:
 					pass
-				elif cell.align == doc.TAB_RIGHT:
+				elif align == doc.TAB_RIGHT:
 					self.out.write(' align="right"')
 				else:
 					self.out.write(' align="center"')
-				if cell.span <> 1:
-					self.out.write(' colspan="' + str(cell.span) + '"')
-				if cell.vspan <> 1:
-					self.out.write(' rowspan="' + str(cell.vspan) + '"')
+				hspan = cell.getInfo(doc.INFO_HSPAN)
+				if hspan:
+					self.out.write(' colspan="' + str(hspan) + '"')
+				vspan = cell.getInfo(doc.INFO_VSPAN)
+				if vspan:
+					self.out.write(' rowspan="' + str(vspan) + '"')
 				self.out.write('>')
 				cell.gen(self)
 				if cell.kind == doc.TAB_HEADER:

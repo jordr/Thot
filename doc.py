@@ -115,6 +115,8 @@ INFO_ID = "thot:id"
 INFO_LANG = "thot:lang"
 INFO_LEFT_PAD = "thot:left_pad"
 INFO_RIGHT_PAD = "thot:right_pad"
+INFO_HSPAN = "thot:hspan"
+INFO_VSPAN = "thit:vspan"
 
 
 # supported events
@@ -262,15 +264,14 @@ class Node:
 		except KeyError:
 			self.info[id] = [ val ]
 			
-	
-	def getInfo(self, id):
+	def getInfo(self, id, dflt = None):
 		"""Get an information value. None if it not defined."""
 		if not self.info:
 			return None
 		try:
 			return self.info[id]
 		except KeyError:
-			return None
+			return dflt
 
 	def onError(self, msg):
 		"""Called to display an error."""
@@ -909,16 +910,16 @@ TABLE_ALIGNS = [ 'left', 'center', 'right' ]
 
 class Cell(Par):
 	kind = None
-	align = None
-	span = None
-	vspan = None
 
-	def __init__(self, kind, align = TAB_CENTER, span = 1, vspan = 1):
+	def __init__(self, kind, align = None, span = None, vspan = None):
 		Par.__init__(self)
 		self.kind = kind
-		self.align = align
-		self.span = span
-		self.vspan = vspan
+		if align:
+			self.setInfo(INFO_ALIGN, align)
+		if span:
+			self.setInfo(INFO_HSPAN, span)
+		if vspan:
+			self.setInfo(INFO_VSPAN, vspan)
 
 	def isEmpty(self):
 		return False

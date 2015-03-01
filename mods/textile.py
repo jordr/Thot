@@ -54,13 +54,17 @@
 #	[ ]	IPS?.		switch to paragraph I (p default)
 #	[ ]	IPS?..		multiline paragraph
 #	[x]	p (default)
+#	[x]	p style
 #	[x]	bq -- blockquote,
+#	[x] bq style
 #	[ ]	bc -- block of code, 
-#	[x]	hi -- header level i, 
+#	[x]	hi -- header level i,
+#	[x]	hi style
 #	[ ]	clear
-#	[ ]	dl
-#	[ ]	table -- table definition
-#	[ ]	fn
+#	[ ] clear style
+#	[ ] dl style
+#	[ ] table style
+#	[x] fn style
 #
 # Lists
 #	[x]	PS?*+		bulleted list
@@ -73,13 +77,15 @@
 #
 # Tables
 #	table style (TaS) includes
-#	[ ] PS
 #	[x] _	header
 #	[x] \i	column span
 #	[x] /i	row span
-#	[ ]	tablePS?.
+#
+#	[x]	tablePS?.
 #	[x]	TaS?|TaS?_. ... |TaS?_. ... |	header
 #	[x]	TaS?|TaS? ... |TaS? ... |		row
+#	[ ] Style in row
+#	[ ] style in cell
 #
 # Notes
 #	[x]	[i]			foot note reference
@@ -142,9 +148,9 @@ PS_ALIGN_DEF = "<>|<|>|=|-|\^|~|\(+|\)+"
 PS_ALIGN_RE = re.compile(PS_ALIGN_DEF)
 PS_DEF = "((%s|%s|%s|%s)*)" % (TS_CLASS_DEF, TS_LANG_DEF, TS_CSS_DEF, PS_ALIGN_DEF)
 
-def use_text_style(node, text):
-	"""Extract text style information from the match
-	and put them on the given node."""
+def consume_text_style(node, text):
+	"""Extract text style information from the beginning of the text
+	and put them in node. Return remaining text."""
 	while True:
 		match = TS_CLASS_RE.match(text)
 		if match:
@@ -168,6 +174,16 @@ def use_text_style(node, text):
 			continue
 		return text
 
+def use_text_style(node, text):
+	"""Consume the whole text into text style.
+	Return remaining text."""
+	new_text = text
+	text = ""
+	while text <> new_text:
+		text = new_text
+		new_text = consume_text_style(node, text)
+	return new_text
+
 ALIGN_MAP = {
 	'<':	(doc.INFO_ALIGN, doc.ALIGN_LEFT),
 	'>':	(doc.INFO_ALIGN, doc.ALIGN_RIGHT),
@@ -177,22 +193,32 @@ ALIGN_MAP = {
 	'^':	(doc.INFO_VALIGN, doc.ALIGN_TOP),
 	'~':	(doc.INFO_VALIGN, doc.ALIGN_BOTTOM)
 }
-def use_par_style(node, text):
-	while text:
-		match = PS_ALIGN_RE.match(text)
-		if match:
-			m = match.group()
-			if m[0] == '(':
-				node.setInfo(doc.INFO_LEFT_PAD, len(m))
-			elif m[0] == ')':
-				node.setInfo(doc.INFO_LEFT_PAD, len(m))
-			else:
-				info, val = ALIGN_MAP[m]
-				node.setInfo(info, val) 
-			text = text[match.end():]
+def consume_par_style(node, text):
+	"""Consume paragraph style prefixing the given text (and put it on the given node).
+	Return remaining text."""
+	match = PS_ALIGN_RE.match(text)
+	if match:
+		m = match.group()
+		if m[0] == '(':
+			node.setInfo(doc.INFO_LEFT_PAD, len(m))
+		elif m[0] == ')':
+			node.setInfo(doc.INFO_LEFT_PAD, len(m))
 		else:
-			text = use_text_style(node, text)
+			info, val = ALIGN_MAP[m]
+			node.setInfo(info, val) 
+		return text[match.end():]
+	else:
+		return use_text_style(node, text)
 
+def use_par_style(node, text):
+	"""Consume the whole text and put matching style information to the node."""
+	new_text = text
+	text = ""
+	while text <> new_text:
+		text = new_text
+		new_text = consume_par_style(node, text)
+	return new_text
+		
 
 class BlockQuote(doc.Par):
 
@@ -346,8 +372,10 @@ WORDS = [
 
 def new_header(man, match):
 	level = int(match.group(1))
-	title = match.group(2)
-	man.send(doc.ObjectEvent(doc.L_HEAD, doc.ID_NEW, doc.Header(level)))
+	header = doc.Header(level)
+	use_par_style(header, match.group(2))
+	title = match.group("text")
+	man.send(doc.ObjectEvent(doc.L_HEAD, doc.ID_NEW, header))
 	tparser.handleText(man, title)
 	man.send(doc.Event(doc.L_HEAD, doc.ID_TITLE))
 
@@ -360,23 +388,27 @@ def new_par_ext(man, match):
 	tparser.handleText(man, match.group('text'))
 
 def new_single_blockquote(man, match):
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, BlockQuote()))
-	tparser.handleText(man, match.group(1))
+	bq = BlockQuote()
+	use_par_style(bq, match.group(1))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, bq))
+	tparser.handleText(man, match.group("text"))
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, doc.Par()))
 
 def new_multi_blockquote(man, match):
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, BlockQuote()))
-	tparser.handleText(man, match.group(1))
+	bq = BlockQuote()
+	use_par_style(bq, match.group(1))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, bq))
+	tparser.handleText(man, match.group("text"))
 
 def new_list_item(man, match):
-	pref = match.group(1)
+	pref = match.group("dots")
 	if pref[-1] == '*':
 		kind = doc.LIST_ITEM
 	elif pref[-1] == '#':
 		kind = doc.LIST_NUMBER
 	depth = len(pref)
 	man.send(doc.ItemEvent(kind, depth))
-	tparser.handleText(man, match.group(2))
+	tparser.handleText(man, match.group("text"))
 
 def new_definition(man, match):
 	man.send(doc.DefEvent(doc.ID_NEW_DEF, 0))
@@ -387,6 +419,11 @@ def new_definition(man, match):
 def new_multi_def(man, match):
 	man.send(MyDefEvent(doc.ID_NEW_DEF, 1))
 	tparser.handleText(man, match.group(1), '')
+
+def new_styled_table(man, match):
+	table = doc.Table()
+	use_par_style(table, match.group(1))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_ROW, table))
 
 TABLE_SEP = re.compile('\||==')
 def new_row(man, match):
@@ -445,31 +482,34 @@ def new_row(man, match):
 		tparser.handleText(man, cell)
 
 def new_footnote_def(man, match):
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
-		doc.FootNote(doc.FOOTNOTE_DEF, match.group(1))))
-	tparser.handleText(man, match.group(2))
+	fn = doc.FootNote(doc.FOOTNOTE_DEF, match.group(1)) 
+	use_par_style(fn, match.group(2))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE, fn))
+	tparser.handleText(man, match.group("text"))
 	man.send(doc.CloseStyleEvent(doc.STYLE_FOOTNOTE))
 
 def new_footnote_multi(man, match):
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE,
-		doc.FootNote(doc.FOOTNOTE_DEF, match.group(1))))
-	tparser.handleText(man, match.group(2))
+	fn = doc.FootNote(doc.FOOTNOTE_DEF, match.group(1)) 
+	use_par_style(fn, match.group(2))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_STYLE, fn))
+	tparser.handleText(man, match.group("text"))
 
 
 LINES = [
 	(new_par, re.compile("^\s*$")),
-	(new_header, re.compile("^h([1-6])\.(.*)")),
+	(new_header, re.compile("^h([1-6])" + PS_DEF + "\.(?P<text>.*)")),
 	(new_par_ext, re.compile("^p" + PS_DEF + "\.(?P<text>.*)")),
-	(new_multi_blockquote, re.compile("^bq\.\.(.*)")),
-	(new_single_blockquote, re.compile("^bq\.(.*)")),
-	(new_list_item, re.compile("^([#\*]+)(.*)")),
+	(new_multi_blockquote, re.compile("^bq" + PS_DEF + "\.\.(?P<text>.*)")),
+	(new_single_blockquote, re.compile("^bq" + PS_DEF + "\.(?P<text>.*)")),
+	(new_list_item, re.compile("^" + PS_DEF + "(?P<dots>[#\*]+)(?P<text>.*)")),	
 	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
 	(new_multi_def, re.compile("^;(.*)")),
 	(new_row, re.compile("^\|(.*)\|\s*")),
-	(new_footnote_multi, re.compile("fn([0-9]+)\.\.(.*)")),
-	(new_footnote_multi, re.compile("fn#([^.]+)\.\.(.*)")),
-	(new_footnote_def, re.compile("fn([0-9]+)\.(.*)")),
-	(new_footnote_def, re.compile("fn#([^.]+)\.(.*)"))
+	(new_footnote_multi, re.compile("fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)")),
+	(new_footnote_multi, re.compile("fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)")),
+	(new_footnote_def, re.compile("fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)")),
+	(new_footnote_def, re.compile("fn#([^.]+)" + PS_DEF + "\.(?P<text>.*)")),
+	(new_styled_table, re.compile("table" + PS_DEF + "\.$"))
 ]
 
 def init(man):
