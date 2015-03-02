@@ -14,6 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# References
+#	http://txstyle.org/ (our reference)
+#	http://redcloth.org/textile/
+#
 # Supported syntax
 #
 # Text Styling (TS)
@@ -59,19 +63,22 @@
 #	[x]	hi -- header level i,
 #	[x]	hi style
 #	[ ]	clear
-#	[ ] clear style
 #	[ ] dl style
 #	[x] table style
 #	[x] fn style
 #
 # Lists
-#	[x]	PS?*+		bulleted list
-#	[x]	PS?#+		numbered list
+#	[x]	*+			bulleted list
+#	[ ] PS?*+
+#	[x]	#+			numbered list
+#	[ ]	PS?#+
 #	[ ]	PS?#n		numbered list starting at n (HTML OL.START deprecated?)
 #	[ ]	PS?#_		continued list (HTML OL.START deprecated; does it mean junction with previous list ?)
 #	[x]	PS?(+|#)*	melted list
-#	[x]	PS?; TERM \n; DEFINITION	definition list
-#	[x]	PS?- TERM := DEFINITION	definition list
+#	[x]	; TERM \n; DEFINITION	definition list
+#	[ ] PS? ; TERM \n; DEFINITION	definition list
+#	[x]	- TERM := DEFINITION	definition list
+#	[ ] PS?- TERM := DEFINITION	definition list
 #
 # Tables
 #	table style (TaS) includes
@@ -93,18 +100,22 @@
 #	[x] fnxxx..		multi-line foot note
 #
 # Links
-#	[x]	"(CSS)?...(tooltip)?":U		link to URL U
-#	[x]	'(CSS)?...(tooltip)?':U		link to URL U
-#	[x]	["(CSS)?...(tooltip)?":U]	link to URL U
+#	[x]	"...":U						link to URL U
+#	[x]	'...':U						link to URL U
+#	[x]	[...:U]						link to URL U
 #	[x]	[...]U						alternate form
-#	[ ]	"(CSS)? ... (tooltip)?" in text
+#	[x]	"(class)? ... (tooltip)?" 	in text
+#	[ ] "...":id					link alias
+#	[ ] [id]U						alias declaration
 #
 # Images
-#	[x]	!PS?U!			Image whose URL is U.
-#	[x]	!PS?U WxH!		Image with dimension (support percents / initial width, height).
-#	[x]	!PS?U Ww Hh!	Image with dimension.
-#	[ ]	!PS?U n%!		Percentage on w and h.
-#	[x]	!PS?U (...)!	Alternate text.
+#	[x]	!U!			Image whose URL is U.
+#	[x]	!U WxH!		Image with dimension (support percents / initial width, height).
+#	[x]	!U Ww Hh!	Image with dimension.
+#	[x]	!U n%!		Percentage on w and h.
+#	[x]	!U(...)!	Alternate text.
+#	[x] !TS?U ...!	Image with styling.
+#	[x] !...!:U		Link on image.
 #
 # Meta-characters
 #	[x]	(c), (r), (tm), {c|}, {|c} cent, {L-}, {-L} pound,
@@ -283,22 +294,59 @@ def new_style(man, match, style, id):
 def new_escape(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('esc'))))
 
+WXH_RE = re.compile("\s+([0-9]+)\s*[xX]\s*([0-9]+)\s*$")
+WH_RE = re.compile("\s+([0-9]+)w\s+([0-9]+)h\s*$")
+PERCENT_RE = re.compile("\s+([0-9]+)%\s*$")
 def new_image(man, match):
+	tmatch = match
 	image = match.group('image')
-	w = None
-	h = None
+	
+	# alt pealing
 	alt = None
-	if match.group('wxh'):
-		l = match.group('wxh').lower().split('x')
-		w = int(l[0])
-		h = int(l[1])
-	elif match.group('w'):
-		w = int(match.group('w'))
-		h = int(match.group('h'))
-	if match.group('alt'):
-		alt = match.group('alt')[1:-1]
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW,
-		doc.EmbeddedImage(image, w, h, alt, None)))
+	if image[-1] == ')':
+		i = image.rfind('(')
+		if i >= 0:
+			alt = image[i + 1:-1]
+			image = image[:i]
+	
+	# style pealing
+	info = doc.Info()
+	image = use_par_style(info, image)
+	
+	# dimension pealing
+	match = WXH_RE.search(image)
+	if match:
+		info.setInfo(doc.INFO_WIDTH, int(match.group(1)))
+		info.setInfo(doc.INFO_HEIGHT, int(match.group(2)))
+		image = image[:match.start()]
+	else:
+		match = WH_RE.search(image)
+		if match:
+			info.setInfo(doc.INFO_WIDTH, int(match.group(1)))
+			info.setInfo(doc.INFO_HEIGHT, int(match.group(2)))
+			image = image[:match.start()]
+		else:
+			match = PERCENT_RE.search(image)
+			if match:
+				info.setInfo(doc.INFO_PERCENT_SIZE, int(match.group(1)))
+				image = image[:match.start()]
+
+	# beginning link if any
+	link = tmatch.group('iurl')
+	if link:
+		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_LINK, doc.Link(link)))
+	
+	# build the image	
+	if info.getInfo(doc.INFO_ALIGN):
+		node = doc.Image(image, None, None, alt)
+	else:
+		node = doc.EmbeddedImage(image, None, None, alt)
+	node.mergeInfo(info)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, node))
+	
+	# end link
+	if link:
+		man.send(doc.CloseEvent(doc.L_WORD, doc.ID_END_LINK, "link"))
 
 def new_spec(man, match):
 	glyph = doc.Glyph(SPEC_MAP[match.group(0)])
@@ -307,9 +355,26 @@ def new_spec(man, match):
 def new_link(man, match, ltag, utag):
 	target = match.group(utag)
 	label = match.group(ltag)
+	link = doc.Link(target)
+	
+	# peal label
+	if label and label[0] == '(':
+		i = label.find(')')
+		if i >= 0:
+			link.setInfo(doc.INFO_CLASS, label[1:i])
+		label = label[i + 1:]
+	tooltip = None
+	if label and label[-1] == ')':
+		i = label.rfind('(')
+		if i >= 0:
+			tooltip = label[i + 1:-1]
+			label = label[:i]
+
+	# build the link
+	# tooltip are ignored now: what to do with this?
 	if not label:
 		label = target
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_LINK, doc.Link(target)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW_LINK, link))
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(label)))
 	man.send(doc.CloseEvent(doc.L_WORD, doc.ID_END_LINK, "link"))
 
@@ -349,7 +414,7 @@ WORDS = [
 	(new_escape,
 		'==(?P<esc>\S([^=]|=[^=])*\S)=='),
 	(new_image,
-		'!(?P<image>[^!\s(]*)(\s+((?P<wxh>[0-9]+[xX][0-9]+)|((?P<w>[0-9]+)w\s+(?P<h>[0-9]+)h)))?(?P<alt>\([^)]*\))?!'),
+		'!(?P<image>[^!]+)!(:(?P<iurl>\S+))?'),
 	(new_spec,
 		SPEC_RE),
 	(lambda man, match: new_link(man, match, 'qtext', 'qurl'),

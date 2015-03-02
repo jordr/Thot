@@ -237,20 +237,8 @@ class QuoteEvent(Event):
 		return Quote(self.depth)
 
 
-# nodes
-class Node:
-	"""Base definition of document nodes."""
-	file = None
-	line = None
+class Info:
 	info = None
-	
-	def __init__(self):
-		pass
-
-	def setFileLine(self, file, line):
-		if self.file == None:
-			self.file = file
-			self.line = line
 
 	def setInfo(self, id, val):
 		"""Set an information value."""
@@ -275,6 +263,27 @@ class Node:
 			return self.info[id]
 		except KeyError:
 			return dflt
+
+	def mergeInfo(self, info):
+		"""Merge the given information with the current one."""
+		if info.info:
+			for k in info.info.keys():
+				self.setInfo(k, info.info[k])
+
+
+# nodes
+class Node(Info):
+	"""Base definition of document nodes."""
+	file = None
+	line = None
+	
+	def __init__(self):
+		pass
+
+	def setFileLine(self, file, line):
+		if self.file == None:
+			self.file = file
+			self.line = line
 
 	def onError(self, msg):
 		"""Called to display an error."""
