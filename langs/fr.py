@@ -19,13 +19,14 @@ import i18n
 import doc
 
 DICT = {
-	i18n.ID_CONTENT : "Sommaire"
-}
-
-CAPTIONS = {
-	doc.ID_NUM_TABLE:	"Tableau %s: ",
-	doc.ID_NUM_FIGURE:	"Figure %s: ",
-	doc.ID_NUM_FIGURE:	"Listing %s: "
+	i18n.ID_CONTENT 		: "Sommaire"
+	i18n.CAPTION_TABLE		: "Tableau %s: ",
+	i18n.CAPTION_FIGURE		: "Figure %s: ",
+	i18n.CAPTION_LISTING	: "Listing %s: ",
+	i18n.GLYPH_OPEN_DQUOTE	: u"\u00AB",
+	i18n.GLYPH_CLOSE_DQUOTE	: u"\u00BB",
+	i18n.GLYPH_OPEN_SQUOTE	: "'",
+	i18n.GLYPH_CLOSE_SQUOTE	: "'"
 }
 
 class FrTranslator(i18n.DictTranslator):

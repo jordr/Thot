@@ -52,7 +52,9 @@
 #	[x]	??xxx??		citation
 #	[x]	^xxx^		supersript
 #	[x]	==xxx==		escaping (multi-line)
-#	[x]	@xxx@			inline code
+#	[ ] <notextile>...</notextile> (same as above)
+#	[x]	@xxx@		inline code
+#	[ ]	[S S]		notation
 #
 # paragraphs
 #	[x]	p (default)
@@ -66,6 +68,9 @@
 #	[ ] dl style
 #	[x] table style
 #	[x] fn style
+#	[ ] pre..?			preformatted
+#	[ ]	###..?			comments
+#	[ ] notextile..?	verbatim
 #
 # Lists
 #	[x]	*+			bulleted list
@@ -85,6 +90,7 @@
 #	[x] _	header
 #	[x] \i	column span
 #	[x] /i	row span
+#	[ ] |^.\n|_.\n|-.	support for header row
 #
 #	[x]	tablePS?.
 #	[x]	TaS?|TaS?_. ... |TaS?_. ... |	header
@@ -92,12 +98,24 @@
 #	[x] Style in row
 #	[x] style in cell
 #
-# Notes
+# Numbered Footnotes
 #	[x]	[i]			foot note reference
+#	[ ] [i!]		no link creation
+#	[ ] [(class)i]	class
 #	[x]	fni. ...	foot note definition
-#	[x]	[#R]		foot note reference
-#	[x]	note#R. ...	foot note definition
+#	[ ]	fni^. ...	with back link
 #	[x] fnxxx..		multi-line foot note
+#
+# Automatic Footnotes
+#	[x]	[#R]		foot note reference
+#	[ ] note#id..?	automatic footnote
+#	[ ] note#id!.	no back link
+#	[ ] note#id^.	backlink on first
+#	[ ] note#id*.	backlink on all
+#	[ ] notelist.	referenced notes with backling to all citations.
+#	[ ]	notelist+.	+ unreferenced
+#	[ ] notelist^.	backlink to first citation
+#	[ ] notelist!.	without backlink
 #
 # Links
 #	[x]	"...":U						link to URL U
@@ -120,25 +138,44 @@
 # Meta-characters
 #	[x]	(c), (r), (tm), {c|}, {|c} cent, {L-}, {-L} pound,
 #		{Y=}, {=Y} yen 
+#	[x]	...		ellipsis
+#	[x]	&#D+;	unicode escape
+#	[x] --		long dash
+#	[x] "..."	converted to language
+#	[x] '...'	converted to language
+#	[x] N x N	converted to multiply
+#	[x]	1/3, 1/2, 3/4 (o) (+/-)
+#
+# Acronym (very interesting concept)
+#	[ ]	UC+(text)	acronym on selection
+#
 
 import tparser
 import doc
 import re
 import highlight
 import common
+import i18n
 
 URL='[a-z]+:[a-zA-Z0-9_/?*@;%+.\-&#]+'
 
 SPEC_MAP = {
-	'(c)' : 0x00a9,
-	'(r)' : 0x00ae,
-	'(tm)': 0x2122,
-	'{c|}': 0x00a2,
-	'{|c}': 0x00a2,
-	'{L-}': 0x00a3,
-	'{-L}': 0x00a3,
-	'{Y=}': 0x00a5,
-	'{=Y}': 0x00a5
+	'(c)' 		: 0x00a9,
+	'(r)' 		: 0x00ae,
+	'(tm)'		: 0x2122,
+	'{c|}'		: 0x00a2,
+	'{|c}'		: 0x00a2,
+	'{L-}'		: 0x00a3,
+	'{-L}'		: 0x00a3,
+	'{Y=}'		: 0x00a5,
+	'{=Y}'		: 0x00a5,
+	'1/3'		: 0x2153,
+	'1/2'		: 0x00bd,
+	'3/4'		: 0x00be,
+	'(o)'		: 0x00b0,
+	'(\+/-)'	: 0x00b1,
+	'\.\.\.'	: 0x2026,
+	'--'		: 0x2014
 }
 SPEC_RE = ""
 for k in SPEC_MAP.keys():
@@ -383,6 +420,31 @@ def new_footnote_ref(man, match, tag):
 		doc.FootNote(doc.FOOTNOTE_REF, match.group(tag))))
 	man.send(doc.CloseStyleEvent(doc.STYLE_FOOTNOTE))
 
+def new_glyph(man, match):
+	code = int(match.group('gcode'))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Glyph(code)))
+
+def new_size(man, match):
+	w = match.group('sw')
+	h = match.group('sh')
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(w)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Glyph(0x2A09)))
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(h)))
+
+def new_dquote(man, match):
+	text = match.group("dqtext")
+	t = i18n.getTranslator(man.doc)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(t.get(i18n.GLYPH_OPEN_DQUOTE))))
+	tparser.handleText(man, text, '')	
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(t.get(i18n.GLYPH_CLOSE_DQUOTE))))
+
+def new_squote(man, match):
+	text = match.group("sqtext")
+	t = i18n.getTranslator(man.doc)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(t.get(i18n.GLYPH_OPEN_SQUOTE))))
+	tparser.handleText(man, text, '')	
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(t.get(i18n.GLYPH_CLOSE_SQUOTE))))
+	
 	
 WORDS = [
 	(lambda man, match: new_style(man, match, doc.STYLE_BOLD, "t1"),
@@ -431,6 +493,10 @@ WORDS = [
 		'\[(?P<fnref>[0-9]+)\]'),
 	(lambda man, match: new_footnote_ref(man, match, 'fndref'),
 		'\[#(?P<fndref>[^\]]+)\]'),
+	(new_glyph, "&#(?P<gcode>[0-9]+);"),
+	(new_size, "(?P<sw>[0-9.]+)\s*[xX]\s*(?P<sh>[0-9.]+)"),
+	(new_dquote, "\"(?P<dqtext>[^\"]+)\""),
+	(new_squote, "\'(?P<sqtext>[^\']+)\'")
 ]
 
 def new_header(man, match):

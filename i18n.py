@@ -22,27 +22,37 @@ import common
 
 ID_CONTENT = "Content"
 
-CAPTIONS = {
-	"table": "Table %s: ",
-	"figure": "Figure %s: ",
-	"listing": "Listing %s: "
+GLYPH_OPEN_DQUOTE = "$open-dquote"
+GLYPH_CLOSE_DQUOTE = "$close-dquote"
+GLYPH_OPEN_SQUOTE = "$open-squote"
+GLYPH_CLOSE_SQUOTE = "$close-squote"
+
+CAPTION_TABLE = "table"
+CAPTION_FIGURE = "figure"
+CAPTION_LISTING = "listing"
+
+ALL = {
+	ID_CONTENT			: "Content",
+	CAPTION_TABLE		: "Table %s: ",
+	CAPTION_FIGURE		: "Figure %s: ",
+	CAPTION_LISTING		: "Listing %s: ",
+	GLYPH_OPEN_DQUOTE	: u'\u201c',
+	GLYPH_CLOSE_DQUOTE	: u'\u201d',
+	GLYPH_OPEN_SQUOTE	: u'\u2018',
+	GLYPH_CLOSE_SQUOTE	: u'\u2019'
 }
 
-class DefaultTranslator:
-	"""A translator that do nothing."""
+class Translator:
+	"""Class providing translation to generate document
+	according to a selected language."""
 	
 	def get(self, text):
-		return text
+		"""Get translation for the given text that may be one
+		of GLYPH_xxx or CAPTION_xxx."""
+		return ""
+		
 
-	def caption(sself, numbering, number):
-		"""Generate a caption number."""
-		if CAPTIONS.has_key(numbering):
-			return CAPTIONS[numbering] % number
-		else:
-			return "%s %s: " % (numbering, number)
-
-
-class DictTranslator:
+class DictTranslator(Translator):
 	"""A translator based on a dictionary."""
 	dict = None
 	
@@ -54,6 +64,13 @@ class DictTranslator:
 			return self.dict[text]
 		else:
 			sys.stderr.write("WARNING: no translation for '" + text + "'")
+
+
+class DefaultTranslator(DictTranslator):
+	"""A translator for english."""
+	
+	def __init__(self):
+		DictTranslator.__init__(self, ALL)
 
 
 def getTranslator(doc):

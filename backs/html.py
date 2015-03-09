@@ -66,6 +66,22 @@ STYLES = {
 	doc.STYLE_CODE:			('<code>', '</code>')
 }
 
+ESCAPE_MAP = {
+	'<'	: "&lt;",	
+	'>'	: "&gt;",
+	'&'	: "amp,"
+}
+def escape(s):
+	r = ""
+	for c in s:
+		if ord(c) >= 128:
+			r = r + ("&#%d;" % ord(c))
+		elif ESCAPE_MAP.has_key(c):
+			r = r + ESCAPE_MAP[c]
+		else:
+			r = r + c
+	return r
+
 
 def getStyle(style):
 	if STYLES.has_key(style):
@@ -495,7 +511,7 @@ class Generator(back.Generator):
 		self.out.write(line)
 
 	def genText(self, text):
-		self.out.write(cgi.escape(text))
+		self.out.write(escape(text))
 
 	def genParBegin(self):
 		self.out.write('<p>\n')
