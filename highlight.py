@@ -242,6 +242,24 @@ class Feature(doc.Feature):
 		command = getCommand()
 		if not command:
 			return
+			
+		# parse list of languages
+		try:
+			global LANGS
+			ans = subprocess.check_output("%s -p" % command, shell = True)
+			LANGS = []
+			for line in ans.split("\n"):
+				try:
+					p = line.index(":")
+					if p >= 0:
+						line = line[p+1:]
+						for w in line.split():
+							if w != '(' and w != ')':
+								LANGS.append(w)
+				except ValueError, e:
+					pass
+		except subprocess.CalledProcessError,e :
+			common.onWarning("cannot get supported languages from %s, falling back to default list." % command)
 		
 		# build the CSS file
 		if type in CSS_BACKS:

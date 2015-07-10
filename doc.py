@@ -192,7 +192,7 @@ class CloseEvent(TypedEvent):
 		TypedEvent.__init__(self, level, id, type)
 
 	def make(self):
-		raise Exception(self.type + " closed but not opened !")
+		raise common.ParseException(self.type + " closed but not opened !")
 
 
 class CloseStyleEvent(CloseEvent):

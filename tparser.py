@@ -208,7 +208,7 @@ class Manager:
 			self.send(doc.Event(doc.L_DOC, doc.ID_END))
 			self.doc.clean()
 		except common.ParseException, e:
-			common.onError(self.message(str(e)))
+			common.onError(self.message(e))
 
 	def message(self, msg):
 		"""Generate a message prefixed with error line and file."""

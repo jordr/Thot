@@ -62,7 +62,7 @@ class CommandException(ThotException):
 
 
 def onParseError(msg):
-	raise BackException(msg)
+	raise ParseException(msg)
 
 
 def onError(text):
