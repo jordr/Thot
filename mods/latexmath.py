@@ -68,7 +68,7 @@ class LatexMath(doc.Word):
 					MIMETEX_AVAILABLE = False
 					self.onWarning("mimetex is not available: no latexmath !")
 			if rpath:
-				gen.genImage(rpath)
+				gen.genImage(rpath, None, self)
 
 
 def handleMath(man, match):

@@ -366,7 +366,8 @@ def handleRow(man, match):
 
 		# dump object if required
 		if cell == '' and object:
-			object.span += 1
+			#object.span += 1
+			object.setInfo(doc.INFO_HSPAN, object.getInfo(doc.INFO_HSPAN, 0) + 1)
 			continue
 		if object:
 			man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW_CELL, object))

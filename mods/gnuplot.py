@@ -75,7 +75,7 @@ class GnuPlotBlock(doc.Block):
 				sys.stderr.write(err)
 				self.onError('error during gnuplot call')
 			gen.genEmbeddedBegin(self)
-			gen.genImage(gen.getFriendRelativePath(path))
+			gen.genImage(gen.getFriendRelativePath(path), None, self)
 			gen.genEmbeddedEnd(self)
 		except OSError, e:
 			self.onError('can not process gnuplot: %s' % str(e))
