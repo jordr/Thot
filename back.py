@@ -19,6 +19,7 @@ import os.path
 import shutil
 import common
 import doc as tdoc
+import sys
 
 class Generator:
 	"""Abstract back-end generator."""
@@ -63,9 +64,10 @@ class Generator:
 		"""Get the directory containing the imports."""
 		return self.root + "-imports"
 
-	def openMain(self, suff):
+	def openMain(self, suff, out_name = None):
 		"""Create and open an out file for the given document.
 		suff -- suffix of the out file.
+		out_name -- default file to output to (special "<stdout>" supported).
 		Set path, root and out fields."""
 
 		self.path = self.doc.getVar("THOT_OUT_PATH")
@@ -76,10 +78,14 @@ class Generator:
 			else:
 				self.root = self.path
 		else:
-			in_name = self.doc.getVar("THOT_FILE")
-			if not in_name or in_name == "<stdin>":
+			if out_name:
+				in_name = out_name
+			else:
+				in_name = self.doc.getVar("THOT_FILE")
+			if not in_name or in_name == "<stdout>":
 				self.out = sys.stdout
-				self.path = "stdin"
+				self.path = "stdout"
+				self.root = "stdout"
 			else:
 				if in_name.endswith(".thot"):
 					self.path = in_name[:-5] + suff

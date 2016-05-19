@@ -37,6 +37,7 @@ import doc as tdoc
 #	HTML_STYLES: CSS styles to use (':' separated)
 #	HTML_SHORT_ICON: short icon for HTML file
 #	HTML_ONE_FILE_PER: one of document (default), chapter, section.
+#	HTML_TEMPLATE:  template used to generate pages.
 
 CSS_URL_RE = re.compile('url\(([^)]*)\)')
 
@@ -94,14 +95,133 @@ def makeRef(nums):
 	"""Generate a reference from an header number array."""
 	return ".".join([str(i) for i in nums])
 
+class PageHandler:
+	"""Provide support for generating pages."""
 
+	def gen_header(self, gen):
+		"""Called to generate header part of HTML file."""
+		pass
+
+	def gen_title(self, gen):
+		"""Called to generate the title."""
+		pass
+	
+	def gen_authors(self, gen):
+		"""Called to generate list of authors."""
+		pass
+		
+	def gen_menu(self, gen):
+		"""Called to generate the menu."""
+		pass
+	
+	def gen_content(self, gen):
+		"""Called to generate the content."""
+		pass
+
+
+class Page:
+	"""Abstract class for page generation."""
+
+	def apply(self, handler, gen):
+		"""Called to generate a page."""
+		pass
+
+
+class PlainPage(Page):
+	"""Simple plain page."""
+	
+	def apply(self, handle, gen):
+		out = gen.out
+		
+		# output header
+		out.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
+		out.write('<html>\n')
+		out.write('<head>\n')
+		out.write("	<title>")
+		handle.gen_title(gen)
+		out.write("</title>\n")
+		out.write('	<meta name="AUTHOR" content="' + cgi.escape(gen.doc.getVar('AUTHORS'), True) + '">\n')
+		out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
+		out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(gen.doc.getVar('ENCODING'), True) + '">\n')
+		handle.gen_header(gen)
+		out.write('</head>\n<body>\n<div class="main">\n')
+		
+		# output the title
+		out.write('<div class="header">\n')
+		out.write('	<div class="title">')
+		handle.gen_title(gen)
+		out.write('</div>\n')
+		out.write('	<div class="authors">')
+		handle.gen_authors(gen)
+		out.write('</div>\n')
+		out.write('</div>')
+		
+		# output the menu
+		handle.gen_menu(gen)
+		
+		# output the content
+		out.write('<div class="page">\n')
+		handle.gen_content(gen)
+		gen.genFootNotes()
+		out.write('</div>\n')		
+
+		# output the footer
+		out.write("</div>\n</body>\n</html>\n")
+
+template_re = re.compile("<thot:([^/]+)\/>")
+
+class TemplatePage(Page):
+	"""Page supporting template in HTML. The template may contain
+	the following special elements:
+	* <thot:title> -- document title,
+	* <thot:authors> -- list of authors,
+	* <thot:menu> -- table of content of the document,
+	* <thot:content> -- content of the document.
+	"""
+	path = None
+	
+	def __init__(self, path):
+		self.path = path
+	
+	def apply(self, handler, gen):
+		map = {
+			"authors": handler.gen_authors,
+			"content": handler.gen_content,
+			"header":  handler.gen_header,
+			"title":   handler.gen_title,
+			"toc":    handler.gen_menu
+		}
+		global template_re
+
+		try:
+			tpl = open(self.path, "r")
+			n = 0
+			for line in tpl.xreadlines():
+				n = n + 1
+				f = 0
+				for m in template_re.finditer(line):
+					gen.out.write(line[f:m.start()])
+					f = m.end()
+					try:
+						kw = m.group(1)
+						map[kw](gen)
+					except KeyError, e:
+						common.onError("unknown element %s at %d" % (kw, n))					
+				gen.out.write(line[f:])
+			
+		except IOError, e:
+			common.onError(str(e))
+
+	
 class PagePolicy:
 	"""A page policy allows to organize the generated document
 	according the preferences of the user."""
 	gen = None
+	page = None
 
-	def __init__(self, gen):
+	def __init__(self, gen, page):
 		self.gen = gen
+		self.page = page
 
 	def onHeaderBegin(self, header):
 		pass
@@ -115,12 +235,23 @@ class PagePolicy:
 	def ref(self, header, number):
 		return	"#" + number
 
+	def gen_header(self, gen):
+		out = gen.out
+		styles = gen.doc.getVar("HTML_STYLES")
+		if styles:
+			for style in styles.split(':'):
+				new_style = gen.importCSS(style)
+				out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '">\n')
+		short_icon = gen.doc.getVar('HTML_SHORT_ICON')
+		if short_icon:
+			out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
+
 	
 class AllInOne(PagePolicy):
 	"""Simple page policy doing nothing: only one page."""
 
-	def __init__(self, gen):
-		PagePolicy.__init__(self, gen)
+	def __init__(self, gen, page):
+		PagePolicy.__init__(self, gen, page)
 
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
@@ -158,23 +289,31 @@ class AllInOne(PagePolicy):
 			# look in children
 			for item in node.getContent():
 				self.makeRefs(nums, others, item)
+	
+	def gen_title(self, gen):
+		gen.genTitleText()
+	
+	def gen_authors(self, gen):
+		gen.genAuthors()
+
+	def gen_menu(self, gen):
+		self.gen.genContent([], 100)
+		
+	def gen_content(self, gen):
+		self.gen.genBody()		
 
 	def run(self):
 		self.gen.openMain('.html')
 		self.genRefs()
 		self.gen.doc.pregen(self.gen)
-		self.gen.genDocHeader()
-		self.gen.genTitle()
-		self.gen.genContent([], 100)
-		self.gen.genBody()
-		self.gen.genFooter()
+		self.page.apply(self, self.gen)
 
 
 class PerSection(PagePolicy):
 	"""This page policy ensures there is one page per section."""
 
-	def __init__(self, gen):
-		PagePolicy.__init__(self, gen)
+	def __init__(self, gen, page):
+		PagePolicy.__init__(self, gen, page)
 
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
@@ -216,41 +355,45 @@ class PerSection(PagePolicy):
 
 		return page
 
-	def process(self, header, path):
+	def process(self, header):
 
-		# generate the page header
-		subheaders = []
+		# generate the page
 		self.gen.openPage(header)
-		self.gen.genDocHeader()
-		self.gen.genTitle()
-		path = path + [header]
-		self.gen.genContent(path, 100)
-		self.gen.genBodyHeader()
-		
-		# generate the title
-		for h in path:
-			self.gen.genHeaderTitle(h)
-		
-		# generate the content
-		for child in header.getContent():
-			if child.getHeaderLevel() >= 0:
-				subheaders.append(child)
-			else:
-				child.gen(self.gen)
-		
-		# generate the page footer
-		self.gen.genFootNotes()
-		self.gen.genBodyFooter()
-		self.gen.genFooter()
-		self.gen.closePage()
+		self.path = self.path + [header]
+		self.page.apply(self, self.gen)
 		print "generated %s" % (self.gen.getPage(header))
 		
-		# generate the children header pages
-		#path = path + [header]
-		for subheader in subheaders:
-			self.process(subheader, path)
-		path.pop()
+		# generate the su-headers
+		for child in header.getContent():
+			if child.getHeaderLevel() >= 0:
+				self.process(child)
+		self.path.pop()
 		
+	path = []
+	
+	def gen_title(self, gen):
+		gen.genTitleText()
+	
+	def gen_authors(self, gen):
+		gen.genAuthors()
+
+	def gen_menu(self, gen):
+		if not self.path:
+			gen.genContent([], 0)
+		else:
+			gen.genContent(self.path, 100)
+		
+	def gen_content(self, gen):
+		if not self.path:		
+			for node in self.gen.doc.getContent():
+				if node.getHeaderLevel() <> 0:
+					node.gen(gen)
+		else:
+			for h in self.path:
+				gen.genHeaderTitle(h)
+			for child in self.path[-1].getContent():
+				if child.getHeaderLevel() < 0:
+					child.gen(gen)
 
 	def run(self):
 		
@@ -259,35 +402,27 @@ class PerSection(PagePolicy):
 		self.gen.doc.pregen(self.gen)
 		self.genRefs()
 
-		# generate header
-		self.gen.genDocHeader()
-		self.gen.genTitle()
-		self.gen.genContent([], 0)
-		self.gen.genBodyHeader()
-
-		# generate main page
-		chapters = []
-		for node in self.gen.doc.getContent():
-				if node.getHeaderLevel() == 0:
-					chapters.append(node)
-				else:
-					node.gen(self.gen)
+		# collect chapters
+		#chapters = []
+		#for node in self.gen.doc.getContent():
+		#	if node.getHeaderLevel() == 0:
+		#		chapters.append(node)
 		
-		# generate footer
-		self.gen.genBodyFooter()
-		self.gen.genFooter()
+		# generate page
+		self.page.apply(self, self.gen)
 		print "generated %s" % self.gen.path
 
 		# generate chapter pages
-		for chapter in chapters:
-			self.process(chapter, [])
+		for node in self.gen.doc.getContent():
+			if node.getHeaderLevel() == 0:
+				self.process(node)
 
 
 class PerChapter(PagePolicy):
 	"""This page policy ensures there is one page per chapter."""
 
-	def __init__(self, gen):
-		PagePolicy.__init__(self, gen)
+	def __init__(self, gen, page):
+		PagePolicy.__init__(self, gen, page)
 
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
@@ -330,6 +465,26 @@ class PerChapter(PagePolicy):
 			for item in node.getContent():
 				self.makeRefs(nums, others, item, page)
 
+	node = None
+	
+	def gen_title(self, gen):
+		gen.genTitleText()
+	
+	def gen_authors(self, gen):
+		gen.genAuthors()
+
+	def gen_menu(self, gen):
+		if not self.node:
+			self.gen.genContent([], 0)
+		else:
+			self.gen.genContent([self.node], 100)
+		
+	def gen_content(self, gen):
+		if not self.node:		
+			pass
+		else:
+			self.node.gen(self.gen)
+
 	def run(self):
 		chapters = []
 
@@ -337,28 +492,17 @@ class PerChapter(PagePolicy):
 		self.gen.openMain('.html')
 		self.genRefs()
 		self.gen.doc.pregen(self.gen)
-		self.gen.genDocHeader()
-		self.gen.genTitle()
-		self.gen.genContent([], 0)
-		self.gen.genBodyHeader()
 		for node in self.gen.doc.getContent():
-				if node.getHeaderLevel() == 0:
-					chapters.append(node)
-		self.gen.genBodyFooter()
-		self.gen.genFooter()
+			if node.getHeaderLevel() == 0:
+				chapters.append(node)
+		self.page.apply(self, self.gen)
 		print "generated %s" % self.gen.path
 
 		# generate chapter pages
 		for node in chapters:
 			self.gen.openPage(node)
-			self.gen.genDocHeader()
-			self.gen.genTitle()
-			self.gen.genContent([node], 100)
-			self.gen.genBodyHeader()
-			node.gen(self.gen)
-			self.gen.genFootNotes()
-			self.gen.genBodyFooter()
-			self.gen.genFooter()
+			self.node = node
+			self.page.apply(self, self.gen)
 			self.gen.closePage()
 			print "generated %s" % (self.gen.getPage(node))
 
@@ -622,10 +766,12 @@ class Generator(back.Generator):
 			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
 		self.out.write('</head>\n<body>\n<div class="main">\n')
 
-	def genTitle(self):
-		self.out.write('<div class="header">\n')
-		self.out.write('	<div class="title">' + cgi.escape(self.doc.getVar('TITLE')) + '</div>\n')
-		self.out.write('	<div class="authors">')
+	def genTitleText(self):
+		"""Generate the text of the title."""
+		self.out.write(cgi.escape(self.doc.getVar('TITLE')))
+	
+	def genAuthors(self):
+		"""Generate the text of the authors."""
 		authors = common.scanAuthors(self.doc.getVar('AUTHORS'))
 		first = True
 		for author in authors:
@@ -639,7 +785,15 @@ class Generator(back.Generator):
 				self.out.write('<a href="mailto:' + cgi.escape(email) + '">')
 			self.out.write(cgi.escape(author['name']))
 			if email:
-				self.out.write('</a>')
+				self.out.write('</a>')		
+
+	def genTitle(self):
+		self.out.write('<div class="header">\n')
+		self.out.write('	<div class="title">')
+		self.genTitleText()
+		self.out.write('</div>\n')
+		self.out.write('	<div class="authors">')
+		self.genAuthors()
 		self.out.write('</div>\n')
 		self.out.write('</div>')
 
@@ -764,14 +918,21 @@ class Generator(back.Generator):
 
 	def run(self):
 
+		# select the page
+		self.template = self.doc.getVar('HTML_TEMPLATE')
+		if self.template:
+			page = TemplatePage(self.template)
+		else:
+			page = PlainPage()
+
 		# select the policy
 		self.struct = self.doc.getVar('HTML_ONE_FILE_PER')
 		if self.struct == 'document' or self.struct == '':
-			policy = AllInOne(self)
+			policy = AllInOne(self, page)
 		elif self.struct == 'chapter':
-			policy = PerChapter(self)
+			policy = PerChapter(self, page)
 		elif self.struct == 'section':
-			policy = PerSection(self)
+			policy = PerSection(self, page)
 		else:
 			common.onError('one_file_per %s structure is not supported' % self.struct)
 

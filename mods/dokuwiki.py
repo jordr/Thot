@@ -313,10 +313,21 @@ def handle_def(man, match):
 	tparser.handleText(man, match.group(4))
 
 def handleCode(man, match):
-	lang = match.group(2)
-	if lang == None:
-		lang = ""
-	tparser.BlockParser(man, highlight.CodeBlock(man, lang), END_CODE)
+	lang = ""
+	line = None
+	opts = match.group(2)
+	if opts:
+		for opt in opts.split(','):
+			if opt == "line":
+				line = 1
+			elif opt.startswith("line="):
+				try:
+					line = int(opt[5:])
+				except ValueError:
+					raise common.ParseException("bad line number: %s" % opt)
+			else:
+				lang = opt
+	tparser.BlockParser(man, highlight.CodeBlock(man, lang, line), END_CODE)
 
 def handleFile(man, match):
 	tparser.BlockParser(man, FileBlock(), END_FILE)

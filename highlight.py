@@ -180,7 +180,7 @@ def getCommand():
 	return command
 	
 
-def genCode(gen, lang, text, type):
+def genCode(gen, lang, text, type, line):
 	"""Generate colorized code.
 	gen -- back-end generator
 	lang -- code language
@@ -201,18 +201,25 @@ def genCode(gen, lang, text, type):
 				gen.genVerbatim("\n\\end{verbatim}\n")
 			return
 		
+		# other options
+		opts = ""
+		if line <> None:
+			opts = opts + " -l"
+			if line <> 1:
+				opts = opts + " -m %s" % line
+		
 		# perform the command
 		try:
 			cfd = True
 			if os.name == "nt":
 				cfd = False
 			process = subprocess.Popen(
-				['%s -f --syntax=%s %s' % (command, lang, BACKS[type])],
+				['%s -f --syntax=%s %s %s' % (command, lang, BACKS[type], opts)],
 				stdin = subprocess.PIPE,
 				stdout = subprocess.PIPE,
 				close_fds = cfd,
 				shell = True
-				)
+			)
 			res, _ = process.communicate(text)
 			
 			# generate the source
@@ -316,9 +323,10 @@ FEATURE = Feature()
 class CodeBlock(doc.Block):
 	lang = None
 
-	def __init__(self, man, lang):
+	def __init__(self, man, lang, line = None):
 		doc.Block.__init__(self, "code")
 		self.lang = lang
+		self.line_number = line
 		man.doc.addFeature(FEATURE)
 
 	def dumpHead(self, tab):
@@ -338,12 +346,12 @@ class CodeBlock(doc.Block):
 		if type == 'html':
 			gen.genEmbeddedBegin(self)
 			gen.genVerbatim('<pre class="code">\n')
-			genCode(gen, self.lang, text, type)
+			genCode(gen, self.lang, text, type, self.line_number)
 			gen.genVerbatim('</pre>')
 			gen.genEmbeddedEnd(self)
 		elif type == 'latex':
 			gen.genEmbeddedBegin(self)
-			genCode(gen, self.lang, text, type)
+			genCode(gen, self.lang, text, type, self.line_number)
 			gen.genEmbeddedEnd(self)
 		elif type == 'docbook':
 			gen.genVerbatim('<programlisting xml:space="preserve" ')

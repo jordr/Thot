@@ -31,13 +31,13 @@ div.main {
 }
 
 .title {
-  font-size: 220%;
+  font-size: 180%;
   font-weight: bolder;
   margin-top: 8px;
 }
 
 .authors {
-	font-size: 150%;
+	font-size: 125%;
 	font-style:italic; 
 }
 
