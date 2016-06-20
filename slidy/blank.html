@@ -7,7 +7,7 @@
 <title>@(TITLE)</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="copyright" content="@(COPYRIGHT)"/>
-<!--meta name="duration" content="20" /-->
+@(IF_DURATION)
 <link rel="stylesheet" href="@(IMPORTS)/styles/slidy.css" type="text/css" />
 <link rel="stylesheet" href="@(IMPORTED_STYLE)" type="text/css" />
 <script src="@(IMPORTS)/scripts/slidy.js" charset="utf-8" type="text/javascript">
@@ -26,7 +26,7 @@
 </div> 
 
 <div class="slide cover title">
-	@(COVER_PICTURE)
+	@(IF_COVER_PICTURE)
 	<h1>@(TITLE)</h1>
 	<p class="subtitle">@(SUBTITLE)</p>
 	<p class="authors">@(AUTHORS)</p>

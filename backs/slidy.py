@@ -70,22 +70,23 @@ class Templater:
 				try:
 					v = self.env[id]
 					if hasattr(v, "__call__"):
-						v(out)
+						v(self.env, out)
 					else:
-						out.write(v)
+						out.write(backs.abstract_html.escape(v))
 				except KeyError:
 					pass
 		temp.close()
 
 
-class NewSlide(doc.Node):
+class Marker(doc.Node):
 	"""New slide marker."""
 
-	def __init__(self):
+	def __init__(self, type):
 		doc.Node.__init__(self)
+		self.type = type
 
 	def dump(self, tab):
-		print "%slice()" % tab
+		print "%smaker(%s)" % (tab, self.type)
 
 
 class Generator(backs.abstract_html.Generator):
@@ -126,53 +127,77 @@ class Generator(backs.abstract_html.Generator):
 			env["IMPORTS"] = ipath
 			env["IMPORTED_STYLE"] = css
 			env["SLIDES"] = self.gen_slides
-			if env.has_key("COVER_PICTURE"):
-				env["COVER_PICTURE"] = '<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % env["COVER_PICTURE"]
+			env["IF_COVER_PICTURE"] = self.gen_cover_picture
+			env["IF_DURATION"] = self.gen_duration
 			templater = Templater(env)
 			templater.gen(opath, self.out)
 
 		except IOError as e:
 			common.onError("error during generation: %s" % e)
-		
-	def gen_slides(self, out):
+	
+	def gen_cover_picture(self, env, out):
+		if env.has_key("COVER_PICTURE"):
+			out.write('<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % env["COVER_PICTURE"])
+	
+	def gen_duration(self, env, out):
+		if env.has_key("DURATION"):
+			out.write('<meta name="duration" content="%s"/>' % env["DURATION"])
+	
+	def gen_slides(self, env, out):
 		stack = []
 		started = False
 		header = "Introduction"
 		i = iter(self.doc.content)
+		inc = False
 				
 		while True:
 			try:
 				node = i.next()
-				if isinstance(node, NewSlide):
-					if started:
-						self.out.write("</div>\n")
-					self.out.write("<div class=\"slide\">\n")
-					self.genHeaderTitle(header)
-					started = True
-					
+				
+				# marker processing
+				if isinstance(node, Marker):
+					if node.type == "slice":
+						if started:
+							self.out.write("</div>\n")
+						self.out.write("\n<div class=\"slide\">\n")
+						self.genHeaderTitle(header)
+						started = True
+					elif node.type == "inc":
+						self.out.write('<div class="incremental">')
+						inc = True
+					elif node.type == "non-inc":
+						self.out.write('</div>')
+						inc = False
+				
+				# header processing
 				if node.getHeaderLevel() >= 0:
 					stack.append((node, i))
 					if started:
+						if inc:
+							self.out.write("</div>\n")
 						self.out.write("</div>\n")
 					header = node
 					i = iter(node.content)
 					started = False
+				
+				# other paragraph processing
 				else:
 					if not started:
-						self.out.write("<div class=\"slide\">\n")
+						self.out.write("\n<div class=\"slide\">\n")
 						self.genHeaderTitle(header)
 						started = True
 					node.gen(self)
 
 			except StopIteration:
 				if started:
+					if inc:
+						self.out.write("</div>\n")
 					self.out.write("</div>\n")
 				started = False
 				if not stack:
 					break
 				header, i = stack.pop()
 		
-	
 	def genHeaderTitle(self, header):
 		"""Generate the title of a header."""
 		self.out.write("<h1>")
@@ -181,7 +206,13 @@ class Generator(backs.abstract_html.Generator):
 		self.out.write('</h1>\n')
 
 def handle_slide(man, match):
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, NewSlide()))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Marker("slice")))
+
+def handle_inc(man, match):
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Marker("inc")))
+
+def handle_not_inc(man, match):
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Marker("non-inc")))
 
 def output(doc):
 	gen = Generator(doc)
@@ -189,4 +220,6 @@ def output(doc):
 
 def init(man):
 	man.addLine((handle_slide, re.compile("<slide>")))
+	man.addLine((handle_inc, re.compile("<inc>")))
+	man.addLine((handle_not_inc, re.compile("<non-inc>")))
 	
