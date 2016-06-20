@@ -29,8 +29,10 @@ scripts. The following variables are used:
 
 import backs.abstract_html
 import common
+import doc
 import os
 import os.path
+import re
 import shutil
 import types
 
@@ -74,7 +76,17 @@ class Templater:
 				except KeyError:
 					pass
 		temp.close()
-				
+
+
+class NewSlide(doc.Node):
+	"""New slide marker."""
+
+	def __init__(self):
+		doc.Node.__init__(self)
+
+	def dump(self, tab):
+		print "%slice()" % tab
+
 
 class Generator(backs.abstract_html.Generator):
 	
@@ -131,6 +143,13 @@ class Generator(backs.abstract_html.Generator):
 		while True:
 			try:
 				node = i.next()
+				if isinstance(node, NewSlide):
+					if started:
+						self.out.write("</div>\n")
+					self.out.write("<div class=\"slide\">\n")
+					self.genHeaderTitle(header)
+					started = True
+					
 				if node.getHeaderLevel() >= 0:
 					stack.append((node, i))
 					if started:
@@ -161,8 +180,13 @@ class Generator(backs.abstract_html.Generator):
 		header.genTitle(self)
 		self.out.write('</h1>\n')
 
+def handle_slide(man, match):
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, NewSlide()))
 
 def output(doc):
 	gen = Generator(doc)
 	gen.run()
 
+def init(man):
+	man.addLine((handle_slide, re.compile("<slide>")))
+	

@@ -410,7 +410,10 @@ def handleHLine(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, doc.HorizontalLine()))
 
 def handleIndent(man, match):
-	IndentParser(man, match)
+	if match.group(1):
+		IndentParser(man, match)
+	else:
+		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, doc.Par()))
 
 def handleQuote(man, match):
 	man.send(doc.QuoteEvent(len(match.group(1))))

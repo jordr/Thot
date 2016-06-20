@@ -67,11 +67,19 @@ if options.defines:
 			common.onError('-D' + d + ' must follow syntax -Didentifier=value')
 		else:
 			env[d[:p]] = d[p+1:]
-		
+
+# open the output
+document = doc.Document(env)
+out_name = env["THOT_OUT_TYPE"]
+out_path = os.path.join(document.env["THOT_BASE"], "backs")
+out_driver = common.loadModule(out_name,  out_path)
+if not out_driver:
+	common.onError('cannot find %s back-end' % out_name)
 
 # Parse the file
-document = doc.Document(env)
 man = tparser.Manager(document)
+if out_driver.__dict__.has_key("init"):
+	out_driver.init(man)
 if options.uses:
 	for u in options.uses:
 		man.use(u)
@@ -80,11 +88,5 @@ if options.dump:
 	document.dump("")
 
 # Output the result
-out_name = env["THOT_OUT_TYPE"]
-out_path = os.path.join(document.env["THOT_BASE"], "backs")
-out_driver = common.loadModule(out_name,  out_path)
-if out_driver:
-	out_driver.output(document)
-else:
-	common.onError('cannot find %s back-end' % out_name)
+out_driver.output(document)
 
