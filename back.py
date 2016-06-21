@@ -195,7 +195,10 @@ class Generator:
 			tpath = os.path.join(self.getImportDir(), path)
 		else:
 			apath = os.path.abspath(path)
-			tpath = path
+			if self.friend_reloc == "local":
+				tpath = path
+			else:
+				tpath = os.path.join(self.getImportDir(), path)
 
 		# need to load?
 		if tpath <> path:

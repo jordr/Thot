@@ -154,7 +154,7 @@ class Generator(backs.abstract_html.Generator):
 	
 	def gen_cover_image(self, env, out):
 		try:
-			path = self.loadFriendFile(env["COVER_IMAGE"])
+			path = self.use_friend(env["COVER_IMAGE"])
 			print "DEBUG: path = %s" % path
 			out.write('<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % path)
 		except KeyError:

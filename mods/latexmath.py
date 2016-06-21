@@ -36,7 +36,6 @@ class LatexMath(doc.Word):
 		global mimetex
 		global count
 		global formulae
-		print "DEBUG: latexmath: %s" % self.text
 		
 		if gen.getType() == "latex":
 			gen.genVerbatim("$%s$" % self.text)
@@ -68,7 +67,6 @@ class LatexMath(doc.Word):
 					MIMETEX_AVAILABLE = False
 					self.onWarning("mimetex is not available: no latexmath !")
 			if rpath:
-				print "DEBUG: latexmath: image: %s" % rpath
 				gen.genImage(rpath, None, self)
 
 
