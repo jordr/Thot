@@ -152,7 +152,6 @@ class Generator:
 		fpath = self.prepare_friend(os.path.join(self.getImportDir(), path))
 		self.addFile(fpath)
 		self.to_files[fpath] = ""
-		print("DEBUG: new_friend(%s) = %s" % (path, fpath))
 		return fpath
 
 	def copy_friend(self, spath, tpath):
@@ -206,13 +205,11 @@ class Generator:
 		self.from_files[apath] = tpath
 		self.to_files[tpath] = apath;
 		self.addFile(tpath)		
-		print "DEBUG: addFriend: %s (%s) -> %s" % (path, base, tpath) 
 		return tpath
 
 	def relative_friend(self, fpath, bpath):
 		"""Get the relative path of fpath reative to bpath."""
 		r = os.path.relpath(fpath, bpath)
-		print("DEBUG: relative %s / %s -> %s" % (fpath, bpath, r))
 		return r
 
 	def genFootNote(self, note):

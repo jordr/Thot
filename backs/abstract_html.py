@@ -124,7 +124,6 @@ class Generator(back.Generator):
 		spath = os.path.join(base, spath)
 
 		# open files
-		print "DEBUG: %s" %  os.path.join(base, spath)
 		input = open(os.path.join(base, spath))
 		output = open(tpath, "w")
 		rbase = os.path.dirname(spath)

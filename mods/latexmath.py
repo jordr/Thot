@@ -36,6 +36,7 @@ class LatexMath(doc.Word):
 		global mimetex
 		global count
 		global formulae
+		print "DEBUG: latexmath: %s" % self.text
 		
 		if gen.getType() == "latex":
 			gen.genVerbatim("$%s$" % self.text)
@@ -47,11 +48,11 @@ class LatexMath(doc.Word):
 			if formulae.has_key(self.text):
 				rpath = formulae[self.text]
 			else:
-				path = gen.new_friend("latexmath/latexmath-%s.gif" % count);
+				rpath = gen.new_friend("latexmath/latexmath-%s.gif" % count);
 				count += 1
 				try:
 					proc = subprocess.Popen(
-						["%s -d '%s' -e %s" % (cmd, self.text, path)],
+						["%s -d '%s' -e %s" % (cmd, self.text, rpath)],
 						stdout = subprocess.PIPE,
 						stderr = subprocess.PIPE,
 						shell = True
@@ -62,11 +63,12 @@ class LatexMath(doc.Word):
 						sys.stderr.write(err)
 						self.onWarning("bad latexmath formula.")
 					else:
-						formulae[self.text] = path
+						formulae[self.text] = rpath
 				except OSError, e:
 					MIMETEX_AVAILABLE = False
 					self.onWarning("mimetex is not available: no latexmath !")
 			if rpath:
+				print "DEBUG: latexmath: image: %s" % rpath
 				gen.genImage(rpath, None, self)
 
 
