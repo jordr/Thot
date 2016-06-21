@@ -47,7 +47,7 @@ class LatexMath(doc.Word):
 			if formulae.has_key(self.text):
 				rpath = formulae[self.text]
 			else:
-				path = gen.addFriendFile("/latexmath/latexmath-%s.gif" % count);
+				path = gen.new_friend("latexmath/latexmath-%s.gif" % count);
 				count += 1
 				try:
 					proc = subprocess.Popen(
@@ -62,8 +62,7 @@ class LatexMath(doc.Word):
 						sys.stderr.write(err)
 						self.onWarning("bad latexmath formula.")
 					else:
-						rpath = gen.getFriendRelativePath(path)
-						formulae[self.text] = rpath
+						formulae[self.text] = path
 				except OSError, e:
 					MIMETEX_AVAILABLE = False
 					self.onWarning("mimetex is not available: no latexmath !")

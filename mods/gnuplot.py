@@ -54,7 +54,7 @@ class GnuPlotBlock(doc.Block):
 				self.h = self.w
 			opt = "size %s,%s"  % (self.w, self.h)
 		
-		path = gen.addFriendFile('/gnuplot/graph-%s.png' % count)
+		path = gen.new_friend('gnuplot/graph-%s.png' % count)
 		count += 1
 		try:
 			process = subprocess.Popen(
@@ -75,7 +75,7 @@ class GnuPlotBlock(doc.Block):
 				sys.stderr.write(err)
 				self.onError('error during gnuplot call')
 			gen.genEmbeddedBegin(self)
-			gen.genImage(gen.getFriendRelativePath(path), None, self)
+			gen.genImage(path, None, self)
 			gen.genEmbeddedEnd(self)
 		except OSError, e:
 			self.onError('can not process gnuplot: %s' % str(e))

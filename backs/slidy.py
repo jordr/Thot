@@ -24,7 +24,10 @@ scripts. The following variables are used:
 * ORGANIZATION - organization,
 * STYLE - Slidy style to use (default style slidy),
 * COPYRIGHT - document copyright.
-* COVER_PICTURE - picture used on the cover page.
+* COVER_IMAGE - picture used on the cover page.
+* DURATION - duration of the presentation to display a time count.
+* ORG_LOGO - logo of organization,
+* DOC_LOGO -- logo of the document.
 """
 
 import backs.abstract_html
@@ -127,17 +130,35 @@ class Generator(backs.abstract_html.Generator):
 			env["IMPORTS"] = ipath
 			env["IMPORTED_STYLE"] = css
 			env["SLIDES"] = self.gen_slides
-			env["IF_COVER_PICTURE"] = self.gen_cover_picture
+			env["IF_COVER_IMAGE"] = self.gen_cover_image
 			env["IF_DURATION"] = self.gen_duration
+			env["IF_DOC_LOGO"] = self.gen_doc_logo
+			env["IF_ORG_LOGO"] = self.gen_org_logo
 			templater = Templater(env)
 			templater.gen(opath, self.out)
 
 		except IOError as e:
 			common.onError("error during generation: %s" % e)
+
+	def gen_doc_logo(self, env, out):
+		try:
+			out.write('<img id="head-icon" alt="document logo" src="%s"/>' % env["DOC_LOGO"]) 
+		except KeyError:
+			pass
 	
-	def gen_cover_picture(self, env, out):
-		if env.has_key("COVER_PICTURE"):
-			out.write('<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % env["COVER_PICTURE"])
+	def gen_org_logo(self, env, out):
+		try:
+			out.write('<img src="%s" alt="W3C logo" id="head-logo-fallback" />' % env["DOC_LOGO"]) 
+		except KeyError:
+			pass
+	
+	def gen_cover_image(self, env, out):
+		try:
+			path = self.loadFriendFile(env["COVER_IMAGE"])
+			print "DEBUG: path = %s" % path
+			out.write('<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % path)
+		except KeyError:
+			pass
 	
 	def gen_duration(self, env, out):
 		if env.has_key("DURATION"):

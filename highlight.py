@@ -271,7 +271,7 @@ class Feature(doc.Feature):
 		# build the CSS file
 		if type in CSS_BACKS:
 			try:
-				css = gen.addFriendFile('/highlight/highlight.css')
+				css = gen.new_friend('highlight/highlight.css')
 				cfd = True
 				if os.name == "nt":
 					cfd = False
@@ -291,13 +291,13 @@ class Feature(doc.Feature):
 			styles = gen.doc.getVar('HTML_STYLES')
 			if styles:
 				styles += ':'
-			styles += gen.getFriendRelativePath(css)
+			styles += css
 			gen.doc.setVar('HTML_STYLES', styles)
 
 		# build .sty
 		if type == 'latex':
 			try:
-				css = gen.addFriendFile('/highlight/highlight.sty')
+				css = gen.new_friend('highlight/highlight.sty')
 				process = subprocess.Popen(
 					['%s -f --syntax=c --style-outfile=%s %s' % (command, css, BACKS[type])],
 					stdin = subprocess.PIPE,

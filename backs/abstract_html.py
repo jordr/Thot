@@ -112,12 +112,19 @@ class Generator(back.Generator):
 		base -- base path of the source."""
 
 		# get target path
-		tpath = self.getFriendFile(spath, base)
-		if tpath:
-			return self.getFriendRelativePath(tpath)
-		tpath = self.addFriendFile(spath, base)
+		if spath.startswith(self.getImportDir()):
+			return spath
+		path = self.get_friend(spath, base)
+		if path:
+			return path
+		if os.path.isabs(spath):
+			base = os.path.dirname(spath)
+			spath = os.path.basename(spath)
+		tpath = self.new_friend(spath)
+		spath = os.path.join(base, spath)
 
 		# open files
+		print "DEBUG: %s" %  os.path.join(base, spath)
 		input = open(os.path.join(base, spath))
 		output = open(tpath, "w")
 		rbase = os.path.dirname(spath)
@@ -132,14 +139,14 @@ class Generator(back.Generator):
 				if res[0]:
 					output.write(m.group())
 				else:
-					rpath = self.loadFriendFile(os.path.join(rbase, res[2]), base)
-					output.write("url(%s)" % self.computeRelative(rpath, tpath))
+					rpath = self.use_friend(os.path.join(rbase, res[2]), base)
+					output.write("url(%s)" % self.relative_friend(rpath, os.path.dirname(tpath)))
 				line = line[m.end():]
 				m = CSS_URL_RE.search(line)
 			output.write(line)
 
 		# return path
-		return self.getFriendRelativePath(tpath)
+		return tpath
 
 	def genFootNote(self, note):
 		if note.kind <> doc.FOOTNOTE_REF:
@@ -291,7 +298,7 @@ class Generator(back.Generator):
 			self.out.write("<div class=\"figure\">")
 		if align == tdoc.ALIGN_CENTER:
 			self.out.write('<center>')
-		new_url = self.loadFriendFile(url)
+		new_url = self.use_friend(url)
 		self.out.write('<img src="' + new_url + '"')
 		width = node.getInfo(tdoc.INFO_WIDTH)
 		if width <> None:

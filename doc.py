@@ -1179,12 +1179,12 @@ class Document(Container):
 			m = VAR_REC.search(text)
 		return text
 
-	def getVar(self, id):
+	def getVar(self, id, default = ""):
 		"""Get a variable and evaluates the variables in its content."""
 		if self.env.has_key(id):
 			return self.reduceVars(self.env[id])
 		else:
-			return ""
+			return default
 
 	def setVar(self, name, val):
 		self.env[name] = val

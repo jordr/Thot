@@ -41,7 +41,7 @@ class DotBlock(doc.Block):
 
 	def gen(self, gen):
 		global count
-		path = gen.addFriendFile('/dot/graph-%s.png' % count)
+		path = gen.new_friend('dot/graph-%s.png' % count)
 		count += 1
 		try:
 			process = subprocess.Popen(
@@ -57,7 +57,7 @@ class DotBlock(doc.Block):
 				sys.stderr.write(err)
 				self.onError('error during dot call')
 			gen.genEmbeddedBegin(self)
-			gen.genImage(gen.getFriendRelativePath(path), None, self)
+			gen.genImage(path, None, self)
 			gen.genEmbeddedEnd(self)
 		except OSError, e:
 			self.onError('can not process dot graph: %s' % str(e))

@@ -14,6 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Definition of the abstract class back.Generator to help generation
+of output files.
+
+The following variables are supported:
+* FRIEND_RELOC - option to handle friend files ("local" (default): relocate all except relative
+  files, "all": relocate all files)
+"""
+
 import i18n
 import os.path
 import shutil
@@ -21,10 +29,11 @@ import common
 import doc as tdoc
 import sys
 
+
 class Generator:
 	"""Abstract back-end generator."""
 	doc = None
-	#counters = None
+	friend_reloc = "local"
 	path = None
 	root = None
 	out = None
@@ -40,6 +49,7 @@ class Generator:
 		self.from_files = { }
 		self.to_files = { }
 		self.added_files = []
+		self.friend_reloc = doc.getVar("FRIEND_RELOC", "local")
 
 	def getType(self):
 		"""Get type of the back-end: html, latex, xml."""
@@ -96,106 +106,114 @@ class Generator:
 				self.out = open(self.path, "w")
 
 
-	def relocateFriendFile(self, path):
-		"""Convert document-relative path to the CWD-relative path."""
-		if os.path.isabs(path):
-			return path
-		else:
-			return os.path.join(os.path.dirname(self.path), path)
-
-	def getFriendFile(self, path, base = ''):
+	def get_friend(self, path, base = ''):
 		"""Test if a file is a friend file and returns its generation
 		relative path. Return None if the the file is not part
 		of the generation.
 		path -- path of the file,
 		base -- potential file base."""
-
-		if os.path.isabs(path):
-			apath = path
-		elif base == '':
-			return path
+		
+		if not os.path.isabs(path):
+			if base:
+				apath = os.path.join(base, path)
+			else:
+				apath = os.path.abspath(path)
 		else:
-			apath = os.path.join(base, path)
+			apath = os.path.normpath(path)
 		if self.from_files.has_key(apath):
 			return self.from_files[apath]
 		else:
 			return None
 
-	def addFriendFile(self, path, base = ''):
-		"""Add the given base/path to the generated files and
-		return the target path.
-		path -- path to the file
-		base -- base directory containing the file ('' for CWD files)"""
-
-		# normalize path
-		if os.path.isabs(path):
-			apath = path
-			base, path = os.path.split(path)
-		elif base == '':
-			return path
-		else:
-			apath = os.path.join(base, path)
-		if self.from_files.has_key(apath):
-			return self.from_files[apath]
-
-		# make target path
-		file, ext = os.path.splitext(path)
-		file = os.path.join(self.getImportDir(), file)
-		tpath = file + ext
-		cnt = 0
-		while self.to_files.has_key(tpath):
-			tpath = "%s-%d.%s" % (file, cnt, ext)
-			cnt = cnt + 1
-
-		# create direcory
-		dpath = os.path.dirname(tpath)
+	def prepare_friend(self, path):
+		"""Prepare friend file to be created (ensuring uniqueness
+		and existence of directories (maintain the same path suffix).
+		Return the actual path."""
+		
+		# create directories
+		dpath = os.path.dirname(path)
 		if not os.path.exists(dpath):
 			try:
 				os.makedirs(dpath)
 			except os.error, e:
-				common.onError('cannot create directory "%s": %s' % (dpath, str(e)))
+				common.onError('cannot create directory "%s": %s' % (dpath, e))
+		
+		# ensure uniqueness
+		file, ext = os.path.splitext(path)
+		cnt = 0
+		while self.to_files.has_key(path):
+			path = "%s-%d.%s" % (file, cnt, ext)
+			cnt = cnt + 1
+		return path
+
+	def new_friend(self, path):
+		"""Allocate a place in friend files for the given path
+		(that must be relative)."""
+		fpath = self.prepare_friend(os.path.join(self.getImportDir(), path))
+		self.addFile(fpath)
+		self.to_files[fpath] = ""
+		print("DEBUG: new_friend(%s) = %s" % (path, fpath))
+		return fpath
+
+	def copy_friend(self, spath, tpath):
+		"""Load a friend file in the generation location.
+		path -- relative path to write to.
+		base -- absolute file to the file to copy."""
+		tpath = self.prepare_friend(tpath)
+		try:
+			shutil.copyfile(spath, tpath)
+			return tpath
+		except shutil.Error, e:
+			common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
+		except IOError, e:
+			common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
+
+
+	def use_friend(self, path, base = ''):
+		"""Ensure that a friend is available. If not, get it from
+		the given path. If absolute, the file is loaded in the import
+		directory and a relative path (to the document directory) is
+		returned.
+		path -- path to the file
+		base -- base directory containing the file ('' for CWD files)"""
+
+		# already declared?
+		tpath = self.get_friend(path, base)
+		if tpath:
+			return tpath 
+
+		# make target path
+		if base:
+			base = os.path.normpath(base)
+		if os.path.isabs(path):
+			apath = path
+			if base:
+				tpath = os.path.join(self.getImportDir(), os.path.relpath(path, base))
+			else:
+				tpath = os.path.join(self.getImportDir(), os.path.basename(path))
+		elif base:
+			apath = os.path.join(base, path)
+			tpath = os.path.join(self.getImportDir(), path)
+		else:
+			apath = os.path.abspath(path)
+			tpath = path
+
+		# need to load?
+		if tpath <> path:
+			tpath = self.copy_friend(apath, tpath)
 
 		# record all
 		self.from_files[apath] = tpath
 		self.to_files[tpath] = apath;
-		self.addFile(tpath)
+		self.addFile(tpath)		
+		print "DEBUG: addFriend: %s (%s) -> %s" % (path, base, tpath) 
 		return tpath
 
-	def computeRelative(self, file, base):
-		l = len(os.path.commonprefix([os.path.dirname(base), file]))
-		file = file[l:]
-		while file[0] == '/':
-			file = file[1:]
-		return file
-
-	def getFriendRelativePath(self, path):
-		"""Get the relative path to the HTML of a friend file."""
-		return self.computeRelative(path, self.path)
-
-	def loadFriendFile(self, path, base = ''):
-		"""Load a friend file in the generation location.
-		to_path -- relative path to write to.
-		from_path -- absolute file to the file to copy."""
-
-		# get the target path
-		if base == '' and not os.path.isabs(path):
-			self.addFile(path)
-			return path
-		tpath = self.getFriendFile(path, base)
-
-		# we need to load it !
-		if not tpath:
-			spath = os.path.join(base, path)
-			tpath = self.addFriendFile(path, base)
-			try:
-				shutil.copyfile(spath, tpath)
-			except shutil.Error, e:
-				pass
-			except IOError, e:
-				common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
-
-		# build the HTML relative path
-		return self.getFriendRelativePath(tpath)
+	def relative_friend(self, fpath, bpath):
+		"""Get the relative path of fpath reative to bpath."""
+		r = os.path.relpath(fpath, bpath)
+		print("DEBUG: relative %s / %s -> %s" % (fpath, bpath, r))
+		return r
 
 	def genFootNote(self, note):
 		pass
