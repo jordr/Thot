@@ -142,20 +142,21 @@ class Generator(backs.abstract_html.Generator):
 
 	def gen_doc_logo(self, env, out):
 		try:
-			out.write('<img id="head-icon" alt="document logo" src="%s"/>' % env["DOC_LOGO"]) 
+			path = self.use_friend(env["DOC_LOGO"])
+			out.write('<img id="head-icon" alt="document logo" src="%s"/>' % path) 
 		except KeyError:
 			pass
 	
 	def gen_org_logo(self, env, out):
 		try:
-			out.write('<img src="%s" alt="W3C logo" id="head-logo-fallback" />' % env["DOC_LOGO"]) 
+			path = self.use_friend(env["ORG_LOGO"])
+			out.write('<img src="%s" alt="W3C logo" id="head-logo-fallback" />' % path) 
 		except KeyError:
 			pass
 	
 	def gen_cover_image(self, env, out):
 		try:
 			path = self.use_friend(env["COVER_IMAGE"])
-			print "DEBUG: path = %s" % path
 			out.write('<img src="%s"  alt="cover picture" class="cover"/><br clear="all" />' % path)
 		except KeyError:
 			pass
