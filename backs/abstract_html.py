@@ -30,8 +30,8 @@ import doc as tdoc
 CSS_URL_RE = re.compile('url\(([^)]*)\)')
 
 LISTS = {
-	'ul': ('<ul>', '<li>', '</li>', '</ul>'),
-	'ol': ('<ol>', '<li>', '</li>', '</ol>'),
+	'ul': ('<ul %s>', '<li>', '</li>', '</ul>'),
+	'ol': ('<ol %s>', '<li>', '</li>', '</ol>'),
 }
 def getList(list):
 	if LISTS.has_key(list):
@@ -240,9 +240,9 @@ class Generator(back.Generator):
 	def genParEnd(self):
 		self.out.write('</p>\n')
 
-	def genList(self, list):
+	def genList(self, list, attrs = ""):
 		list_begin, item_begin, item_end, list_end = getList(list.kind)
-		self.out.write(list_begin + '\n')
+		self.out.write((list_begin % attrs) + '\n')
 
 		for item in list.getItems():
 			self.out.write(item_begin)

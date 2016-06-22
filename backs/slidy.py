@@ -96,6 +96,7 @@ class Generator(backs.abstract_html.Generator):
 	
 	def __init__(self, doc):
 		backs.abstract_html.Generator.__init__(self, doc)
+		self.inc = False
 				
 
 	def run(self):
@@ -186,16 +187,16 @@ class Generator(backs.abstract_html.Generator):
 						started = True
 					elif node.type == "inc":
 						self.out.write('<div class="incremental">')
-						inc = True
+						self.inc = True
 					elif node.type == "non-inc":
 						self.out.write('</div>')
-						inc = False
+						self.inc = False
 				
 				# header processing
 				if node.getHeaderLevel() >= 0:
 					stack.append((node, i))
 					if started:
-						if inc:
+						if self.inc:
 							self.out.write("</div>\n")
 						self.out.write("</div>\n")
 					header = node
@@ -212,8 +213,9 @@ class Generator(backs.abstract_html.Generator):
 
 			except StopIteration:
 				if started:
-					if inc:
+					if self.inc:
 						self.out.write("</div>\n")
+						self.inc = False
 					self.out.write("</div>\n")
 				started = False
 				if not stack:
@@ -226,6 +228,12 @@ class Generator(backs.abstract_html.Generator):
 		self.out.write('<a name="%s"></a>' % id(header))
 		header.genTitle(self)
 		self.out.write('</h1>\n')
+
+	def genList(self, list, attrs = ""):
+		if self.inc:
+			attrs = attrs + ' class="incremental"'
+		backs.abstract_html.Generator.genList(self, list, attrs)
+
 
 def handle_slide(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Marker("slice")))
