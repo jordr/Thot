@@ -454,6 +454,24 @@ div.slide.cover h1 {
   padding: 0.5em;
   color: white;
   height: auto;
+  min-height: 1em;
+}
+
+div.slide.cover p.subtitle {
+	margin-top: 0em;
+	margin-bottom: 2em;
+	color: lightgray;
+	font-style: italic;
+}
+
+div.slide.cover p.authors {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+div.slide.cover p.organization {
+	margin-top: 0;
+	margin-bottom: 0;
 }
 
 div.slide.cover h2 {
