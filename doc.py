@@ -1059,13 +1059,14 @@ class HorizontalLine(Node):
 
 
 class Header(Container):
-	level = None
+	header_level = None
 	title = None
 	do_title = None
 
 	def __init__(self, level):
 		Container.__init__(self)
-		self.level = level
+		self.level = L_HEAD
+		self.header_level = level
 		self.do_title = True
 		self.title = Par()
 
@@ -1082,13 +1083,13 @@ class Header(Container):
 			man.forward(event)
 		elif event.id is ID_TITLE:
 			self.do_title = False
-		elif event.object.level <= self.level:
+		elif event.object.header_level <= self.header_level:
 			man.forward(event)
 		else:
 			self.add(man, event.make())
 
 	def dumpHead(self, tab):
-		print tab + "header" + str(self.level) + "("
+		print tab + "header" + str(self.header_level) + "("
 		print tab + "  title("
 		self.title.dump(tab + "    ")
 		print tab + "  )"
@@ -1100,7 +1101,7 @@ class Header(Container):
 		return self.level
 
 	def getHeaderLevel(self):
-		return self.level
+		return self.header_level
 
 	def getTitle(self):
 		return self.title
@@ -1115,14 +1116,14 @@ class Header(Container):
 	def gen(self, gen):
 		if gen.genHeader(self):
 			return
-		gen.genHeaderBegin(self.level)
-		gen.genHeaderTitleBegin(self.level)
+		gen.genHeaderBegin(self.header_level)
+		gen.genHeaderTitleBegin(self.header_level)
 		self.genTitle(gen)
-		gen.genHeaderTitleEnd(self.level)
-		gen.genHeaderBodyBegin(self.level)
+		gen.genHeaderTitleEnd(self.header_level)
+		gen.genHeaderBodyBegin(self.header_level)
 		self.genBody(gen)
-		gen.genHeaderBodyEnd(self.level)
-		gen.genHeaderEnd(self.level)
+		gen.genHeaderBodyEnd(self.header_level)
+		gen.genHeaderEnd(self.header_level)
 
 	def isEmpty(self):
 		return False

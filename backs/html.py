@@ -385,7 +385,7 @@ class PerChapter(PagePolicy):
 		# number for header
 		num = node.numbering()
 		if num == 'header':
-			if node.level == 0:
+			if node.header_level == 0:
 				page = "%s-%d.html" % (self.gen.root, nums[0] - 1)
 				self.gen.refs[node] = ("%s" % page, str(nums[0]))
 			else:
