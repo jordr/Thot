@@ -21,6 +21,9 @@ import string
 import common
 
 ID_CONTENT = "Content"
+ID_INTRODUCTION = "Introduction"
+ID_OUTLINE = "Outline"
+
 
 GLYPH_OPEN_DQUOTE = "$open-dquote"
 GLYPH_CLOSE_DQUOTE = "$close-dquote"
@@ -33,6 +36,8 @@ CAPTION_LISTING = "listing"
 
 ALL = {
 	ID_CONTENT			: "Content",
+	ID_INTRODUCTION		: "Introduction",
+	ID_OUTLINE			: "Outline",
 	CAPTION_TABLE		: "Table %s: ",
 	CAPTION_FIGURE		: "Figure %s: ",
 	CAPTION_LISTING		: "Listing %s: ",

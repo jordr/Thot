@@ -683,6 +683,8 @@ Slidy is basically an HTML back-end specialized in the generation of
 presentation. It is based on the [[https://www.w3.org/Talks/Tools/Slidy2|Slidy]]
 set of CSS and scripts provided by the W3C.
 
+=== Using Slidy ====
+
 To generate a Slidy presentation from a @(THOT) document named
 ''doc.thot'', just type:
 <code sh>
@@ -707,7 +709,10 @@ In addition, incremental display is also supported:
 displayed incrementally,
   * ''<non-inc>'' disables the incremental display.
 
-The modules is drivent by the following variables:
+
+=== Variables ===
+
+The modules is driven by the following variables:
 
 ? TITLE : title of the presentation,
 ? SUBTITLE : sub-title (displayed just under the title),
@@ -718,6 +723,10 @@ The modules is drivent by the following variables:
 ? COVER_IMAGE : image to display on the cover slide,
 ? ORG_LOGO : to display in the title bar of each slide,
 ? DOC_LOG : to display in the title of each slide.
+? OUTLINE : select the generation of outline page (''top'') or not (''none'')
+
+
+=== Styling ===
 
 Slidy is only delivered with ''w3c-blue'' theme from W3C but we hope to add
 more styles in the future. However, it is very easy to make your own theme
@@ -725,6 +734,16 @@ by customize it (requiring at least that you understand the CSS language):
 (a) copy the file $(THOT_HOME)/slidy/style/w3c-blue.css to another CSS
 file and (b) modify its content. Then pass the absolute path to the
 ''STYLE'' variable described below.
+
+Outlinge generation uses styles to achieve visual effect like transition
+between different parts of the presentation. There is on ''<li>'' 
+for each entry and the used styles are:
+
+^ Style ^ Entry type ^
+| ''header-done'' | performed part |
+| ''header-last'' | ending part |
+| ''header-current'' | starting part |
+| ''header-todo'' | parts not already presented |
 
 
 @include scorm-back.thot

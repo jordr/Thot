@@ -28,11 +28,14 @@ scripts. The following variables are used:
 * DURATION - duration of the presentation to display a time count.
 * ORG_LOGO - logo of organization,
 * DOC_LOGO -- logo of the document.
+* OUTLINE -- none to not generate outline pages, top for outline only 
+  with top-level entries (default).
 """
 
 import backs.abstract_html
 import common
 import doc
+import i18n
 import os
 import os.path
 import re
@@ -97,7 +100,41 @@ class Generator(backs.abstract_html.Generator):
 	def __init__(self, doc):
 		backs.abstract_html.Generator.__init__(self, doc)
 		self.inc = False
-				
+		self.trans = i18n.getTranslator(doc)
+		self.outline = doc.getVar("OUTLINE", "top")
+		self.top_headers = None
+		self.last = None
+
+	def get_top_headers(self):
+		if not self.top_headers:
+			self.top_headers = [n for n in self.doc.content if n.getHeaderLevel() == 0]
+		return self.top_headers
+
+	def gen_outline(self, cur):
+		if self.outline == "none":
+			return
+		if cur.getHeaderLevel() > 0:
+			return
+		
+		self.out.write('\n<div class="slide outline">\n')
+		self.out.write('\t<h1>%s</h1>\n' % self.trans.get(i18n.ID_OUTLINE))
+		self.out.write('\t<ul>\n')
+		
+		cls = "header-done"
+		for h in self.get_top_headers():
+			if h == self.last:
+				cls = "header-last"
+			elif h == cur:
+				cls = "header-current"
+			self.out.write('\t\t<li class="%s">' % cls)
+			h.genTitle(self)
+			self.out.write('</li>\n')
+			if h == cur:
+				cls = "header-todo"
+		self.last = cur
+		
+		self.out.write('\t</ul>\n')
+		self.out.write('</div>\n')
 
 	def run(self):
 		tbase = self.doc.getVar("THOT_BASE")
@@ -109,9 +146,12 @@ class Generator(backs.abstract_html.Generator):
 			if not style:
 				style = "slidy"
 			base = os.path.join(tbase, "slidy")
-			spath = os.path.join("styles", style + ".css")
-			if not os.access(os.path.join(base, spath), os.R_OK):
-				common.onError("cannot find style '%s'" % style)
+			if os.path.isabs(style):
+				spath = style
+			else:
+				spath = os.path.join("styles", style + ".css")
+				if not os.access(os.path.join(base, spath), os.R_OK):
+					common.onError("cannot find style '%s'" % style)
 			opath = os.path.join(base, "blank.html")
 		
 			# add CSS
@@ -169,7 +209,7 @@ class Generator(backs.abstract_html.Generator):
 	def gen_slides(self, env, out):
 		stack = []
 		started = False
-		header = "Introduction"
+		header = self.trans.get(i18n.ID_INTRODUCTION)
 		i = iter(self.doc.content)
 		inc = False
 				
@@ -194,6 +234,7 @@ class Generator(backs.abstract_html.Generator):
 				
 				# header processing
 				if node.getHeaderLevel() >= 0:
+					self.gen_outline(node)
 					stack.append((node, i))
 					if started:
 						if self.inc:
