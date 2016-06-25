@@ -150,7 +150,7 @@ class ExternalBlock(doc.Block):
 	def get_temporary(self):
 		"""Open a temporary file and return an object whose name is the pah and file the file handle.
 		The created file will be cleaned automatically."""
-		t = tempfile.NamedTemporaryFile()
+		t = tempfile.NamedTemporaryFile(suffix = ".txt")
 		self.temps.append(t)
 		return t
 
@@ -164,6 +164,11 @@ class ExternalBlock(doc.Block):
 	def prepare_input(self, gen, opts, input):
 		"""Prepare the input of the external command, modifying either options
 		or the input. Do nothing as a default."""
+		pass
+	
+	def finalize_output(self, gen):
+		"""Called once the command has been launched and if it is successful.
+		Enable the execution of post-pass commands. As a default, do nothgin."""
 		pass
 
 	def run(self, cmd, opts, input):
@@ -200,7 +205,7 @@ class ExternalBlock(doc.Block):
 			i = 0
 			while i < len(self.meta.cmds):
 				res = self.run(self.meta.cmds[i], opts, input)
-				if self.meta.cmd <> None:
+				if res:
 					break
 				else:
 					i = i + 1
@@ -224,6 +229,7 @@ class ExternalBlock(doc.Block):
 		self.make_input(input)
 		self.make_options(opts, input)
 		if self.run_command(opts, input):
+			self.finalize_output(gen)
 			self.gen_output(gen)
 
 	def numbering(self):

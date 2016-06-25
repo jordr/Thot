@@ -329,3 +329,17 @@ A sample of //ditaa// embedding in **THOT**:
         |       Lots of work      |
         +-------------------------+
 </ditaa>
+
+
+====== //PlantUML// Example ======
+
+@use plantuml
+
+This is a diagram in PlantUML:
+<plantuml>
+Class01 <|-- Class02
+Class03 *-- Class04
+Class05 o-- Class06
+Class07 .. Class08
+Class09 -- Class10
+</plantuml>

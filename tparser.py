@@ -145,6 +145,12 @@ class Manager:
 		self.used_mods = []
 		self.factory = factory
 
+	def get_doc(self):
+		return self.doc
+	
+	def get_var(self, id, deflt = ""):
+		return self.doc.getVar(id, deflt)
+
 	def get(self):
 		return self.item
 
