@@ -46,9 +46,12 @@ oparser.add_option("--dump", dest = "dump", action="store_true", default=False,
 	help="only for debugging purpose, dump the database of Thot")
 oparser.add_option("-u", "--use", action="append", dest="uses",
 	help="given module is loaded before the generation.")
+oparser.add_option("--verbose", "-v", dest = "verbose", action="store_true", default=False,
+	help="display verbose messages about the processing")
 
 # Parse arguments
 (options, args) = oparser.parse_args()
+common.IS_VERBOSE = options.verbose
 env["THOT_OUT_TYPE"] = options.out_type
 if not options.out_path:
 	env["THOT_OUT_PATH"] = ""

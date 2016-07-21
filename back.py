@@ -175,6 +175,7 @@ class Generator:
 		returned.
 		path -- path to the file
 		base -- base directory containing the file ('' for CWD files)"""
+		print "DEBUG: path=%s, base=%s" % (path, base)
 
 		# already declared?
 		tpath = self.get_friend(path, base)
@@ -199,6 +200,7 @@ class Generator:
 				tpath = path
 			else:
 				tpath = os.path.join(self.getImportDir(), path)
+		print "DEBUG: tpath=%s, apath=%s" % (tpath, apath)
 
 		# need to load?
 		if tpath <> path:

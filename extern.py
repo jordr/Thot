@@ -174,8 +174,10 @@ class ExternalBlock(doc.Block):
 	def run(self, cmd, opts, input):
 		"""Run the command. Return True for success, False else."""
 		try:
+			cmd = "%s %s" % (cmd, " ".join(opts))
+			common.onVerbose(lambda _: "CMD: %s" % cmd)
 			process = subprocess.Popen(
-					"%s %s" % (cmd, " ".join(opts)),
+					cmd,
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,

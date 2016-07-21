@@ -61,12 +61,32 @@ class CommandException(ThotException):
 		ThotException.__init__(self, msg)
 
 
+IS_VERBOSE = False
+
+def onVerbose(f):
+	"""Invoke and display the result of the given function if verbose
+	mode is activated."""
+	if IS_VERBOSE:
+		sys.stderr.write(f(()))
+		sys.stderr.write("\n")
+
+
+def show_stack():
+	"""Show the stack (for debugging purpose)."""
+	#exc_type, exc_obj, exc_tb = sys.exc_info()
+	#traceback.print_tb(exc_tb)
+	#traceback.print_stack()
+	traceback.print_exc()
+	return ""
+
+
 def onParseError(msg):
 	raise ParseException(msg)
 
 
 def onError(text):
 	"""Display the given error and stop the application."""
+	onVerbose(lambda _: show_stack())
 	sys.stderr.write("ERROR: %s\n" % text)
 	sys.exit(1)
 
@@ -103,8 +123,6 @@ def loadModule(name, path):
 			else:
 				return None
 	except Exception, e:
-		#exc_type, exc_obj, exc_tb = sys.exc_info()
-		#traceback.print_tb(exc_tb)
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
 AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
@@ -167,9 +185,11 @@ def getLinuxDistrib():
 
 
 def onRaise(msg):
+	"""Raise a command error with the given message."""
 	raise CommandError(msg)
 
 def onIgnore(msg):
+	"""Ignore the error."""
 	pass
 
 ERROR_FAIL = onError
@@ -177,7 +197,9 @@ ERROR_RAISE = onRaise
 ERROR_WARN = onWarning
 ERROR_IGNORE = onIgnore
 
+
 class CommandRequirement:
+	"""Implements facilities for test for the existence of a command."""
 	checked = False
 	path = None
 	cmd = None
@@ -248,4 +270,4 @@ def escape_re(str):
 		else:
 			res = res + c
 	return res
-
+	

@@ -19,9 +19,9 @@ import i18n
 import doc
 
 DICT = {
-	i18n.ID_CONTENT 		: "Sommaire"
-	ID_INTRODUCTION			: "Introduction",
-	ID_OUTLINE				: "Plan",
+	i18n.ID_CONTENT 		: "Sommaire",
+	i18n.ID_INTRODUCTION	: "Introduction",
+	i18n.ID_OUTLINE			: "Plan",
 	i18n.CAPTION_TABLE		: "Tableau %s: ",
 	i18n.CAPTION_FIGURE		: "Figure %s: ",
 	i18n.CAPTION_LISTING	: "Listing %s: ",

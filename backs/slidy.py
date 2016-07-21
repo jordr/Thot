@@ -104,6 +104,9 @@ class Generator(backs.abstract_html.Generator):
 		self.outline = doc.getVar("OUTLINE", "top")
 		self.top_headers = None
 		self.last = None
+		self.css = None
+		self.template = None
+		self.rel_css = False
 
 	def get_top_headers(self):
 		if not self.top_headers:
@@ -137,49 +140,47 @@ class Generator(backs.abstract_html.Generator):
 		self.out.write('</div>\n')
 
 	def run(self):
-		tbase = self.doc.getVar("THOT_BASE")
 
 		try:
 		
-			# get the input file
-			style = self.doc.getVar("STYLE")
-			if not style:
-				style = "slidy"
-			base = os.path.join(tbase, "slidy")
-			if os.path.isabs(style):
-				spath = style
-			else:
-				spath = os.path.join("styles", style + ".css")
-				if not os.access(os.path.join(base, spath), os.R_OK):
-					common.onError("cannot find style '%s'" % style)
-			opath = os.path.join(base, "blank.html")
-		
+			# prepare the files to process
+			(base, css) = self.get_css()
+			tpath = self.get_template()
+			tool_base = os.path.join(self.doc.getVar("THOT_BASE"), "slidy")
+			tool_css = os.path.join("styles", "slidy.css")
+	
 			# add CSS
 			self.openMain(".html")
-			css = self.importCSS(spath, base)
-			css2 = self.importCSS(os.path.join("styles", "slidy.css"), base)
+			tool_rel_css = self.importCSS(tool_css, tool_base)
+			if css:
+				print "DEBUG: base=%s, css=%s" % (base, css)
+				self.rel_css = self.importCSS(css, base)
 			
 			# add scripts
 			ipath = self.getImportDir()
-			spath = os.path.join(tbase, "slidy", "scripts")
-			tpath = os.path.join(ipath, "scripts")
-			if not os.path.exists(tpath):
-				shutil.copytree(spath, tpath)
+			spath = os.path.join(tool_base, "scripts")
+			path = os.path.join(ipath, "scripts")
+			if not os.path.exists(path):
+				shutil.copytree(spath, path)
 			
 			# write the output
 			env = dict(self.doc.env)
 			env["IMPORTS"] = ipath
-			env["IMPORTED_STYLE"] = css
+			env["IF_IMPORTED_STYLE"] = self.gen_imported_style
 			env["SLIDES"] = self.gen_slides
 			env["IF_COVER_IMAGE"] = self.gen_cover_image
 			env["IF_DURATION"] = self.gen_duration
 			env["IF_DOC_LOGO"] = self.gen_doc_logo
 			env["IF_ORG_LOGO"] = self.gen_org_logo
 			templater = Templater(env)
-			templater.gen(opath, self.out)
+			templater.gen(tpath, self.out)
 
 		except IOError as e:
 			common.onError("error during generation: %s" % e)
+
+	def gen_imported_style(self, env, out):
+		if self.rel_css:
+			out.write('<link rel="stylesheet" href="%s" type="text/css" />\n' % self.rel_css)
 
 	def gen_doc_logo(self, env, out):
 		try:
@@ -269,6 +270,81 @@ class Generator(backs.abstract_html.Generator):
 		self.out.write('<a name="%s"></a>' % id(header))
 		header.genTitle(self)
 		self.out.write('</h1>\n')
+
+	def get_slide_template(self, name):
+		"""Find a HTML template file for a particular slide type."""
+		(base, css) = self.get_css()
+		path = os.path.join(base, "%s.html" % name)
+		if os.path.exists(path):
+			return path
+		else:
+			return None
+
+	def get_template(self):
+		"""Get the HTML template to generate presentation.
+		It is derived from the CSS."""
+		
+		# already computed?
+		if self.template:
+			return self.template
+		(base, css) = self.get_css()
+		
+		# look in base / template.html
+		if base:
+			path = os.path.join(base, "template.html")
+			if os.path.exists(path):
+				self.template = path
+		
+		# else fallback to default blank
+		if not self.template:
+			self.template = os.path.join(self.doc.getVar("THOT_BASE"), "slidy", "blank.html")
+		
+		# return result
+		return self.template
+	
+
+	def get_css(self):
+		"""Get the CSS style from the current configuration.
+		Return (CSS base, CSS path) or None"""
+
+		# CSS already computed?
+		if self.css:
+			return self.css
+
+		# get STYLE
+		style = self.doc.getVar("STYLE")
+		if not style:
+			return (None, None)
+		
+		# absolute path
+		if os.path.isabs(style):
+			if os.path.isdir(style):
+				self.css = (style, "style.css")
+			else:
+				self.css = (os.path.dirname(style), os.path.basename(style))
+		
+		# in the current directory
+		elif os.path.exists(style):
+			if os.path.isdir(style):
+				self.css = (style, "style.css")
+			else:
+				self.css = (os.path.dirname(style), os.path.basename(style))
+
+		# look in the THOT directory
+		else:
+			base = os.path.join(self.doc.getVar("THOT_BASE"), "slidy")
+			path = os.path.join(base, style)
+			if os.path.isdir(path):
+				self.css = (path, "style.css")
+			else:
+				path = os.path.join(base, "styles", style + ".css")
+				if os.path.exists(path):
+					self.css = (base, os.path.join("styles", style + ".css"))
+				else:
+					common.onError("cannot find style '%s'" % style)
+		
+		# return result
+		return self.css
 
 	def genList(self, list, attrs = ""):
 		if self.inc:

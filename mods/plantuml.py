@@ -42,24 +42,15 @@ class PlantUMLBlock(extern.ExternalBlock):
 			opts.append("-tpng")
 			self.out_path = tmp[:-4] + ".png"
 		opts.append(tmp);
-		#print "DEBUG: temp=%s" % tmp
-		#print "DEBUG:  out=%s" % out
-		#for f in list(glob.glob("/tmp/*")):
-		#	print f
 
 	def finalize_output(self, gen):
 		try:
-			#print "DEBUG:  out=%s" % self.out_path
-			#l = list(glob.glob("/tmp/*"))
-			#l.sort()
-			#for f in l:
-			#	print f
 			shutil.move(self.out_path, self.get_path(gen))
 		except IOError as e:
 			common.onError("plantuml error: %s" % e)
 
 def init(man):
-	my_cmds = ["java java net.sourceforge.plantuml.Run"]
+	my_cmds = ["java net.sourceforge.plantuml.Run"]
 	jar = man.get_var("PLANTUML_JAR")
 	if jar:
 		my_cmds = my_cmds + ["java -jar %s" % jar]		

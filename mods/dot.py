@@ -42,20 +42,25 @@ class DotBlock(doc.Block):
 	def gen(self, gen):
 		global count
 		path = gen.new_friend('dot/graph-%s.png' % count)
+		cmd = '%s -Tpng -o %s' % (self.kind, path)
+		common.onVerbose(lambda _: "CMD: %s" % cmd)
 		count += 1
 		try:
 			process = subprocess.Popen(
-				['%s -Tpng -o %s' % (self.kind, path)],
+				[cmd],
 					stdin = subprocess.PIPE,
 					stdout = subprocess.PIPE,
 					stderr = subprocess.PIPE,
 					close_fds = True,
 					shell = True
 				)
-			(out, err) = process.communicate(self.toText())
+			text = self.toText()
+			(out, err) = process.communicate(text)
 			if process.returncode:
 				sys.stderr.write(err)
-				self.onError('error during dot call')
+				self.onError('error during dot call on %s' % text)
+			if err:
+				self.onError('error during dot call: %son %s' % (err, text))
 			gen.genEmbeddedBegin(self)
 			gen.genImage(path, None, self)
 			gen.genEmbeddedEnd(self)
