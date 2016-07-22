@@ -29,7 +29,6 @@ import common
 import doc as tdoc
 import sys
 
-
 class Generator:
 	"""Abstract back-end generator."""
 	doc = None
@@ -49,7 +48,11 @@ class Generator:
 		self.from_files = { }
 		self.to_files = { }
 		self.added_files = []
+		
+		# new friend system
 		self.friend_reloc = doc.getVar("FRIEND_RELOC", "local")
+		self.friends = []
+		self.friend_map = { }
 
 	def getType(self):
 		"""Get type of the back-end: html, latex, xml."""
@@ -175,7 +178,6 @@ class Generator:
 		returned.
 		path -- path to the file
 		base -- base directory containing the file ('' for CWD files)"""
-		print "DEBUG: path=%s, base=%s" % (path, base)
 
 		# already declared?
 		tpath = self.get_friend(path, base)
@@ -200,7 +202,6 @@ class Generator:
 				tpath = path
 			else:
 				tpath = os.path.join(self.getImportDir(), path)
-		print "DEBUG: tpath=%s, apath=%s" % (tpath, apath)
 
 		# need to load?
 		if tpath <> path:

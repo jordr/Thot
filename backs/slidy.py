@@ -153,7 +153,6 @@ class Generator(backs.abstract_html.Generator):
 			self.openMain(".html")
 			tool_rel_css = self.importCSS(tool_css, tool_base)
 			if css:
-				print "DEBUG: base=%s, css=%s" % (base, css)
 				self.rel_css = self.importCSS(css, base)
 			
 			# add scripts

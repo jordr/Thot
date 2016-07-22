@@ -122,13 +122,11 @@ class Generator(back.Generator):
 			spath = os.path.basename(spath)
 		tpath = self.new_friend(spath)
 		spath = os.path.join(base, spath)
-		print "DEBUG: spath=%s, base=%s, tpath=%s" % (spath, base, tpath)
 
 		# open files
 		input = open(spath)
 		output = open(tpath, "w")
 		rbase = os.path.dirname(spath)
-		print "DEBUG: rbase=%s" % rbase
 
 		# perform the copy
 		for line in input:
@@ -141,9 +139,7 @@ class Generator(back.Generator):
 					output.write(m.group())
 				else:
 					rpath = os.path.relpath(os.path.join(rbase, res[2]), base)
-					print "DEBUG: ress = %s" % rpath
 					rpath = self.use_friend(rpath, base)
-					print "DEBUG: rpath = %s" % rpath
 					output.write("url(%s)" % self.relative_friend(rpath, os.path.dirname(tpath)))
 				line = line[m.end():]
 				m = CSS_URL_RE.search(line)
