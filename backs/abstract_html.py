@@ -58,7 +58,7 @@ STYLES = {
 ESCAPE_MAP = {
 	'<'	: "&lt;",	
 	'>'	: "&gt;",
-	'&'	: "amp,"
+	'&'	: "&amp;"
 }
 def escape(s):
 	r = ""

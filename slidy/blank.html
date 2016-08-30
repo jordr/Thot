@@ -22,11 +22,13 @@
 </div> 
 
 <div class="slide cover title">
-	@(IF_COVER_IMAGE)
-	<h1>@(TITLE)</h1>
-	<p class="subtitle">@(SUBTITLE)</p>
-	<p class="authors">@(AUTHORS)</p>
-	<p class="organization">@(ORGANIZATION)</p>
+	<div class="block">
+		@(IF_COVER_IMAGE)
+		<h1>@(TITLE)</h1>
+		<p class="subtitle">@(SUBTITLE)</p>
+		<p class="authors">@(AUTHORS)</p>
+		<p class="organization">@(ORGANIZATION)</p>
+	</div>
 </div>
 
 @(SLIDES)
