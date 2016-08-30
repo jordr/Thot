@@ -48,10 +48,14 @@ oparser.add_option("-u", "--use", action="append", dest="uses",
 	help="given module is loaded before the generation.")
 oparser.add_option("--verbose", "-v", dest = "verbose", action="store_true", default=False,
 	help="display verbose messages about the processing")
+oparser.add_option("--encoding", "-e", dest="encoding", action="store",
+	type="string", help="select the encoding of the input files (default UTF-8)")
 
 # Parse arguments
 (options, args) = oparser.parse_args()
 common.IS_VERBOSE = options.verbose
+if options.encoding:
+	common.ENCODING = options.encoding
 env["THOT_OUT_TYPE"] = options.out_type
 if not options.out_path:
 	env["THOT_OUT_PATH"] = ""

@@ -62,7 +62,7 @@ ESCAPE_MAP = {
 }
 def escape(s):
 	r = ""
-	for c in s.decode(sys.stdin.encoding):
+	for c in s.decode(common.ENCODING):
 		if ord(c) >= 128:
 			r = r + ("&#%d;" % ord(c))
 		elif ESCAPE_MAP.has_key(c):

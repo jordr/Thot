@@ -31,7 +31,6 @@ class ThotException(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 	
-	
 	def __str__(self):
 		return self.msg
 	
@@ -62,6 +61,8 @@ class CommandException(ThotException):
 
 
 IS_VERBOSE = False
+ENCODING = "UTF-8"
+
 
 def onVerbose(f):
 	"""Invoke and display the result of the given function if verbose
