@@ -370,7 +370,8 @@ class PerSection(PagePolicy):
 
 class PerChapter(PagePolicy):
 	"""This page policy ensures there is one page per chapter."""
-
+	node = None
+	
 	def __init__(self, gen, page):
 		PagePolicy.__init__(self, gen, page)
 
@@ -414,8 +415,6 @@ class PerChapter(PagePolicy):
 			# look in children
 			for item in node.getContent():
 				self.makeRefs(nums, others, item, page)
-
-	node = None
 	
 	def gen_title(self, gen):
 		gen.genTitleText()
@@ -526,7 +525,7 @@ class Generator(backs.abstract_html.Generator):
 	def genBody(self):
 		self.genBodyHeader()
 		self.doc.gen(self)
-		self.genFootNotes()
+		#self.genFootNotes()
 		self.genBodyFooter()
 
 	def genFooter(self):
