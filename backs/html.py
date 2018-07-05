@@ -196,6 +196,10 @@ class PagePolicy:
 		if short_icon:
 			out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
 
+	def get_file(self, node):
+		"""Return the file name containing the given node."""
+		return ""
+
 	
 class AllInOne(PagePolicy):
 	"""Simple page policy doing nothing: only one page."""
@@ -215,7 +219,7 @@ class AllInOne(PagePolicy):
 		num = node.numbering()
 		if num == 'header':
 			r = makeRef(nums)
-			self.gen.refs[node] = ("#%s" % r, r)
+			self.gen.add_ref(node, "#%s" % r, r)
 			nums.append(1)
 			for item in node.getContent():
 				self.makeRefs(nums, others, item)
@@ -233,7 +237,7 @@ class AllInOne(PagePolicy):
 						n = 1
 					else:
 						n = others[num] + 1
-					self.gen.refs[node] = ("#%s-%d" % (num, n), str(n))
+					self.gen.add_ref(node, "#%s-%d" % (num, n), str(n))
 					others[num] = n
 		
 			# look in children
@@ -268,17 +272,23 @@ class PerSection(PagePolicy):
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
 		self.gen.refs = { }
-		self.makeRefs([1], { }, self.gen.doc, 0)
+		self.makeRefs([1], { }, self.gen.doc, -1)
+
+	def page_name(self, page):
+		"""Compute the page name."""
+		if page < 0:
+			return "%s.html" % self.gen.root
+		else:
+			return "%s-%d.html" % (self.gen.root, page)
 
 	def makeRefs(self, nums, others, node, page):
 		"""Traverse the document tree and generate references in the given map."""
-		my_page = page
 		
 		# number for header
 		num = node.numbering()
 		if num == 'header':
 			page = page + 1
-			self.gen.refs[node] = ("%s-%d.html" % (self.gen.root, my_page), ".".join([str(n) for n in nums]))
+			self.gen.add_ref(node, self.page_name(page), makeRef(nums))
 			nums.append(1)
 			for item in node.getContent():
 				page = self.makeRefs(nums, others, item, page)
@@ -296,7 +306,7 @@ class PerSection(PagePolicy):
 				else:
 					n = others[num] + 1
 				r = str(n)
-				self.gen.refs[node] = ("%s-%s#%s-%s" % (self.gen.root, my_page, page, num, r), r)
+				self.gen.add_ref(node, "%s#%s-%s" % (self.page_name(page), num, r), r)
 				others[num] = n
 		
 			# look in children
@@ -352,12 +362,6 @@ class PerSection(PagePolicy):
 		self.gen.doc.pregen(self.gen)
 		self.genRefs()
 
-		# collect chapters
-		#chapters = []
-		#for node in self.gen.doc.getContent():
-		#	if node.getHeaderLevel() == 0:
-		#		chapters.append(node)
-		
 		# generate page
 		self.page.apply(self, self.gen)
 		print "generated %s" % self.gen.path
@@ -378,7 +382,7 @@ class PerChapter(PagePolicy):
 	def genRefs(self):
 		"""Generate and return the references for the given generator."""
 		self.gen.refs = { }
-		self.makeRefs([1], { }, self.gen.doc, '')
+		self.makeRefs([1], { }, self.gen.doc, self.gen.root + ".html")
 
 	def makeRefs(self, nums, others, node, page):
 		"""Traverse the document tree and generate references in the given map."""
@@ -388,10 +392,10 @@ class PerChapter(PagePolicy):
 		if num == 'header':
 			if node.header_level == 0:
 				page = "%s-%d.html" % (self.gen.root, nums[0] - 1)
-				self.gen.refs[node] = ("%s" % page, str(nums[0]))
+				self.gen.add_ref(node, page, str(nums[0]))
 			else:
 				r = makeRef(nums)
-				self.gen.refs[node] = ("%s#%s" % (page, r), r)
+				self.gen.add_ref(node, "%s#%s" % (page, r), r)
 			nums.append(1)
 			for item in node.getContent():
 				self.makeRefs(nums, others, item, page)
@@ -409,7 +413,7 @@ class PerChapter(PagePolicy):
 				else:
 					n = others[num] + 1
 				r = str(n)
-				self.gen.refs[node] = ("%s#%s-%s" % (page, num, r), r)
+				self.gen.add_ref(node, "%s#%s-%s" % (page, num, r), r)
 				others[num] = n
 		
 			# look in children
@@ -535,8 +539,8 @@ class Generator(backs.abstract_html.Generator):
 
 	def genContentEntry(self, node, indent):
 		"""Generate a content entry (including numbering, title and link)."""
-		self.out.write('%s<a href="%s">' % (indent, self.refs[node][0]))
-		self.out.write(self.refs[node][1])
+		self.out.write('%s<a href="%s">' % (indent, self.get_href(node)))
+		self.out.write(self.get_number(node))
 		self.out.write(' ')
 		node.genTitle(self)
 		self.out.write('</a>\n')

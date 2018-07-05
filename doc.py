@@ -106,7 +106,7 @@ LIST_NUMBER = "ol"
 
 
 # external optional information
-#	Back-end are free or not the information attributes.
+#	Back-end are free to use the information attributes.
 INFO_CLASS = "thot:class"				# string (class in CSS)
 INFO_CSS = "thot:css"					# string (CSS code)
 INFO_ALIGN = "thot:align"				# one of ALIGN_LEFT, ALIGN_CENTER or ALIGN_RIGHT
@@ -249,7 +249,7 @@ class Info:
 	def appendInfo(self, id, val):
 		"""Append the given value to identifier with identifier processed as a list."""
 		if not self.info:
-			return None
+			self.info = { }
 		try:
 			self.info[id].append(val)
 		except KeyError:
@@ -423,7 +423,7 @@ class Word(Node):
 		self.text = text
 
 	def dump(self, tab):
-		print(tab + self)
+		print("%s%s" % (tab, self))
 
 	def gen(self, gen):
 		gen.genText(self.text)
@@ -470,9 +470,15 @@ class Image(Node):
 		if height:
 			self.setInfo(INFO_HEIGHT, height)
 
+	def get_width(self):
+		return self.getInfo(INFO_WIDTH)
+	
+	def get_height(self):
+		return self.getInfo(INFO_HEIGHT)
+
 	def dump(self, tab):
 		print "%simage(%s, %s, %s, %s)" % \
-			(tab, self.path, str(self.width), str(self.height), self.caption)
+			(tab, self.path, self.get_width(), self.get_height(), self.caption)
 
 	def gen(self, gen):
 		gen.genImage(self.path, node = self, caption = self.caption)

@@ -235,6 +235,33 @@ class Generator(back.Generator):
 	def genText(self, text):
 		self.out.write(escape(text))
 
+	def genRaw(self, text):
+		"""Generate raw text."""
+		self.out.write(text)
+
+	def genOpenTag(self, tag, node = None, attrs = []):
+		"""Generate an opening tag using the information attributes of the
+		given node."""
+		self.out.write("<%s" % tag)
+		if node:
+			cls = node.getInfo(doc.INFO_CLASS)
+			if cls:
+				self.out.write(" class=\"%s\"" % " ".join(cls))
+			css = node.getInfo(doc.INFO_CSS)
+			if css:
+				self.out.write(" style=\"%s\"" % css)
+			lang = node.getInfo(doc.INFO_LANG)
+			if css:
+				self.out.write(" lang=\"%s\"" % lang)
+		if attrs:
+			self.out.write(" ")
+			self.out.write(" ".join(["%s=\"%s\"" % p for p in attrs]))
+		self.out.write(">")
+
+	def genCloseTag(self, tag):
+		"""Generate a closing tag."""
+		self.out.write("</%s>" % tag)
+
 	def genParBegin(self):
 		self.out.write('<p>\n')
 
@@ -371,3 +398,16 @@ class Generator(back.Generator):
 		else:
 			r = self.refs[node]
 			self.out.write("<a href=\"%s\">%s</a>" % (r[0], r[1]))
+
+	def add_ref(self, node, anchor, number = ""):
+		"""Add a new reference to the given node represented by
+		the given anchor, possibly a number."""
+		self.refs[node] = (anchor, number)
+	
+	def get_href(self, node):
+		"""Get the hypertext reference corresponding to the given node."""
+		return self.refs[node][0]
+
+	def get_number(self, node):
+		"""Get the reference number corresponding to the given node."""
+		return self.refs[node][1]
