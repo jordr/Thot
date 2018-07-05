@@ -208,6 +208,9 @@ class Manager:
 		self.line_num = prev_line
 		self.file_name = prev_file
 
+	def reparse(self, str):
+		self.parser.parse(self, str)
+
 	def parse(self, file, name = '<unknown>'):
 		try:
 			self.parseInternal(file, name)

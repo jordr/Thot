@@ -334,7 +334,7 @@ class PerSection(PagePolicy):
 			gen.genContent(self.path, 100)
 		
 	def gen_content(self, gen):
-		if not self.path:		
+		if not self.path:
 			for node in self.gen.doc.getContent():
 				if node.getHeaderLevel() <> 0:
 					node.gen(gen)
@@ -430,7 +430,9 @@ class PerChapter(PagePolicy):
 		
 	def gen_content(self, gen):
 		if not self.node:		
-			pass
+			for node in self.gen.doc.getContent():
+				if node.getHeaderLevel() <> 0:
+					node.gen(gen)
 		else:
 			self.node.gen(self.gen)
 

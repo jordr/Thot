@@ -81,7 +81,7 @@ def handleDot(man, match):
 	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE)
 
 def handleDotOld(man, match):
-	common.onDeprecated("@<dot> form is now deprecared. Use <dot> instead.")
+	common.onDeprecated("@<dot> form is now deprecated. Use <dot> instead.")
 	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE_OLD)
 
 DOT_LINE = (handleDot, re.compile("^<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
