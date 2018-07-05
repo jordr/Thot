@@ -264,6 +264,12 @@ class Manager:
 		if mod:
 			self.used_mods.append(mod)
 			mod.init(self)
+			if mod.__dict__.has_key("__lines__"):
+				for line in mod.__lines__:
+					self.addLine((line[0], re.compile(line[1])))
+			if mod.__dict__.has_key("__words__"):
+				for word in mod.__words__:
+					self.addWord((word[0], word[1]))
 		else:
 			common.onError('cannot load module %s' % name)
 

@@ -88,6 +88,7 @@ class Term(doc.Word):
 	
 	def __init__(self, text):
 		doc.Word.__init__(self, text)
+		self.appendInfo(doc.INFO_CLASS, "lexicon")
 
 	def gen_html(self, gen):
 		node = gen.doc.getLabel(label(self.text))
@@ -121,10 +122,6 @@ def handleParent(man, match):
 	else:
 		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, Term(id)))
 
-DOUBLE_WORD = (handleDouble, "##")
-SHARP_WORD = (handleSharp, "#(?P<term>[^#\s]+)")
-PARENT_WORD = (handleParent, "#\((?P<pterm>[^)\s]+)\)")
-
 def handleTerm(man, match):
 	
 	# record the term
@@ -140,21 +137,45 @@ def handleTerm(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, term))
 	man.reparse(de)
 
-
-TERM_LINE = (handleTerm, re.compile("^@term\s+(?P<termid>\S+)\s+(?P<termdef>.*)$"))
-
 def handleLexicon(man, match):
 	if match.group("garbage"):
 		common.onWarning(man.message("garbage after lexicon!"))
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Lexicon(man.lexicon)))
 	#man.pop()
 
-LEXICON_LINE = (handleLexicon, re.compile("^@lexicon\s*(?P<garbage>.*)$"))
-
 def init(man):
 	man.lexicon = { }
-	man.addWord(DOUBLE_WORD)
-	man.addWord(PARENT_WORD)
-	man.addWord(SHARP_WORD)
-	man.addLine(TERM_LINE)
-	man.addLine(LEXICON_LINE)
+
+__description__ = """
+Provides a way to generate lexicon of terms and back link to definitions.
+"""
+
+__words__ = [
+	(handleDouble,
+		"##",
+		"generate a single #"),
+	(handleParent,
+		"#\((?P<pterm>[^)\s]+)\)",
+		"generate a back link to the definition of word"),
+	(handleSharp,
+		"#(?P<term>[^#\s]+)",
+		"generate a back link to the definition of word")
+]
+
+__lines__ = [
+	(handleLexicon,
+		"^@lexicon\s*(?P<garbage>.*)$",
+		"generate the lexicon at this point"),
+	(handleTerm,
+		"^@term\s+(?P<termid>\S+)\s+(?P<termdef>.*)$",
+		"create a new term and its definition")
+]
+
+__html__ = [
+	("<div class=\"lexicon\"> ... </a>",
+		"generated lexicon"),
+	("<div> <a ...> term </a> description </div>",
+		"around a term in lexicon and its definition"),
+	("<a class=\"lexicon\"> term </a>",
+		"around a referenced term")
+]

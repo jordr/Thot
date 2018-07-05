@@ -24,6 +24,21 @@ import optparse
 import datetime
 import os.path
 import common
+import re
+
+arg_re = re.compile("\(\?P<([a-zA-Z_0-9]+)>(%s|%s)*\)" %
+	("[^)[]", "\[[^\]]*\]"))
+def prepare_syntax(t):
+	"""Prepare a regular expression to be displayed to human user."""
+	t = arg_re.sub('/\\1/', t)
+	t = t.replace("\\s+", " ")
+	t = t.replace("\\s*", " ")
+	t = t.replace("\\s", " ")
+	t = t.replace("\(", "(")
+	t = t.replace("\)", ")")
+	t = t.replace("^", "")
+	t = t.replace("$", "")
+	return t
 
 # Prepare environment
 env = { } # os.environ.copy()
@@ -50,6 +65,13 @@ oparser.add_option("--verbose", "-v", dest = "verbose", action="store_true", def
 	help="display verbose messages about the processing")
 oparser.add_option("--encoding", "-e", dest="encoding", action="store",
 	type="string", help="select the encoding of the input files (default UTF-8)")
+oparser.add_option("--list-mods", dest = "list_mods", action="store_true", default=False,
+	help="list used modules")
+oparser.add_option("--list-syntax", dest = "list_syntax", action="store_true", default=False,
+	help="list available syntax in the document")
+oparser.add_option("--list-output", action="store", dest="list_output",
+	help="list all generation output for the current modules")
+
 
 # Parse arguments
 (options, args) = oparser.parse_args()
@@ -91,9 +113,43 @@ if options.uses:
 	for u in options.uses:
 		man.use(u)
 man.parse(input, env['THOT_FILE'])
+
+# dump the parsed document
 if options.dump:
 	document.dump("")
+	sys.exit(0)
 
+# list the involved modules
+elif options.list_mods:
+	print "Used modules:"
+	for mod in man.used_mods:
+		print "- %s" % mod.__name__
+	sys.exit(0)
+
+# list the syntax
+elif options.list_syntax:
+	print "Available syntax:"
+	for mod in man.used_mods:
+		print "- %s" % mod.__name__
+		if mod.__dict__.has_key("__words__"):
+			for (_, word, desc) in mod.__words__:
+				print "\t%s: %s" % (prepare_syntax(word), desc)
+		if mod.__dict__.has_key("__lines__"):
+			for (_, line, desc) in mod.__lines__:
+				print "\t%s:\n\t\t%s" % (prepare_syntax(line), desc)	
+	sys.exit(0)
+
+# list outputs
+elif options.list_output:
+	print "Available outputs:"
+	for mod in man.used_mods:
+		print "- %s" % mod.__name__
+		name = "__%s__" % options.list_output
+		if mod.__dict__.has_key(name):
+			for (form, desc) in mod.__dict__[name]:
+				print "\t%s\n\t\t%s" % (form, desc)
+			
 # Output the result
-out_driver.output(document)
+else:
+	out_driver.output(document)
 
