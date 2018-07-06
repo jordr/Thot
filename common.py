@@ -110,19 +110,19 @@ def onDeprecated(msg):
 		DEPRECATED.append(msg)
 
 
-def loadModule(name, path):
-	"""Load a module by its name and its path
+def loadModule(name, paths):
+	"""Load a module by its name and a collection of paths to look in
 	and return its object."""
-	path = os.path.join(path, name + ".py")
 	try:
-		if os.path.exists(path):
-			return imp.load_source(name, path)
-		else:
-			path = path + "c"
+		for path in paths.split(":"):
+			path = os.path.join(path, name + ".py")
 			if os.path.exists(path):
-				return imp.load_compiled(name, path)
+				return imp.load_source(name, path)
 			else:
-				return None
+				path = path + "c"
+				if os.path.exists(path):
+					return imp.load_compiled(name, path)
+		return None
 	except Exception, e:
 		onError("cannot open module '%s': %s" % (path, str(e)))
 

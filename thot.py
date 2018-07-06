@@ -25,6 +25,7 @@ import datetime
 import os.path
 import common
 import re
+import glob
 
 arg_re = re.compile("\(\?P<([a-zA-Z_0-9]+)>(%s|%s)*\)" %
 	("[^)[]", "\[[^\]]*\]"))
@@ -71,6 +72,10 @@ oparser.add_option("--list-syntax", dest = "list_syntax", action="store_true", d
 	help="list available syntax in the document")
 oparser.add_option("--list-output", action="store", dest="list_output",
 	help="list all generation output for the current modules")
+oparser.add_option("--list-mod", action="store", dest="list_mod",
+	help="list the content of a module")
+oparser.add_option("--list-avail", dest = "list_avail", action="store_true", default=False,
+	help="list available modules")
 
 
 # Parse arguments
@@ -123,7 +128,23 @@ if options.dump:
 elif options.list_mods:
 	print "Used modules:"
 	for mod in man.used_mods:
-		print "- %s" % mod.__name__
+		desc = ""
+		if mod.__dict__.has_key("__short__"):
+			desc = " (%s)" % mod.__short__
+		print "- %s%s" % (mod.__name__, desc)
+	sys.exit(0)
+
+# list available modules
+elif options.list_avail:
+	print "Available modules:"
+	paths = document.getVar("THOT_USE_PATH")
+	names = set([os.path.splitext(file)[0] for path in paths.split(":") for file in os.listdir(path) if os.path.splitext(file)[1] in { ".py", ".pyc" }])
+	for name in names:
+		mod = common.loadModule(name, paths)
+		desc = ""
+		if mod.__dict__.has_key("__short__"):
+			desc = " (%s)" % mod.__short__
+		print "- %s%s" % (name, desc)
 	sys.exit(0)
 
 # list the syntax
@@ -148,7 +169,41 @@ elif options.list_output:
 		if mod.__dict__.has_key(name):
 			for (form, desc) in mod.__dict__[name]:
 				print "\t%s\n\t\t%s" % (form, desc)
-			
+	sys.exit(0)
+
+# list a module
+elif options.list_mod:
+	paths = document.getVar("THOT_USE_PATH")
+	mod = common.loadModule(options.list_mod, paths)
+	if not mod:
+		common.onError("no module named %s" % options.list_mod)
+		sys.exit(1)
+	short = ""
+	if mod.__dict__.has_key("__short__"):
+		short = " (%s)" % mod.__short__
+	print "Module: %s%s" % (options.list_mod, short)
+	if mod.__dict__.has_key("__description__"):
+		print "\n%s\n" % mod.__description__
+	if mod.__dict__.has_key("__words__") or mod.__dict__.has_key("__lines__"):
+		print "\nSyntax:"
+		if mod.__dict__.has_key("__words__"):
+			for (_, word, desc) in mod.__words__:
+				print "\t%s: %s" % (prepare_syntax(word), desc)
+		if mod.__dict__.has_key("__lines__"):
+			for (_, line, desc) in mod.__lines__:
+				print "\t%s:\n\t\t%s" % (prepare_syntax(line), desc)	
+		has_output = False
+		for out in ["html", "latex", "docbook"]:
+			name = "__%s__" % out
+			if mod.__dict__.has_key(name):
+				if not has_output:
+					has_output = True
+					print "\nOutput:"
+				print "\t%s:" % out
+				for (form, desc) in mod.__dict__[name]:
+					print "\t%s\n\t\t%s" % (form, desc)
+	sys.exit(0)
+
 # Output the result
 else:
 	out_driver.output(document)

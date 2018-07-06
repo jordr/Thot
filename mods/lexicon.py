@@ -146,9 +146,9 @@ def handleLexicon(man, match):
 def init(man):
 	man.lexicon = { }
 
-__description__ = """
-Provides a way to generate lexicon of terms and back link to definitions.
-"""
+__short__ = """Generation lexicon of terms and back link to definitions."""
+__description__ = __short__
+__version__ = "1.0"
 
 __words__ = [
 	(handleDouble,
