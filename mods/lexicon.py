@@ -103,64 +103,57 @@ class Term(doc.Word):
 			common.onWarning("lexicon term cannot be generated for %s" % gen.getType())
 
 
-def handleDouble(man, match):
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word("#")))
+class Source:
+	
+	def __init__(self):
+		self.lexicon = { }
 
-def handleSharp(man, match):
-	id = match.group("term")
-	if not man.lexicon.has_key(id):
-		common.onWarning(man.message("unknown term '%s'" % id))
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(id)))
-	else:
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, Term(id)))
+	def resolve(self, id):
+		if not self.lexicon.has_key(id):
+			return Nonee
+		else:
+			return Term(id)
 
-def handleParent(man, match):
-	id = match.group("pterm")
-	if not man.lexicon.has_key(id):
-		common.onWarning(man.message("unknown term '%s'" % id))
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(id)))
-	else:
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, Term(id)))
+	def exists(self, id):
+		"""Test if an identifier exists."""
+		return self.lexicon.has_key(id)
+
+	def add(self, id, desc):
+		"""Add a new term."""
+		self.lexicon[id] = desc 
+		
 
 def handleTerm(man, match):
 	
 	# record the term
 	id = match.group("termid")
 	de = match.group("termdef")
-	if man.lexicon.has_key(id):
+	if man.lexicon.exists(id):
 		common.onError(man.message("term \"%s\" already defined!" % id))
+		return
 	term = LexPar(id)
-	man.lexicon[id] = term
+	man.lexicon.add(id, term)
 	
 	# finalize the parsing
 	man.doc.addLabel(label(id), term)
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, term))
 	man.reparse(de)
 
+
 def handleLexicon(man, match):
 	if match.group("garbage"):
 		common.onWarning(man.message("garbage after lexicon!"))
-	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Lexicon(man.lexicon)))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW, Lexicon(man.lexicon.lexicon)))
 	#man.pop()
 
 def init(man):
-	man.lexicon = { }
+	src = Source()
+	man.lexicon = src
+	man.doc.add_hash_source(src)
 
 __short__ = """Generation lexicon of terms and back link to definitions."""
 __description__ = __short__
 __version__ = "1.0"
-
-__words__ = [
-	(handleDouble,
-		"##",
-		"generate a single #"),
-	(handleParent,
-		"#\((?P<pterm>[^)\s]+)\)",
-		"generate a back link to the definition of word"),
-	(handleSharp,
-		"#(?P<term>[^#\s]+)",
-		"generate a back link to the definition of word")
-]
 
 __lines__ = [
 	(handleLexicon,

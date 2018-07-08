@@ -11,7 +11,7 @@
 
 The lexicon allows to have a collection of terms and their definition
 and to automatically link back to the description from any point
-of the document using the term.
+of the document using the #term.
 
 ===== Terms used in this document =====
 
@@ -26,4 +26,4 @@ This chaper corresponds to a #(lexicon). A #lexicon contains #(term)s.
 
 ===== Second chapter =====
 
-In the second chapter, we talk about a #(term).
+In the second chapter, we talk about a #term.

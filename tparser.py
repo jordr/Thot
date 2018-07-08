@@ -17,9 +17,28 @@ def handleVar(man, match):
 def handleRef(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, man.factory.makeRef(match.group("ref"))))
 
+def handleDouble(man, match):
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word("#")))
+
+def handleSharp(man, match):
+	res = man.doc.resolve_hash(match.group("term"))
+	if res == None:
+		res = doc.Word(id)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, res))
+
+def handleParent(man, match):
+	res = man.doc.resolve_hash(match.group("pterm"))
+	if res == None:
+		res = doc.Word(id)
+	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, res))
+
+
 INITIAL_WORDS = [
-	(handleVar, doc.VAR_RE),
-	(handleRef, "@ref:(?P<ref>[^@]+)@")
+	(handleVar,		doc.VAR_RE),
+	(handleRef, 	"@ref:(?P<ref>[^@]+)@"),
+	(handleDouble,	"##"), 						# "generate a single #"
+	(handleParent,	"#\((?P<pterm>[^)\s]+)\)"),	# "generate a back link to the definition of word"),
+	(handleSharp,	"#(?P<term>\w+)")			# "generate a back link to the definition of word")
 ]
 
 def handleText(man, line, suffix = ' '):

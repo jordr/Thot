@@ -1152,6 +1152,16 @@ class Feature:
 		pass
 
 
+class HashSource:
+	"""A hash source provides a way to resolve hash word, prefixed by '#'."""
+	
+	def resolve(self, word):
+		"""This function is called to resolve an hash word. If the word is
+		not known by the source, a None is returned. Else a document word
+		must be returned."""
+		return None
+	
+
 class Document(Container):
 	"""This is the top object of the document, containing the headings
 	and also the configuration environment."""
@@ -1159,12 +1169,16 @@ class Document(Container):
 	features = None
 	labels = { }
 	inv_labels = { }
+	hashes = None
+	hash_srcs = None
 
 	def __init__(self, env):
 		Container.__init__(self)
 		self.env = env
 		self.features = []
-
+		self.hashes = { }
+		self.hash_srcs = []
+	
 	def onEvent(self, man, event):
 		if event.level is L_WORD:
 			self.add(man, Par())
@@ -1232,7 +1246,29 @@ class Document(Container):
 			return None
 
 	def visit(self, visitor):
+		"""Visit the content of a document using the visitor interface."""
 		visitor.onDocument(self)
+	
+	def add_hash_source(self, src):
+		"""Add an hash source (involved in the #WORD resolution).
+		Several modules can add their own hash definitions. The src
+		must implement the HashSource class."""
+		self.hash_srcs.append(src)
+	
+	def resolve_hash(self, word):
+		"""Try to resolve an hash word. If the word is known or provided
+		by an hash source, it is returned. Else warning is displayed
+		and None is returned."""
+		try:
+			return self.hashes[word]
+		except KeyError:
+			for src in self.hash_srcs:
+				res = src.resolve(word)
+				if res <> None:
+					self.hashes[word] = res
+					return res
+			common.onWarning(man.message("#%s is unknown!" % word))
+			return None
 
 
 class Visitor:
