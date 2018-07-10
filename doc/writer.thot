@@ -98,13 +98,14 @@ The table shows all variables that may be provided to @(THOT):
 The variable below are provided by @(THOT) but must not be changed
 (unless you know exactly what you do):
 ^ Variable ^Content ^
-| ''THOT_BASE'' |Base directory of @(THOT)((It may be used to retrieve resources provided by @(THOT) like CSS stylesheets.)). |
-| ''THOT_DATE'' |Current date. |
-| ''THOT_FILE'' |Start file containing the @(THOT) text (as passed in command line). |
+| ''THOT_BASE''     |Base directory of @(THOT)((It may be used to retrieve resources provided by @(THOT) like CSS stylesheets.)). |
+| ''THOT_DATE''     |Current date. |
+| ''THOT_DOC_DIR''  |Directory containing the .thot document |
+| ''THOT_FILE''     |Start file containing the @(THOT) text (as passed in command line). |
 | ''THOT_OUT_PATH'' |Path of the file to generate (as passed to ''-o'' option). |
 | ''THOT_OUT_TYPE'' |Type of output back-end (as passed to ''-t'' option). |
 | ''THOT_USE_PATH'' |Colon-separated list of directory containing modules. |
-| ''THOT_VERSION'' |Current version of @(THOT) |
+| ''THOT_VERSION''  |Current version of @(THOT) |
 
 There exist other variables according to used modules or back-end
 that may be found in their documentation.
@@ -218,7 +219,7 @@ also be structured as an identifier, following an ''='' sign and
 followed by the value itself.
 
 In the example below, the //aafig// block accepts two arguments:
-  * ''foreground'' whose value is ''#ff0000'',
+  * ''foreground'' whose value is ''##ff0000'',
   * ''proportional'' whose value is ''off''.
 
 <code>
@@ -226,6 +227,26 @@ In the example below, the //aafig// block accepts two arguments:
 ...
 </aafig>
 </code>
+
+
+==== Hashed Words ====
+
+@(THOT) manages a list of term and their definition. To use this term
+and a reference to the corresponding definition, one has to use the
+following syntaxes:
+<code>
+#WORD
+#(WORD)
+</code>
+
+The first form takes a //WORD// made only of word characters depending
+on the current locale. The second form takes //WORD// made of any character
+except a closing parenthesis. If you want to have a single ''##'', just
+double it, ''####'''.
+
+The //WORD// is generated as is in the text but it will also carry a link
+to its definition. @(THOT) supports different definition provides.
+Currently, modules ''lexicon'' and ''doxygen'' can provide definitions.
 
 
 
@@ -238,12 +259,34 @@ The ''thot'' command supports the syntax below:
 
 The //MAIN_FILE// is @(THOT) file matching the syntax described in
 this chapter. The //OPTIONS// are described below:
-  * ''-h'', ''--help'': display the help of the command ;
-  * ''-o'', ''--out'' //FILE//: select the output file ;
-  * ''-D'', ''--define'' //NAME//''=''//VALUE'': defines a variable with its value ;
-  * ''-t'', ''--type'' //TYPE//: define the type of chosen back-end
-(default value ''html'', or one of ''docbook'' and ''latex'') ;
+  * ''-D'', ''--define'' //NAME//''=''//VALUE'': defines a variable with its value.
+  * ''--dump'': dump the internal data structure of the document (only for debugging purpose).
+  * ''-h'', ''--help'': display the help of the command.
+  * ''--list-avail'': list available module in the current installation of @(THOT).
+  * ''--list-mod'' //MODULE//: list the content of a module (description and syntax).
+  * ''--list-mods'': list the module used in the current document.
+  * ''--list-output'': list the available back-ends.
+  * ''--list-syntax'': list the syntax of the document (useful as a reminder).
+  * ''-o'', ''--out'' //FILE//: select the output file.
+  * ''-t'', ''--type'' //TYPE//: define the type of chosen back-end.
+(default value ''html'', or one of ''docbook'' and ''latex'').
   * ''-u'', ''--use'' //MODULE//: load the given module before generation.
+  * ''-v'', ''--verbose'': displays details about the document generation.
+
+A very frequent way to invoke @(THOT) is:
+<code bash>
+thot.py -o TYPE FILE.thot
+</code>
+where //TYPE// is the type of ouput (one of ''html'', ''latex'' or ''docbook'')
+and //FILE//''.thot'' is the file containing the text.
+
+To recall the syntax, it may be also useful to use the command:
+<code bash>
+thot.py FILE.thot --list-syntax
+</code>
+that will display the list of available special syntaxes supported in the
+document.
+
 
 
 ===== Modules =====
@@ -333,12 +376,12 @@ Currently, @(THOT) only implements 80% of the textile tags but we hope to reach 
   * ''.clear''
   * ''.dl'' with style
   * ''.pre..''
-  * ''###..''
+  * ''######..''
   * ''.notextile..''
   * style + ''*''
-  * style + ''#*''
-  * style + ''#n''
-  * style + ''#_''
+  * style + ''##*''
+  * style + ''##n''
+  * style + ''##_''
   * style + '';''
   * style + ''-''
   * table header
@@ -502,9 +545,9 @@ options:
 | aspect | ... |
 | linewidth | real |
 | proportional | yes/no |
-| foreground | #RRGGBB |
-| fill | #RRGGBB |
-| background | #RRGGBB |
+| foreground | ##RRGGBB |
+| fill | ##RRGGBB |
+| background | ##RRGGBB |
 | option | ... |
 
 If ''aafigure'' command is available, the example above will give:
@@ -518,14 +561,92 @@ If ''aafigure'' command is available, the example above will give:
 
 
 
+==== Lexicon Module ====
 
+In conjunction with the hashed support, this module allows to have
+a collection of terms and their definition and to quickly have back
+links to retrieve the definition from the use of the term in the text.
 
+A term is easily definition with the syntax:
+<code>
+@term ID DEF
+</code>
+Where //ID// is the defined term and //DEF// its definition.
 
+In the text, any reference to //ID// through an hashed word, ''#''//ID//
+will be enclosed in a reference to the document part containing the definition
+//DEF//.
 
+To generate the lexicon (collection of all terms and definitions), one
+has to include the following command at a dedicated place:
+<code>
+@lexicon
+</code>
 
+The lexicon may be put anywhere in the text.
 
+==== Doxygen Module ====
 
+[[http://www.doxygen.org/|Doxygen]] is utility to generate automatic
+documentation for several programming languages like C, C++, etc. In
+technical documentation, it may handy to provide access to this automatic
+documentation and in an easy way. This module provides such a reference
+using the hashed words.
 
+If you provide (with the syntax below), a
+[[http://www.stack.nl/~dimitri/doxygen/manual/config.html#config_external|Doxygen tag file]]
+containing references to programming languages entities, you can use
+an term with the name of the entity.
+<code>
+@doxy-use(OPTIONS) TAGFILE
+</code>
+Where //TAGFILE// is the file containing the Doxygen references and
+//OPTIONS// is a comma-separated list containing:
+  * ''sep=''//TEXT//: Doxygen does not provide any information about the language
+and this option allow to specif the separator between programming language
+entities and their members.
+  * ''ref=''//REF//: as the Doxygen documentation may be at a different place
+than the directory containing the //TAGFILE//, this parameter will be prepended
+to the relative references of the entities.
+
+After this command, a reference to the documentation is easily obtained with:
+<code>
+#ENTITY
+</code>
+Or
+<code>
+#(ENTITY)
+</code>
+
+With the STL library, the following command can be written:
+<code>
+Character strings are supported using #(std::string) class.
+</code>
+
+With some languages like C++ or Java that support the concept of namespace
+or package, it may be boring to specify the full pathto an entity. To prevent
+this, the ''@prefix'' command allow to add a new prefix looked up to found
+a Doxygen entity:
+<code>
+@doxy-prefix PREFIX
+</code>
+
+The example above can be rewritten with:
+<code>
+@doxy-prefix std::
+
+Character strings are supported using #string class.
+</code>
+
+Several prefixes can be specified but at some point of the program,
+some may be removed:
+<code>
+@doxy-remove PREFIX
+</code>
+
+If the same entity is found with different prefixes, this module will
+complain and a random entity will be used. The faulty term can easily
+be replaced by a full path name.
 
 
 ===== Back-ends =====

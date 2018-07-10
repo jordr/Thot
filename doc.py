@@ -376,6 +376,10 @@ class Container(Node):
 			self.content.append(item)
 			man.push(item)
 
+	def append(self, item):
+		"""Add child without refering to the parsing."""
+		self.content.append(item)
+
 	def last(self):
 		return self.content[-1]
 
@@ -1267,7 +1271,6 @@ class Document(Container):
 				if res <> None:
 					self.hashes[word] = res
 					return res
-			common.onWarning(man.message("#%s is unknown!" % word))
 			return None
 
 

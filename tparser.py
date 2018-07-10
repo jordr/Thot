@@ -20,17 +20,19 @@ def handleRef(man, match):
 def handleDouble(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word("#")))
 
-def handleSharp(man, match):
-	res = man.doc.resolve_hash(match.group("term"))
+def handle_term(man, word):
+	"""Handle a hashed word."""
+	res = man.doc.resolve_hash(word)
 	if res == None:
-		res = doc.Word(id)
+		man.warn("hash term '#%s' is unknown!" % word)
+		res = doc.Word(word)
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, res))
 
+def handleSharp(man, match):
+	handle_term(man, match.group("term"))
+
 def handleParent(man, match):
-	res = man.doc.resolve_hash(match.group("pterm"))
-	if res == None:
-		res = doc.Word(id)
-	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, res))
+	handle_term(man, match.group("pterm"))
 
 
 INITIAL_WORDS = [

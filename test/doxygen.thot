@@ -6,7 +6,7 @@
 @use dokuwiki
 @use doxygen
 
-@doxy-use(sep=::,ref=.) boardsim.tag
+@doxy-use(sep=::,ref=.) @(THOT_DOC_DIR)/boardsim.tag
 
 The doxygen module allow to create links to a Doxygen documentation. As
 Doxygen does not specify the the type of connector between namespace
@@ -23,3 +23,5 @@ to look for.
 @doxy-prefix bsim::
 
 And now, you don't have to specify the full name: #BoardView.
+
+But the usual notation is still working: #(bsim::AbstractRegisterNode).

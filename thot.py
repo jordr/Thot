@@ -91,9 +91,13 @@ else:
 if args == []:
 	input = sys.__stdin__
 	env["THOT_FILE"] = "<stdin>"
+	env["THOT_DOC_DIR"] = "."
 else:
 	input = file(args[0])
 	env["THOT_FILE"] = args[0]
+	env["THOT_DOC_DIR"] = os.path.dirname(args[0])
+	if not env["THOT_DOC_DIR"]:
+		env["THOT_DOC_DIR"] = "."
 if options.defines:
 	for d in options.defines:
 		p = d.find('=')

@@ -271,4 +271,41 @@ def escape_re(str):
 		else:
 			res = res + c
 	return res
+
+class Options:
+	"""Contains a collection of options and behaves as a dictionary,
+	except that, if some symbol is not defined, returns an empty string.
+	It may also defined with accepted identifier s and default values.
+	Any value that is not in the original definition list is warned."""
+	
+	def __init__(self, man, defs):
+		self.man = man
+		self.map = { }
+		for (id, val) in defs:
+			self.map[id] = val
+
+	def parse(self, options):
+		"""Parse the given set of options."""
+		if options:
+			for opt in options.split(","):
+				p = opt.find("=")
+				if p < 0:
+					self.man.warn("bad option: '%s" % opt)
+					continue
+				id = opt[:p]
+				val = opt[p+1:]
+				if not self.map.has_key(id):
+					self.man.warn("unknown option '%s'" % opt)
+				else:
+					self.map[id] = val
+
+	def __getitem__(self, key):
+		return self.map[key]
+
+def parse_options(man, text, defs):
+	"""Parse the given text for options given un defs and return
+	an Options object containing the result."""
+	opts = Options(man, defs)
+	opts.parse(text)
+	return opts
 	
