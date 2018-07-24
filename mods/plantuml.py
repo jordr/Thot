@@ -54,7 +54,10 @@ def init(man):
 	jar = man.get_var("PLANTUML_JAR")
 	if jar:
 		my_cmds = my_cmds + ["java -jar %s" % jar]		
-	jar = os.environ["PLANTUML_JAR"]
+	try:
+		jar = os.environ["PLANTUML_JAR"]
+	except KeyError:
+		jar = None
 	if jar:
 		my_cmds = my_cmds + ["java -jar %s" % jar]		
 	print my_cmds

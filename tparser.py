@@ -190,6 +190,10 @@ class Manager:
 		for i in xrange(len(self.items) - 1, -1, -1):
 			yield self.items[i]
 	
+	def top(self):
+		"""Return the top item of the element stack."""
+		return self.item
+	
 	def push(self, item):
 		self.items.append(self.item)
 		self.item = item
@@ -285,12 +289,27 @@ class Manager:
 		if mod:
 			self.used_mods.append(mod)
 			mod.init(self)
-			if mod.__dict__.has_key("__lines__"):
-				for line in mod.__lines__:
-					self.addLine((line[0], re.compile(line[1])))
-			if mod.__dict__.has_key("__words__"):
-				for word in mod.__words__:
-					self.addWord((word[0], word[1]))
+			
+			# new syntax?
+			if mod.__dict__.has_key("__syntax__"):
+				lines = []
+				words = []
+				if mod.__dict__.has_key("__lines__"):
+					lines = mod.__lines__
+				if mod.__dict__.has_key("__words__"):
+					words = mod.__words__
+				self.setSyntax(
+					[(l[0], re.compile(l[1])) for l in lines],
+					[(w[0], w[1]) for w in words])
+			
+			# simple extension
+			else:
+				if mod.__dict__.has_key("__lines__"):
+					for line in mod.__lines__:
+						self.addLine((line[0], re.compile(line[1])))
+				if mod.__dict__.has_key("__words__"):
+					for word in mod.__words__:
+						self.addWord((word[0], word[1]))
 		else:
 			common.onError('cannot load module %s' % name)
 

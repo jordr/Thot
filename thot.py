@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 # thot -- Thot command
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
@@ -27,18 +29,24 @@ import common
 import re
 import glob
 
-arg_re = re.compile("\(\?P<([a-zA-Z_0-9]+)>(%s|%s)*\)" %
+arg_re = re.compile("\(\?P<([a-zA-Z0-9]+)(_[a-zA-Z0-9_]*)?>(%s|%s)*\)" %
 	("[^)[]", "\[[^\]]*\]"))
+REPS = [
+	(" ", 		u"␣"	),
+	("\t", 		u"⭾"	),	
+	("\\s+",	" "		),
+	("\\s*", 	" "		),
+	("\\s", 	" "		),
+	("\(", 		"("		),
+	("\)", 		")"		),
+	("^", 		""		),
+	("$", 		""		)
+]
 def prepare_syntax(t):
 	"""Prepare a regular expression to be displayed to human user."""
 	t = arg_re.sub('/\\1/', t)
-	t = t.replace("\\s+", " ")
-	t = t.replace("\\s*", " ")
-	t = t.replace("\\s", " ")
-	t = t.replace("\(", "(")
-	t = t.replace("\)", ")")
-	t = t.replace("^", "")
-	t = t.replace("$", "")
+	for (p, r) in REPS:
+		t = t.replace(p, r)
 	return t
 
 # Prepare environment

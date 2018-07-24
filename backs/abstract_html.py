@@ -313,6 +313,8 @@ class Generator(back.Generator):
 		return True
 
 	def genLinkBegin(self, url):
+		if url.startswith("mailto:"):
+			url = "mailto:" + "".join(["&#x%x;" % ord(c) for c in url[7:]])
 		self.out.write('<a href="' + url + '">')
 
 	def genLinkEnd(self, url):

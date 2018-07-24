@@ -316,7 +316,7 @@ class Node(Info):
 		pass
 
 	def getHeaderLevel(self):
-		"""For a heade node, get the level."""
+		"""For a header node, get the level."""
 		return -1
 
 	def genTitle(self, gen):
@@ -375,6 +375,10 @@ class Container(Node):
 		if item:
 			self.content.append(item)
 			man.push(item)
+
+	def remove(self, item):
+		"""Remove an item from the container."""
+		self.content.remove(item)
 
 	def append(self, item):
 		"""Add child without refering to the parsing."""
@@ -1146,6 +1150,10 @@ class Header(Container):
 
 	def numbering(self):
 		return "header"
+	
+	def set_title(self, title):
+		"""Set the title of the header."""
+		self.title = title
 
 
 class Feature:
