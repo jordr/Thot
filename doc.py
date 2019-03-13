@@ -1391,3 +1391,8 @@ class Factory:
 	def makeLink(self, ref):
 		"""Make a link."""
 		return Link(ref)
+
+	def makeRef(self, ref):
+		"""Make a reference."""
+		return Ref(ref)
+

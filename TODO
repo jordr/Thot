@@ -11,9 +11,10 @@
 
 ===== Front-Ends =====
 
+  [ ] Accept to output reference to label for textual form (title, Section, etc).
   [ ] Support of reStructuredText: http://docutils.sourceforge.net/rst.html.
   [ ] Support Textile.
-  [ ] Support for Markdown.
+  [X] Support for Markdown.
 
 ==== DokuWiki ====
 
