@@ -195,6 +195,7 @@ class PagePolicy:
 		short_icon = gen.doc.getVar('HTML_SHORT_ICON')
 		if short_icon:
 			out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
+		self.gen.genScripts()
 
 	def get_file(self, node):
 		"""Return the file name containing the given node."""

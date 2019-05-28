@@ -58,18 +58,20 @@ class Lexicon(doc.Node):
 		self.appendInfo(doc.INFO_CLASS, "lexicon")
 
 	def gen_html(self, gen):
-		gen.genOpenTag("div", self)
+		gen.genOpenTag("dl", self, [("class", "thot-lexicon")])
 		terms = self.map.values()
 		terms.sort(lambda x, y: cmp(x.id, y.id))
 		for term in terms:
-			gen.genOpenTag("div", term)
-			gen.genOpenTag("a", term, [("id", gen.get_href(term))])
+			gen.genOpenTag("dt", term)
+			gen.genOpenTag("a", term,
+				[("id", gen.get_href(term))])
 			gen.genText(term.id)
-			gen.genText(" ")
-			gen.genCloseTag("span")
+			gen.genCloseTag("a")
+			gen.genCloseTag("dt")
+			gen.genOpenTag("dd")
 			doc.Container.gen(term, gen)
-			gen.genCloseTag("div")
-		gen.genCloseTag("div")
+			gen.genCloseTag("dd")
+		gen.genCloseTag("dl")
 
 	def gen_latex(self, gen):
 		pass
@@ -110,7 +112,7 @@ class Source:
 
 	def resolve(self, id):
 		if not self.lexicon.has_key(id):
-			return Nonee
+			return None
 		else:
 			return Term(id)
 

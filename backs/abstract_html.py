@@ -78,6 +78,36 @@ def getStyle(style):
 		raise Exception('style ' + style + ' not supported')
 
 
+class Script:
+	
+	def __init__(self):
+		self.content = None
+		self.src = None
+		self.async = None
+		self.charset = None
+		self.defer = None
+		self.type = None
+	
+	def gen(self, out):
+		out.write("\t<script")
+		if self.src != None:
+			out.write(" src=\"%s\"" % cgi.escape(self.src, True))
+		if self.async != None and self.async:
+			out.write(" async=\"async\"")
+		if self.defer != None and self.defer:
+			out.write(" defer=\"defer\"")
+		if self.charset != None:
+			out.write(" charset=\"%s\"" % cgi.escape(self.charset, True))
+		if self.type != None:
+			out.write(" type=\"%s\"" % cgi.escape(self.type, True))
+		out.write(">")
+		if self.content != None:
+			out.write("\n")
+			out.write(self.content)
+			out.write("\n\t")
+		out.write("</script>\n")
+
+
 class Generator(back.Generator):
 	"""Generator for HTML output."""
 	trans = None
@@ -93,6 +123,7 @@ class Generator(back.Generator):
 	stack = None
 	label = None
 	refs = None
+	scripts = None
 
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
@@ -102,10 +133,22 @@ class Generator(back.Generator):
 		self.page_count = 0
 		self.stack = []
 		self.refs = { }
+		self.scripts = []
 
 	def getType(self):
 		return "html"
 
+	def newScript(self):
+		"""Create and record a new script for the header generation."""
+		s = Script()
+		self.scripts.append(s)
+		return s
+	
+	def genScripts(self):
+		"""Generate the script needed by the page."""
+		for s in self.scripts:
+			s.gen(self.out)
+	
 	def importCSS(self, spath, base = ""):
 		"""Perform import of files found in a CSS stylesheet.
 		spath -- path to the original CSS stylesheet.

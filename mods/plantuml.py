@@ -47,7 +47,7 @@ class PlantUMLBlock(extern.ExternalBlock):
 		try:
 			shutil.move(self.out_path, self.get_path(gen))
 		except IOError as e:
-			common.onError("plantuml error: %s" % e)
+			common.onWarning("plantuml error: %s. Cannot generate plantuml diagram." % e)
 
 def init(man):
 	my_cmds = ["java net.sourceforge.plantuml.Run"]
@@ -60,7 +60,6 @@ def init(man):
 		jar = None
 	if jar:
 		my_cmds = my_cmds + ["java -jar %s" % jar]		
-	print my_cmds
 	extern.ExternalModule(man,
 		name = "plantuml",
 		ext=".png",

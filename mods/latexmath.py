@@ -23,15 +23,59 @@ mimetex = common.CommandRequirement("mimetex", 'mimetex not found but required b
 
 count = 0
 formulae = { }
+DEFAULT = None
+BUILDERS = { }
+BUILDER = None
 
-class LatexMath(doc.Word):
+class Builder(doc.Feature):
+	"""Builder for math expression and feature"""
+	
+	def make(self, text):
+		return None
+
+
+class MathJAX(doc.Word):
+	
+	def __init__(self, text):
+		doc.Word.__init__(self, text)
+
+	def dump(self, tab = ""):
+		print "%slatexmath(%s)" % (tab, self.text)
+
+	def gen(self, gen):
+		if gen.getType() == "latex":
+			gen.genVerbatim("$%s$" % self.text)
+		elif gen.getType() == "html":
+			gen.genVerbatim("\\(%s\\)" % self.text)
+		else:
+			gen.genText(self.text)
+
+class MathJAXBuilder(Builder):
+	
+	def make(self, t):
+		return MathJAX(t)
+	
+	def prepare(self, gen):
+		if gen.getType() == "html":
+			gen.doc.setVar("LATEXMATH_SCRIPT", "yes")
+			s = gen.newScript()
+			s.async = True
+			s.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"
+		
+BUILDERS["mathjax"] = MathJAXBuilder()
+
+
+class MimetexMath(doc.Word):
 	
 	def __init__(self, text):
 		doc.Word.__init__(self, text)
 	
 	def dump(self, tab = ""):
 		print "%slatexmath(%s)" % (tab, self.text)
-	
+
+	def prepare(self, man):
+		pass
+
 	def gen(self, gen):
 		global mimetex
 		global count
@@ -69,15 +113,35 @@ class LatexMath(doc.Word):
 			if rpath:
 				gen.genImage(rpath, None, self)
 
+class MimetexBuilder(Builder):
+	
+	def make(self, t):
+		return MimetexMath(t)
 
+BUILDERS["mimetex"] = MimetexBuilder()
+DEFAULT = "mimetex"
+
+def selectBuilder(man):
+	global DEFAULT
+	global BUILDER
+	global BUILDERS
+	try:
+		n = man.doc.getVar("LATEXMATH", DEFAULT)
+		BUILDER = BUILDERS[n]
+	except KeyError:
+		man.onWarning("unknown mathlatex output: %s. Reverting to use mimetex." % v)
+		
 def handleMath(man, match):
 	text = match.group("latexmath")
 	if text == "":
 		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word("$")))
 	else:
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, LatexMath(text)))
+		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, BUILDER.make(text)))
 
 MATH_WORD = (handleMath, "\$(?P<latexmath>[^$]*)\$")
 
 def init(man):
+	global BUILDER
+	selectBuilder(man)
+	man.doc.addFeature(BUILDER)
 	man.addWord(MATH_WORD)

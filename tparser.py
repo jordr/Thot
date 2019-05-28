@@ -22,10 +22,11 @@ def handleDouble(man, match):
 
 def handle_term(man, word):
 	"""Handle a hashed word."""
-	res = man.doc.resolve_hash(word)
-	if res == None:
-		man.warn("hash term '#%s' is unknown!" % word)
-		res = doc.Word(word)
+	#res = man.doc.resolve_hash(word)
+	#if res == None:
+	#	man.warn("hash term '#%s' is unknown!" % word)
+	#	res = doc.Word(word)
+	res = doc.Tag(word, man.doc)
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, res))
 
 def handleSharp(man, match):

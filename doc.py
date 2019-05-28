@@ -463,7 +463,30 @@ class Ref(Node):
 
 	def visit(self, visitor):
 		visitor.onRef(self)
+
+class Tag(Node):
 	
+	def __init__(self, tag, doc):
+		Node.__init__(self)
+		self.tag = tag
+		self.doc = doc
+	
+	def gen(self, gen):
+		v = self.doc.resolve_hash(self.tag)
+		if v != None:
+			v.gen(gen)
+		else:
+			gen.genText(self.tag)
+	
+	def dump(self, tab):
+		print("%stag(%s)" % (tab, self.tag))
+	
+	def __str__(self):
+		return "tag(%d)" % self.tag
+	
+	def visit(self, visitor):
+		visitor.onTag(self)
+
 
 class Image(Node):
 	path = None
@@ -1310,6 +1333,9 @@ class Visitor:
 		pass
 	
 	def onHeader(self, header):
+		pass
+	
+	def onTag(self, tag):
 		pass
 
 
