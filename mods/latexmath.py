@@ -34,6 +34,30 @@ class Builder(doc.Feature):
 		return None
 
 
+MATHJAX_SELECTOR = """
+MathJax.Hub.Register.StartupHook("End Jax",function () {
+  var BROWSER = MathJax.Hub.Browser;
+
+  var canUseMML = (BROWSER.isFirefox && BROWSER.versionAtLeast("1.5")) ||
+                  (BROWSER.isMSIE    && BROWSER.hasMathPlayer) ||
+                  (BROWSER.isSafari  && BROWSER.versionAtLeast("5.0")) ||
+                  (BROWSER.isOpera   && BROWSER.versionAtLeast("9.52") &&
+                                       !BROWSER.versionAtLeast("14.0"));
+
+  var CONFIG = MathJax.Hub.CombineConfig("MMLorHTML",{
+    prefer: {
+      MSIE:"MML", Firefox:"HTML", Opera:"HTML", Chrome:"HTML", Safari:"HTML",
+      other:"HTML"
+    }
+  });
+
+  var jax = CONFIG.prefer[BROWSER] || CONFIG.prefer.other;
+  if (jax === "HTML") jax = "HTML-CSS"; else if (jax === "MML")  jax = "NativeMML";
+  if (jax === "NativeMML" && !canUseMML) jax = CONFIG.prefer.other;
+  return MathJax.Hub.setRenderer(jax);
+});
+"""
+
 class MathJAX(doc.Word):
 	
 	def __init__(self, text):
@@ -61,6 +85,9 @@ class MathJAXBuilder(Builder):
 			s = gen.newScript()
 			s.async = True
 			s.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"
+			s = gen.newScript()
+			s.content = MATHJAX_SELECTOR
+			s.type = "text/x-mathjax-config"
 		
 BUILDERS["mathjax"] = MathJAXBuilder()
 
