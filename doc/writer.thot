@@ -451,7 +451,14 @@ This module has mostly no effect when //latex// output is selected:
 the formula is copied as is into the Latex output.
 
 For HTML output, several flavors exists controlled by the variable ''LATEXMATH''
-(that must be defined before the module usage). The default case, or when ''LATEXMATH=mimetex'', use the command ''mimetex'', if avalable to output a picture and to insert the picture at the formula place. If ''LATEXMATH'' is defined as ''mathjax'', a [[https://www.mathjax.org/|MathJAX web script]] is included in the page and according to the browser configuration, formula are replaced by styled HTML or full Math-ML. The lookup is usually better than using ''mimetex'' but web access is needed to display the formulae.
+(that must be defined before the module usage). The default case, or when ''LATEXMATH=mimetex'', use the command ''mimetex'', if avalable to output a picture and to insert the picture at the formula place.
+
+If ''LATEXMATH'' is defined as ''mathjax'', a [[https://www.mathjax.org/|MathJAX web script]] is included in the page and according to the browser configuration, formula are replaced by styled HTML or full Math-ML. The lookup is usually better than using ''mimetex'' but web access is needed to display the formulae.
+
+The last alternative is ''LATEXMATH=latex2mathml'' that is based on the Python module named [[https://pypi.org/project/latex2mathml/|latex2mathml]]. The display is very good (only in MathML) and does not require an internet connection. Yet, the Latex Math coverage is less complete than MathJAX. It is not installed by default but available on the //pip// repository:
+<code sh>
+$ pip install latex2mathml
+</code>
 
 
 ==== gnuplot Module ====

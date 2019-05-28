@@ -16,6 +16,7 @@
 
 import common
 import doc
+import imp
 import subprocess
 import sys
 
@@ -91,6 +92,37 @@ class MathJAXBuilder(Builder):
 		
 BUILDERS["mathjax"] = MathJAXBuilder()
 
+
+class L2ML(doc.Word):
+	
+	def __init__(self, text, f):
+		doc.Word.__init__(self, text)
+		self.f = f
+
+	def dump(self, tab = ""):
+		print "%slatexmath(%s)" % (tab, self.text)
+
+	def gen(self, gen):
+		if gen.getType() == "latex":
+			gen.genVerbatim("$%s$" % self.text)
+		elif gen.getType() == "html":
+			gen.genVerbatim(self.f(self.text))
+		else:
+			gen.genText(self.text)
+
+class L2MLBuilder(Builder):
+	
+	def __init__(self, f):
+		self.f = f
+	
+	def make(self, t):
+		return L2ML(t, self.f)
+
+try:
+	import latex2mathml.converter as m
+	BUILDERS["latex2mathml"] = L2MLBuilder(m.convert)	
+except ImportError as e:
+	pass
 
 class MimetexMath(doc.Word):
 	

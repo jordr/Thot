@@ -1,0 +1,14 @@
+@TITLE=latex2mathml test
+@AUTHORS=H. Cassé <hugues.casse@laposte.net>
+@VERSION=0.1
+@LANG=en_EN
+
+@use dokuwiki
+@LATEXMATH=latex2mathml
+@use latexmath
+
+This is a an equation $x \ne 0$.
+
+Anotehr bigger equation:
+
+$\sum_{i=0}^{n} k_i e^{- \pi \omega}$
