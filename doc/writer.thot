@@ -431,7 +431,6 @@ This module, to be used, must be imported as below:
 <code>
 @use latexmath
 </code>
-@use latexmath
 
 In this case, Latex math expressions may be inserted in the text between
 dollars as in the example below:
@@ -442,6 +441,21 @@ That will produce:
 
 This is an equation: $\LARGE e^x=\sum_{n=0}^\infty\frac{x^n}{n!}$.
 
+Several equations may also alone in their paragraph with:
+<code>
+	Equations:
+	<eq>
+		\sum_{i=0}^{n} i = 0
+		x_1 + x_2 = x_3
+	</eq>
+</code>
+
+That gives:
+	Equations:
+	<eq>
+		\sum_{i=0}^{n} i = 0
+		x_1 + x_2 = x_3
+	</eq>
 
 Short guide to this syntax may be found [[ftp://ftp.ams.org/ams/doc/amsmath/short-math-guide.pdf|here]].
 

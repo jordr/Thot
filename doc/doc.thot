@@ -6,7 +6,10 @@
 @HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css
 @HTML_ONE_FILE_PER=chapter
 @LATEX_CLASS=amsbook
+
 @use dokuwiki
+@LATEXMATH=mathjax
+@use latexmath
 
 @(THOT) is a simple but powerful system to authorize document. The main
 idea is that classic document processor (like OpenOffice or M$ Office)

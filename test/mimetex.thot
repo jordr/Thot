@@ -1,10 +1,10 @@
-@TITLE=latex2mathml test
+@TITLE=mimetex test
 @AUTHORS=H. Cassé <hugues.casse@laposte.net>
 @VERSION=0.1
 @LANG=en_EN
 
 @use dokuwiki
-@LATEXMATH=latex2mathml
+@LATEXMATH=mimetex
 @use latexmath
 
 This is a an equation $x \ne 0$.

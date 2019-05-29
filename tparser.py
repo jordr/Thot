@@ -250,6 +250,8 @@ class Manager:
 		return "%s:%d: %s" % (self.file_name, self.line_num, msg)
 
 	def addLine(self, line):
+		"""A syntax working on lines. The line parameter is pair
+		(f, re) with f the function to call when the RE re is found."""
 		self.added_lines.append(line)
 		self.lines.append(line)
 

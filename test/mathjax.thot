@@ -9,6 +9,10 @@
 
 This is a an equation $x \ne 0$.
 
-Anotehr bigger equation:
+Another bigger equation: $\sum_{i=0}^{n} k_i e^{- \pi \omega}$
 
-$\sum_{i=0}^{n} k_i e^{- \pi \omega}$
+A multi-line alone equation:
+<eq>
+\sum_{i=0}^{n} i = 0
+x_1 + x_2 = x_3
+</eq>
