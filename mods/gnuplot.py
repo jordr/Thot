@@ -37,7 +37,7 @@ class GnuPlotBlock(doc.Block):
 		self.h = h
 
 	def dumpHead(self, tab):
-		print "%sblock.gnuplot(" % tab
+		print("%sblock.gnuplot(" % tab)
 
 	def gen(self, gen):
 		
@@ -65,19 +65,19 @@ class GnuPlotBlock(doc.Block):
 					close_fds = True,
 					shell = True
 				)
-			(out, err) = process.communicate("set terminal png transparent %s crop\nset output \"%s\"\n%s" % (opt, path, self.toText()))
+			(out, err) = process.communicate(("set terminal png transparent %s crop\nset output \"%s\"\n%s" % (opt, path, self.toText())).encode('utf-8'))
 			if process.returncode == 127:
 				has_gnuplot = False
 				self.onWarning("gnuplot is not available")
 				return
 			if process.returncode:
-				print "ERROR: %d" % process.returncode
+				print("ERROR: %d" % process.returncode)
 				sys.stderr.write(err)
 				self.onError('error during gnuplot call')
 			gen.genEmbeddedBegin(self)
-			gen.genImage(path, None, self)
+			gen.genImage(path, self, self.caption)
 			gen.genEmbeddedEnd(self)
-		except OSError, e:
+		except OSError as e:
 			self.onError('can not process gnuplot: %s' % str(e))
 
 	def numbering(self):

@@ -50,11 +50,12 @@ ESCAPES = {
 	'%'	: '\\%',
 	'#'	: '\\#',
 	'_'	: '\\_',
+	'^' : '\\^{}',
 	'{'	: '\\{',
 	'}'	: '\\}',
 	'~'	: '$\sim$',
 	'\\': '$\\backslash$',
-	'\U21D0'	: '$\Leftarrow$'
+	'\U000021D0'	: '$\Leftarrow$'
 }
 
 UNICODE_ESCAPES = {
@@ -132,12 +133,11 @@ class UTF8Encoder(UnicodeEncoder):
 	encoder = None
 
 	def __init__(self):
-		self.encoder = codecs.getencoder('UTF-8')
+		self.encoder = 'UTF-8'
 
 	def toText(self, code):
 		"""Transform the given code to text."""
-		str, _ = self.encoder(unichr(code))
-		return str
+		return chr(code)
 
 
 class NonUnicodeEncoder(UnicodeEncoder):
@@ -156,8 +156,8 @@ class NonUnicodeEncoder(UnicodeEncoder):
 		try:
 			str, _ = self.encoder(unichr(code))
 			return str
-		except UnicodeEncodeError,e:
-			if UNICODE_ESCAPES.has_key(code):
+		except UnicodeEncodeError as e:
+			if code in UNICODE_ESCAPES:
 				return UNICODE_ESCAPES[code]
 			if not (code in self.escaped):
 				self.escaped.append(code)
@@ -177,7 +177,7 @@ class Generator(back.Generator):
 	def escape(self, text):
 		res = ""
 		for c in text:
-			if ESCAPES.has_key(c):
+			if c in ESCAPES:
 				res += ESCAPES[c]
 			else:
 				res += c
@@ -202,7 +202,7 @@ class Generator(back.Generator):
 		# look for internationalization
 		lang = self.doc.getVar('LANG').lower().replace('-', '_')
 		if lang:
-			if LANGUAGES.has_key(lang):
+			if lang in LANGUAGES:
 				lang = LANGUAGES[lang]
 			else:
 				pos = lang.find('_')
@@ -210,7 +210,7 @@ class Generator(back.Generator):
 					common.onError('cannot not support "%s"' % lang)
 				else:
 					lang = lang[:pos]
-					if LANGUAGES.has_key(lang):
+					if lang in LANGUAGES:
 						lang = LANGUAGES[lang]
 					else:
 						common.onError('cannot not support "%s"' % lang)
@@ -302,7 +302,7 @@ class Generator(back.Generator):
 		# generate final format
 		output = self.doc.getVar('OUTPUT')
 		if not output or output == 'latex':
-			print "SUCCESS: result in %s" % self.path
+			print("SUCCESS: result in %s" % self.path)
 		elif output == 'pdf':
 
 			# perform compilation
@@ -319,7 +319,7 @@ class Generator(back.Generator):
 					cwd = dir
 				)
 				out, err = process.communicate('')
-				if process.returncode <> 0:
+				if process.returncode != 0:
 					sys.stdout.write(out)
 					sys.stderr.write(err)
 					return
@@ -331,13 +331,13 @@ class Generator(back.Generator):
 			else:
 				path = self.path
 			path = path + ".pdf"
-			print "SUCCESS: result in %s" % path
+			print("SUCCESS: result in %s" % path)
 		else:
 			common.onError('unknown output: %s' % output)
 
 	def genFootNote(self, note):
 		self.out.write('\\footnote{')
-		for item in note:
+		for item in note.getContent():
 			item.gen(self)
 		self.out.write('}')
 
@@ -356,7 +356,7 @@ class Generator(back.Generator):
 			self.out.write("\\begin{table}[htbp]\n")
 		self.out.write('\\vspace{4pt}\n')
 		self.out.write('\\begin{tabular}{|')
-		for i in xrange(0, table.getWidth()):
+		for i in range(0, table.getWidth()):
 			self.out.write('c|')
 		self.out.write('}\n')
 
@@ -364,20 +364,20 @@ class Generator(back.Generator):
 		hlines = []
 		vlines = []
 		rows = table.getRows()
-		for i in xrange(0, len(rows)):
+		for i in range(0, len(rows)):
 			row = rows[i]
-			if i < len(rows) - 1 and row.kind <> rows[i + 1].kind:
+			if i < len(rows) - 1 and row.kind != rows[i + 1].kind:
 				hlines += [i]
-			if row.kind <> doc.TAB_HEADER:
+			if row.kind != doc.TAB_HEADER:
 				cells = row.getCells()
 				pos = 0
-				for i in xrange(0, len(cells) - 1):
-					if pos not in vlines and cells[i].kind <> cells[i + 1].kind:
+				for i in range(0, len(cells) - 1):
+					if pos not in vlines and cells[i].kind != cells[i + 1].kind:
 						vlines += [pos]
-						pos += cells[i].span
+						pos += cells[i].get_hspan()
 
 		# generate the content
-		for irow in xrange(0, len(rows)):
+		for irow in range(0, len(rows)):
 			self.out.write('\\hline\n')
 			row = rows[irow]
 			icol = 0
@@ -394,11 +394,11 @@ class Generator(back.Generator):
 					multi = True
 				else:
 					rbar = ''
-				if cell.align <> doc.TAB_CENTER or cell.span <> 1:
+				if cell.get_align() != doc.TAB_CENTER or cell.get_hspan() != 1:
 					multi = True
 				if multi:
-					self.out.write('\\multicolumn{%d}{%s%s|%s}{' % (cell.span, lbar, ALIGNMENT[cell.align + 1], rbar))
-				icol += cell.span
+					self.out.write('\\multicolumn{%d}{%s%s|%s}{' % (cell.get_hspan(), lbar, ALIGNMENT[cell.get_align() + 1], rbar))
+				icol += cell.get_hspan()
 				if cell.kind == doc.TAB_HEADER:
 					self.out.write('\\bf{')
 
@@ -492,39 +492,38 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('}')
 
-	def genImage(self, url, width = None, height = None, caption = None, align = None, node = None):
-		# !!TODO!!
+	def genImage(self, url, node, caption):
+
 		# It should download the image if the URL is external
+		# !!TODO!!
 
 		# handle unsupported image format
 		root, ext = os.path.splitext(url)
 		if ext.lower() not in UNSUPPORTED_IMAGE:
-			link = self.loadFriendFile(url)
+			link = self.use_friend(url)
 		else:
-			original = self.relocateFriendFile(url)
-			root, ext = os.path.splitext(original)
-			link = self.addFriendFile(os.path.abspath(root + ".png"))
-			res = subprocess.call(['convert %s %s' % (original, link)], shell = True)
-			if res <> 0:
-				common.onError('cannot convert image "%s" to "%s"' % (original, link))
-			link = self.getFriendRelativePath(link)
+			root, ext = os.path.splitext(url)
+			link = self.new_friend(os.path.abspath(root + ".png"))
+			res = subprocess.call(['convert %s %s' % (url, link)], shell = True)
+			if res != 0:
+				common.onError('cannot convert image "%s" to "%s"' % (url, link))
 
 		# build the command
 		args = ''
-		if width:
+		if node.get_width():
 			if args:
 				args += ','
-			args += 'width=%dpx' % width
-		if height:
+			args += 'width=%dpx' % node.get_width()
+		if node.get_height():
 			if args:
 				args += ','
-			args += 'height=%dpx' % height
+			args += 'height=%dpx' % node.get_height()
 		if args:
 			args = "[%s]" % args
-		if align <> doc.ALIGN_NONE:
+		if node.get_align() != doc.ALIGN_NONE:
 			self.out.write("\\begin{figure}[htbp]\n")
 		self.out.write('\includegraphics%s{%s}' % (args, link))
-		if align <> doc.ALIGN_NONE:
+		if node.get_align() != doc.ALIGN_NONE:
 			self.genLabel(node)
 			self.out.write("\n\\end{figure}\n")
 
@@ -536,7 +535,7 @@ class Generator(back.Generator):
 			caption = node.getCaption()
 		if label:
 			pref = node.numbering()
-			if REF_PREFIXES.has_key(pref):
+			if pref in REF_PREFIXES:
 				pref = REF_PREFIXES[pref]
 			self.out.write("\\label{%s:%s}\n" % (pref, label))
 		if caption:
@@ -557,7 +556,7 @@ class Generator(back.Generator):
 			self.out.write("\\end{figure}\n")
 
 	def genGlyph(self, code):
-		if UNICODE_ESCAPES.has_key(code):
+		if code in UNICODE_ESCAPES:
 			self.out.write(UNICODE_ESCAPES[code])
 		else:
 			self.out.write(self.encoder.toText(code))
@@ -568,7 +567,7 @@ class Generator(back.Generator):
 	def genRef(self, ref):
 		node = self.doc.getLabel(ref.label)
 		pref = node.numbering()
-		if REF_PREFIXES.has_key(pref):
+		if pref in REF_PREFIXES:
 			pref = REF_PREFIXES[pref]
 		self.out.write("\\ref{%s:%s} " % (pref, ref.label))
 

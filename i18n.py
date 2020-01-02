@@ -65,7 +65,7 @@ class DictTranslator(Translator):
 		self.dict = dict
 	
 	def get(self, text):
-		if self.dict.has_key(text):
+		if text in self.dict:
 			return self.dict[text]
 		else:
 			sys.stderr.write("WARNING: no translation for '" + text + "'")
@@ -86,7 +86,7 @@ def getTranslator(doc):
 	if not lang:
 		lang, _ = locale.getdefaultlocale()
 		sys.stderr.write("INFO: using default language: " + lang + "\n")
-	nlang = string.lower(lang).replace('-', '_')
+	nlang = lang.lower().replace('-', '_')
 	
 	# look for the local version
 	path = os.path.join(doc.getVar('THOT_BASE'), "langs")

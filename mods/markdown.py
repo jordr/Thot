@@ -24,7 +24,7 @@ def handle_blockquote(man, match):
 
 def handle_html(man, match):
 	# TODO
-	print "DEBUG: html!"
+	print("DEBUG: html!")
 	pass
 
 def handle_new_par(man, match):

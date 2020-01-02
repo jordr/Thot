@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # make -- Minima theme maker
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
@@ -15,41 +15,47 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import ConfigParser
+import configparser
+import glob
 import re
+import sys
 
 # check parameters
-name = sys.argv[1]
-if not name:
-	name = "initial"
+if len(sys.argv) > 1:
+	colors = [sys.argv[1]]
+else:
+	colors = [ p[10:-4] for p in glob.glob("ini/style_*.ini")]
 
 
-# read the keys
-config = ConfigParser.ConfigParser()
-config.readfp(open('ini/%s.ini' % name))
-reps = { }
-for (key, val) in config.items('replacements'):
-	reps[key] = val[1:-1]
+# generate the files
+for color in colors:
 
-#for (key, val) in reps.items():
-#	print "%s=%s" % (key, val)
+	# read the keys
+	config = configparser.ConfigParser()
+	config.readfp(open("ini/style_%s.ini" % color))
+	reps = { }
+	for (key, val) in config.items('replacements'):
+		reps[key] = val[1:-1]
 
-# open input file
-input = open('style.css')
+	# open input
+	input = open('style.css')
 
-# open the output file
-out = open('%s.css' % name, 'w')
+	# open the output file
+	out = open('%s.css' % color, 'w')
 
-# process lines
-rep = re.compile('__([a-zA-Z0-9]*_)+_')
-for line in input:
-	while line <> '':
-		m = rep.search(line)
-		if not m:
-			out.write(line)
-			line = ''
-		else:
-			out.write(line[:m.start()])
-			out.write(reps[m.group()])
-			line = line[m.end():]
+	# process lines
+	rep = re.compile('__([a-zA-Z0-9]*_)+_')
+	for line in input:
+		while line != '':
+			m = rep.search(line)
+			if not m:
+				out.write(line)
+				line = ''
+			else:
+				out.write(line[:m.start()])
+				out.write(reps[m.group()])
+				line = line[m.end():]
+
+	# close files
+	input.close()
+	out.close()

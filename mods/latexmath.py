@@ -72,7 +72,7 @@ class MathWord(doc.Word):
 		self.builder = builder
 
 	def dump(self, tab = ""):
-		print "%slatexmath(%s)" % (tab, self.text)
+		print("%slatexmath(%s)" % (tab, self.text))
 
 	def gen(self, gen):
 		if gen.getType() == "latex":
@@ -90,7 +90,7 @@ class MathBlock(doc.Block):
 		#man.doc.addFeature(FEATURE)
 
 	def dumpHead(self, tab):
-		print tab + "eq(" + self.lang + ","
+		print(tab + "eq(" + self.lang + ",")
 	
 	def kind(self):
 		return "equation"
@@ -180,7 +180,7 @@ class MimetexMath(doc.Word):
 		doc.Word.__init__(self, text)
 	
 	def dump(self, tab = ""):
-		print "%slatexmath(%s)" % (tab, self.text)
+		print("%slatexmath(%s)" % (tab, self.text))
 
 	def prepare(self, man):
 		pass
@@ -197,7 +197,7 @@ class MimetexMath(doc.Word):
 			if not cmd:
 				return
 			rpath = ''
-			if formulae.has_key(self.text):
+			if self.text in formulae:
 				rpath = formulae[self.text]
 			else:
 				rpath = gen.new_friend("latexmath/latexmath-%s.gif" % count);
@@ -210,13 +210,13 @@ class MimetexMath(doc.Word):
 						shell = True
 					)
 					out, err = proc.communicate()
-					if proc.returncode <> 0:
+					if proc.returncode != 0:
 						sys.stderr.write(out)
 						sys.stderr.write(err)
 						self.onWarning("bad latexmath formula.")
 					else:
 						formulae[self.text] = rpath
-				except OSError, e:
+				except OSError as e:
 					MIMETEX_AVAILABLE = False
 					self.onWarning("mimetex is not available: no latexmath !")
 			if rpath:
@@ -233,7 +233,7 @@ class MimetexBuilder(Builder):
 		if not cmd:
 			return
 		rpath = ''
-		if formulae.has_key(text):
+		if text in formulae:
 			rpath = formulae[text]
 		else:
 			rpath = gen.new_friend("latexmath/latexmath-%s.gif" % count);
@@ -246,17 +246,17 @@ class MimetexBuilder(Builder):
 					shell = True
 				)
 				out, err = proc.communicate()
-				if proc.returncode <> 0:
+				if proc.returncode != 0:
 					sys.stderr.write(out)
 					sys.stderr.write(err)
 					self.onWarning("bad latexmath formula.")
 				else:
 					formulae[text] = rpath
-			except OSError, e:
+			except OSError as e:
 				MIMETEX_AVAILABLE = False
 				self.onWarning("mimetex is not available: no latexmath !")
 		if rpath:
-			gen.genImage(rpath, None, part)
+			gen.genImage(rpath, part, None)
 	
 	def genWord(self, gen, t):
 		self.gen(gen, t.text, t)

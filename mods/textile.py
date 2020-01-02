@@ -179,7 +179,7 @@ SPEC_MAP = {
 }
 SPEC_RE = ""
 for k in SPEC_MAP.keys():
-	if SPEC_RE <> "":
+	if SPEC_RE != "":
 		SPEC_RE = SPEC_RE + "|"
 	SPEC_RE = SPEC_RE + common.escape_re(k)
 
@@ -225,7 +225,7 @@ def use_text_style(node, text):
 	Return remaining text."""
 	new_text = text
 	text = ""
-	while text <> new_text:
+	while text != new_text:
 		text = new_text
 		new_text = consume_text_style(node, text)
 	return new_text
@@ -260,7 +260,7 @@ def use_par_style(node, text):
 	"""Consume the whole text and put matching style information to the node."""
 	new_text = text
 	text = ""
-	while text <> new_text:
+	while text != new_text:
 		text = new_text
 		new_text = consume_par_style(node, text)
 	return new_text
@@ -272,7 +272,7 @@ class BlockQuote(doc.Par):
 		doc.Par.__init__(self)
 
 	def dumpHead(self, tab):
-		print "%stextile.blockquote(" % tab
+		print("%stextile.blockquote(" % tab)
 
 	def gen(self, gen):
 		gen.genEmbeddedBegin(self)

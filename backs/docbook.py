@@ -123,16 +123,16 @@ class Generator(back.Generator):
 					stderr = subprocess.PIPE
 				)
 			out, err = process.communicate('')
-			if process.returncode <> 0:
+			if process.returncode != 0:
 				sys.stdout.write(out)
 				sys.stderr.write(err)
-				print "ERROR: failed"
+				print("ERROR: failed")
 			else:
 				if self.backend == 'openjade':
 					shutil.move(self.path + ".pdf", name + ".pdf")
-				print "SUCCESS: result in %s" % (name + ".pdf")
+				print("SUCCESS: result in %s" % (name + ".pdf"))
 		else:
-			print "SUCCESS: result in %s" % self.path
+			print("SUCCESS: result in %s" % self.path)
 
 	def genFootNote(self, note):
 		self.out.write('<footnote>')
@@ -162,9 +162,9 @@ class Generator(back.Generator):
 			# output columns
 			for cell in row.getCells():
 				self.out.write('<entry')
-				if cell.align <> doc.TAB_LEFT:
+				if cell.align != doc.TAB_LEFT:
 					self.out.write(' align="%s"' % TAB_ALIGN[cell.align + 1])
-				if cell.span <> 1:
+				if cell.span != 1:
 					self.out.write(' namest="%d" nameend="%d"' % (icol, icol + cell.span - 1))
 				icol += cell.span
 				self.out.write('>')
@@ -211,11 +211,11 @@ class Generator(back.Generator):
 			self.out.write('</orderedlist>\n')
 
 	def genStyleBegin(self, kind):
-		if STYLES.has_key(kind):
+		if kind in STYLES:
 			self.out.write('<%s>' % STYLES[kind])
 
 	def genStyleEnd(self, kind):
-		if STYLES.has_key(kind):
+		if kind in STYLES:
 			self.out.write('</%s>' % STYLES[kind])
 
 	def genHeaderBegin(self, level):

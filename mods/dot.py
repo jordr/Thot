@@ -37,7 +37,7 @@ class DotBlock(doc.Block):
 			self.kind = kind
 
 	def dumpHead(self, tab):
-		print "%sblock.dot(" % tab
+		print("%sblock.dot(" % tab)
 
 	def gen(self, gen):
 		global count
@@ -55,16 +55,16 @@ class DotBlock(doc.Block):
 					shell = True
 				)
 			text = self.toText()
-			(out, err) = process.communicate(text)
+			(out, err) = process.communicate(text.encode('utf-8'))
 			if process.returncode:
 				sys.stderr.write(err)
 				self.onError('error during dot call on %s' % text)
 			if err:
 				self.onError('error during dot call: %son %s' % (err, text))
 			gen.genEmbeddedBegin(self)
-			gen.genImage(path, None, self)
+			gen.genImage(path, self, self.caption)
 			gen.genEmbeddedEnd(self)
-		except OSError, e:
+		except OSError as e:
 			self.onError('can not process dot graph: %s' % str(e))
 
 	def kind(self):

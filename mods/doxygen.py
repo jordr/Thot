@@ -30,7 +30,7 @@ def read_tags(name, map, sep, ref):
 		# open the file
 		tree = ET.parse(name)
 		root = tree.getroot()
-		if root.tag <> "tagfile":
+		if root.tag != "tagfile":
 			common.onWarning("%s does not contains doxygen tags" % name)
 		
 		# read the compound
@@ -44,7 +44,6 @@ def read_tags(name, map, sep, ref):
 				
 			# create the compond
 			map[name.text] = os.path.join(ref, filename.text)
-			#print "%s %s" % (name.text, filename.text)
 			
 			# read the members
 			for member in comp.iter("member"):
@@ -58,7 +57,6 @@ def read_tags(name, map, sep, ref):
 				
 				# create the entry
 				map[name.text + sep + memname.text] = os.path.join(ref, "%s#%s" % (anchorfile.text, anchor.text))
-				#print "%s%s%s %s#%s" % (name.text, concat, memname.text, anchorfile.text, anchor.text)
 			
 	except IOError as e:
 		common.onWarning("cannot read %s: %s" % (name, e))

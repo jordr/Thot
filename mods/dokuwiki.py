@@ -59,7 +59,7 @@ ENTITIES = { }
 ENTITIES_RE = ""
 for (s, c) in ENTITIES_INIT:
 	ENTITIES[s] = c
-	if ENTITIES_RE <> "":
+	if ENTITIES_RE != "":
 		ENTITIES_RE = ENTITIES_RE + "|"
 	ENTITIES_RE = ENTITIES_RE + escape_re(s)
 
@@ -92,7 +92,7 @@ SMILEYS = {
 }
 SMILEYS_RE = ""
 for smiley in SMILEYS.keys():
-	if SMILEYS_RE <> "":
+	if SMILEYS_RE != "":
 		SMILEYS_RE = SMILEYS_RE + "|"
 	SMILEYS_RE = SMILEYS_RE + escape_re(smiley)
 
@@ -104,7 +104,7 @@ class FileBlock(doc.Block):
 		doc.Block.__init__(self, "file")
 
 	def dumpHead(self, tab):
-		print "%sblock.file(" % tab
+		print("%sblock.file(" % tab)
 
 	def gen(self, gen):
 		gen.genEmbeddedBegin(self)
@@ -135,7 +135,7 @@ class NonParsedBlock(doc.Block):
 		doc.Block.__init__(self, "raw")
 
 	def dumpHead(self, tab):
-		print "%sblock.nonparsed(" % tab
+		print("%sblock.nonparsed(" % tab)
 
 	def gen(self, gen):
 		gen.genEmbeddedBegin(self)
@@ -229,10 +229,10 @@ def handleLink(man, match):
 def handleImage(man, match):
 	image = match.group("image")
 	width = match.group("image_width")
-	if width <> None:
+	if width != None:
 		width = int(width)
 	height = match.group("image_height")
-	if height <> None:
+	if height != None:
 		height = int(height)
 	label = match.group("image_label")
 	left = len(match.group("left"))
@@ -306,9 +306,7 @@ def handleList(man, kind, match):
 def handle_def(man, match):
 	depth = computeDepth(match.group(1))
 	man.send(doc.DefEvent(doc.ID_NEW_DEF, depth))
-	#print "DEBUG: NEW_DEF: handleText(%s)" % match.group(3)
 	tparser.handleText(man, match.group(3))
-	#print "DEBUG: END_TERM: handleTex(%s)" % match.group(4)
 	man.send(doc.DefEvent(doc.ID_END_TERM))
 	tparser.handleText(man, match.group(4))
 

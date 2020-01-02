@@ -91,7 +91,7 @@ class SwitchOption(Option):
 			raise OptionException(self, "accepted values includes yes/no, on/off, true/false.")
 	
 	def make(self, opts, input, value):
-		if (self.default and value) or (not self.default and value <> self.default):
+		if (self.default and value) or (not self.default and value != self.default):
 			opts.append(self.opt)
 		
 
@@ -125,7 +125,7 @@ class ExternalBlock(doc.Block):
 		return self.path
 
 	def dumpHead(self, tab):
-		print "%sblock.%s(" % (tab, self.meta.name)
+		print("%sblock.%s(" % (tab, self.meta.name))
 
 	def make_options(self, opts, input):
 		"""Prepare the options: must return a string sequence."""
@@ -140,7 +140,7 @@ class ExternalBlock(doc.Block):
 	def gen_output(self, gen):
 		"""Called to generate the output document itself."""
 		gen.genEmbeddedBegin(self)
-		gen.genImage(self.get_path(gen), None, self)
+		gen.genImage(self.get_path(gen), self, self.caption)
 		gen.genEmbeddedEnd(self)
 
 	def cleanup(self):
@@ -157,7 +157,7 @@ class ExternalBlock(doc.Block):
 	def dump_temporary(self, text):
 		"""Dump given text to temporary and return its path."""
 		tmp = self.get_temporary()
-		tmp.file.write(text)
+		tmp.file.write(text.encode('utf-8'))
 		tmp.file.flush()
 		return tmp.name
 
@@ -184,18 +184,18 @@ class ExternalBlock(doc.Block):
 					close_fds = True,
 					shell = True
 				)
-			(out, err) = process.communicate("".join(input))
+			(out, err) = process.communicate("".join(input).encode('utf-8'))
 			if process.returncode == 127:
 				return False
 			if not self.meta.cmd:
 				self.meta.cmd = cmd
 			if process.returncode:
-				sys.stderr.write(err)
+				sys.stderr.write(err.decode('utf-8'))
 				self.onWarning("error during \"%s\' call (return code = %d)" % (cmd, process.returncode))
 				return False
 			else:
 				return True
-		except OSError, e:
+		except OSError as e:
 			self.onError('can not process %s: %s' % (self.meta.name, str(e)))
 			return False
 
@@ -253,7 +253,7 @@ class ExternalBlock(doc.Block):
 					self.parse_free(arg.strip())
 			else:
 				key = match.group(1)
-				if self.meta.options.has_key(key):
+				if key in self.meta.options:
 					option = self.meta.options[key]
 					self.args.append((option, option.parse(match.group(2))))
 				else:
@@ -299,7 +299,7 @@ class ExternalModule:
 			block = self.make()
 			block.parse_args(match.group(1))
 			tparser.BlockParser(man, block, self.close)
-		except ExternalException, exn:
+		except ExternalException as exn:
 			man.error(exn)
 	
 	def make(self):

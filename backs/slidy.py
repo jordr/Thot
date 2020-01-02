@@ -92,7 +92,7 @@ class Marker(doc.Node):
 		self.type = type
 
 	def dump(self, tab):
-		print "%smaker(%s)" % (tab, self.type)
+		print("%smaker(%s)" % (tab, self.type))
 
 
 class Generator(backs.abstract_html.Generator):
@@ -203,7 +203,7 @@ class Generator(backs.abstract_html.Generator):
 			pass
 	
 	def gen_duration(self, env, out):
-		if env.has_key("DURATION"):
+		if "DURATION" in env:
 			out.write('<meta name="duration" content="%s"/>' % env["DURATION"])
 	
 	def gen_slides(self, env, out):

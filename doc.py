@@ -120,6 +120,7 @@ INFO_VSPAN = "thot:vspan"				# integer (number of cells)
 INFO_PERCENT_SIZE = "thot:percent_size"	# real (percent)
 INFO_WIDTH = "thot:width"				# integer (pixels)
 INFO_HEIGHT = "thot:height"				# integer (pixels)
+INFO_CAPTION = "thot:caption"			# formatted text
 
 
 # supported events
@@ -241,6 +242,10 @@ class Info:
 	info = None
 
 	def setInfo(self, id, val):
+		"""Deprecated."""
+		self.set_info(id, val)
+		
+	def set_info(self, id, val):
 		"""Set an information value."""
 		if not self.info:
 			self.info = { }
@@ -256,6 +261,10 @@ class Info:
 			self.info[id] = [ val ]
 			
 	def getInfo(self, id, dflt = None):
+		"""Deprecated."""
+		return self.get_info(id, dflt)
+	
+	def get_info(self, id, dflt = None):
 		"""Get an information value. None if it not defined."""
 		if not self.info:
 			return None
@@ -269,6 +278,15 @@ class Info:
 		if info.info:
 			for k in info.info.keys():
 				self.setInfo(k, info.info[k])
+
+	def get_width(self):
+		return self.get_info(INFO_WIDTH)
+	
+	def get_height(self):
+		return self.get_info(INFO_HEIGHT)
+
+	def get_align(self):
+		return self.get_info(INFO_ALIGN)
 
 
 # nodes
@@ -406,7 +424,7 @@ class Container(Node):
 		self.dumpHead(tab)
 		for item in self.content:
 			item.dump(tab + "  ")
-		print tab + ")"
+		print(tab + ")")
 
 	def getContent(self):
 		return self.content
@@ -501,18 +519,15 @@ class Image(Node):
 		if height:
 			self.setInfo(INFO_HEIGHT, height)
 
-	def get_width(self):
-		return self.getInfo(INFO_WIDTH)
+	def get_caption(self):
+		return self.caption
 	
-	def get_height(self):
-		return self.getInfo(INFO_HEIGHT)
-
 	def dump(self, tab):
-		print "%simage(%s, %s, %s, %s)" % \
-			(tab, self.path, self.get_width(), self.get_height(), self.caption)
+		print("%simage(%s, %s, %s, %s)" % \
+			(tab, self.path, self.get_width(), self.get_height(), self.caption))
 
 	def gen(self, gen):
-		gen.genImage(self.path, node = self, caption = self.caption)
+		gen.genImage(self.path, self, self.caption)
 
 	def visit(self, visitor):
 		visitor.onImage(self)
@@ -520,7 +535,6 @@ class Image(Node):
 
 class EmbeddedImage(Node):
 	path = None
-	caption = None
 
 	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
 		Node.__init__(self)
@@ -528,6 +542,8 @@ class EmbeddedImage(Node):
 		if caption:
 			self.caption = Par()
 			self.caption.content.append(Word(caption))
+		else:
+			self.caption = None
 		if width:
 			self.setInfo(INFO_WIDTH, width)
 		if height:
@@ -536,11 +552,11 @@ class EmbeddedImage(Node):
 			self.setInfo(INFO_ALIGN, align)
 
 	def dump(self, tab):
-		print "%sembedded-image(%s, %s)" % \
-			(tab, self.path, self.caption)
+		print("%sembedded-image(%s, %s)" % \
+			(tab, self.path, self.caption))
 
 	def gen(self, gen):
-		gen.genImage(self.path, caption = self.caption, node = self)
+		gen.genImage(self.path, self, self.caption)
 
 	def visit(self, visitor):
 		visitor.onEmbeddedImage(self)
@@ -567,7 +583,7 @@ class Glyph(Node):
 		self.code = code
 
 	def dump(self, tab):
-		print "%sglyph(%x)" % (tab, self.code)
+		print("%sglyph(%x)" % (tab, self.code))
 
 	def gen(self, gen):
 		gen.genGlyph(self.code)
@@ -581,7 +597,7 @@ class LineBreak(Node):
 		Node.__init__(self)
 
 	def dump(self, tab):
-		print tab + "linebreak"
+		print(tab + "linebreak")
 
 	def gen(self, gen):
 		gen.genLineBreak()
@@ -609,7 +625,7 @@ class Style(Container):
 			self.add(man, event.make())
 
 	def dumpHead(self, tab):
-		print tab + "style(" + self.style + ","
+		print(tab + "style(" + self.style + ",")
 
 	def gen(self, gen):
 		gen.genStyleBegin(self.style)
@@ -638,7 +654,7 @@ class OpenStyle(Container):
 			raise Exception("closing style without opening")
 
 	def dumpHead(self, tab):
-		print tab + "style(" + self.style + ","
+		print(tab + "style(" + self.style + ",")
 
 	def gen(self, gen):
 		gen.genStyleBegin(self.style)
@@ -669,9 +685,9 @@ class FootNote(OpenStyle):
 
 	def dumpHead(self, tab):
 		if self.kind == FOOTNOTE_EMBED:
-			print '%sfootnote(' % tab
+			print('%sfootnote(' % tab)
 		else:
-			print '%sfootnote#%s(' % (tab, self.ref)
+			print('%sfootnote#%s(' % (tab, self.ref))
 
 	def isEmpty(self):
 		return False
@@ -703,7 +719,7 @@ class Link(Container):
 			self.add(man, event.make())
 
 	def dumpHead(self, tab):
-		print tab + "link(" + self.ref + ","
+		print(tab + "link(" + self.ref + ",")
 
 	def gen(self, gen):
 		gen.genLinkBegin(self.ref)
@@ -729,7 +745,7 @@ class Par(Container):
 			man.forward(event)
 
 	def dumpHead(self, tab):
-		print tab + "par("
+		print(tab + "par(")
 
 	def gen(self, gen):
 		gen.genParBegin()
@@ -760,7 +776,7 @@ class Quote(Par):
 			Par.onEvent(self, man, event)
 
 	def dumpHead(self, tab):
-		print tab + "quote("
+		print(tab + "quote(")
 
 	def gen(self, gen):
 		gen.genQuoteBegin(self.level)
@@ -815,8 +831,8 @@ class Block(Embedded):
 	def dump(self, tab):
 		self.dumpHead(tab)
 		for line in self.content:
-			print tab + "  " + line
-		print tab + ")"
+			print(tab + "  " + line)
+		print(tab + ")")
 
 	def isEmpty(self):
 		return False
@@ -837,7 +853,7 @@ class ListItem(Container):
 		self.content.append(Par())
 
 	def dumpHead(self, tab):
-		print tab + "item("
+		print(tab + "item(")
 
 	def visit(self, visitor):
 		visitor.onListItem(self)
@@ -874,7 +890,7 @@ class List(Container):
 			man.forward(event)
 
 	def dumpHead(self, tab):
-		print tab + "list(" + self.kind + "," + str(self.depth) + ", "
+		print(tab + "list(" + self.kind + "," + str(self.depth) + ", ")
 
 	def getItems(self):
 		"""Get the list of items in the list."""
@@ -904,7 +920,7 @@ class DefItem(Container):
 		return self
 
 	def dumpHead(self, tab):
-		print tab + "item(" + self.term + ", "
+		print(tab + "item(" + self.term + ", ")
 
 	def visit(self, visitor):
 		visitor.onDefItem(self)
@@ -938,7 +954,7 @@ class DefList(Container):
 			man.forward(event)
 
 	def dumpHead(self, tab):
-		print tab + "deflist(" + str(self.depth) + ", "
+		print(tab + "deflist(" + str(self.depth) + ", ")
 
 	def getItems(self):
 		"""Get the list of items in the list."""
@@ -975,11 +991,20 @@ class Cell(Par):
 		if vspan:
 			self.setInfo(INFO_VSPAN, vspan)
 
+	def get_align(self):
+		return self.get_info(INFO_ALIGN, TAB_CENTER)
+
+	def get_hspan(self):
+		return self.get_info(INFO_HSPAN, 1)
+	
+	def get_vspan(self):
+		return self.get_info(INFO_VSPAN, 1)
+
 	def isEmpty(self):
 		return False
 
 	def dumpHead(self, tab):
-		print tab + 'cell(' + TABLE_KINDS[self.kind] + ', ' + TABLE_ALIGNS[self.align + 1] + ', ' + str(self.span) + ','
+		print(tab + 'cell(' + TABLE_KINDS[self.kind] + ', ' + TABLE_ALIGNS[self.align + 1] + ', ' + str(self.span) + ',')
 
 	def gen(self, gen):
 		Container.gen(self, gen)
@@ -1008,14 +1033,14 @@ class Row(Container):
 	def getWidth(self):
 		width = 0
 		for cell in self.content:
-			width += cell.span
+			width += cell.get_hspan()
 		return width
 
 	def isEmpty(self):
 		return False
 
 	def dumpHead(self, tab):
-		print tab + 'row('
+		print(tab + 'row(')
 
 	def getCells(self):
 		"""Get the list of cells."""
@@ -1059,13 +1084,13 @@ class Table(Container):
 		return self.content
 
 	def dumpHead(self, tab):
-		print tab + 'table('
+		print(tab + 'table(')
 
 	def visit(self, visitor):
 		visitor.onTable(self)
 
 	def numbering(self):
-		return "table"
+		return("table")
 
 	def acceptLabel(self):
 		return True
@@ -1086,7 +1111,7 @@ class HorizontalLine(Node):
 		Node.__init__(self)
 
 	def dump(self, tab):
-		print "%shorizontal-line()" % tab
+		print("%shorizontal-line()" % tab)
 
 	def gen(self, gen):
 		gen.genHorizontalLine()
@@ -1126,10 +1151,10 @@ class Header(Container):
 			self.add(man, event.make())
 
 	def dumpHead(self, tab):
-		print tab + "header" + str(self.header_level) + "("
-		print tab + "  title("
+		print(tab + "header" + str(self.header_level) + "(")
+		print(tab + "  title(")
 		self.title.dump(tab + "    ")
-		print tab + "  )"
+		print(tab + "  )")
 
 	def isEmpty(self):
 		return False
@@ -1237,7 +1262,7 @@ class Document(Container):
 
 	def getVar(self, id, default = ""):
 		"""Get a variable and evaluates the variables in its content."""
-		if self.env.has_key(id):
+		if id in self.env:
 			return self.reduceVars(self.env[id])
 		else:
 			return default
@@ -1247,18 +1272,18 @@ class Document(Container):
 
 	def dumpHead(self, tab = ""):
 		for k in iter(self.env):
-			print k + "=" + self.env[k]
-		print tab + "document("
+			print(k + "=" + self.env[k])
+		print(tab + "document(")
 
 	def addFeature(self, feature):
 		"""Add a feature to the document."""
 		if feature not in self.features:
 			self.features.append(feature)
 
- 	def pregen(self, gen):
+	def pregen(self, gen):
 		"""Call the prepare method of features of the document."""
- 		for feature in self.features:
- 			feature.prepare(gen)
+		for feature in self.features:
+			feature.prepare(gen)
 
 	def addLabel(self, label, node):
 		"""Add a label for the given node."""
@@ -1268,14 +1293,14 @@ class Document(Container):
 	def getLabel(self, label):
 		"""Find the node matching the given label.
 		Return None if there is no node matching the label."""
-		if self.labels.has_key(label):
+		if label in self.labels:
 			return self.labels[label]
 		else:
 			return None
 
 	def getLabelFor(self, node):
 		"""Get the label, if any, for the given node."""
-		if self.inv_labels.has_key(node):
+		if node in self.inv_labels:
 			return self.inv_labels[node]
 		else:
 			return None
@@ -1299,7 +1324,7 @@ class Document(Container):
 		except KeyError:
 			for src in self.hash_srcs:
 				res = src.resolve(word)
-				if res <> None:
+				if res != None:
 					self.hashes[word] = res
 					return res
 			return None

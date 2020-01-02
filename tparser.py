@@ -51,7 +51,7 @@ def handleText(man, line, suffix = ' '):
 		text = ""
 		i = 0
 		for (fun, wre) in man.words:
-			if text <> "":
+			if text != "":
 				text = text + "|"
 			text = text + "(?P<a" + str(i) + ">" + wre + ")"
 			i = i + 1
@@ -92,14 +92,14 @@ def handleInclude(man, match):
 	try:
 		file = open(path)
 		man.parseInternal(file, path)
-	except IOError, e:
+	except IOError as e:
 		common.onError('%s:%d: cannot include "%s": %s' % (man.file_name, man.line_num, path, e))
 
 def handleCaption(man, match):
 	par = doc.Par()
 	man.push(par)
 	man.getParser().parse(man, match.group(1))
-	while par <> man.get():
+	while par != man.get():
 		man.pop()
 	man.pop()
 	for item in man.iter():
@@ -178,7 +178,7 @@ class Manager:
 
 	def debug(self, msg):
 		"""Used to output message."""
-		print "DEBUG: %s" % msg
+		print("DEBUG: %s" % msg)
 
 	def send(self, event):
 		if DEBUG:
@@ -242,7 +242,7 @@ class Manager:
 			self.parseInternal(file, name)
 			self.send(doc.Event(doc.L_DOC, doc.ID_END))
 			self.doc.clean()
-		except common.ParseException, e:
+		except common.ParseException as e:
 			common.onError(self.message(e))
 
 	def message(self, msg):
@@ -294,12 +294,12 @@ class Manager:
 			mod.init(self)
 			
 			# new syntax?
-			if mod.__dict__.has_key("__syntax__"):
+			if "__syntax__" in mod.__dict__:
 				lines = []
 				words = []
-				if mod.__dict__.has_key("__lines__"):
+				if "__lines__" in mod.__dict__:
 					lines = mod.__lines__
-				if mod.__dict__.has_key("__words__"):
+				if "__words__" in mod.__dict__:
 					words = mod.__words__
 				self.setSyntax(
 					[(l[0], re.compile(l[1])) for l in lines],
@@ -307,10 +307,10 @@ class Manager:
 			
 			# simple extension
 			else:
-				if mod.__dict__.has_key("__lines__"):
+				if"__lines__" in  mod.__dict__:
 					for line in mod.__lines__:
 						self.addLine((line[0], re.compile(line[1])))
-				if mod.__dict__.has_key("__words__"):
+				if "__words__" in mod.__dict__:
 					for word in mod.__words__:
 						self.addWord((word[0], word[1]))
 		else:

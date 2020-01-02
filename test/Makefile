@@ -1,33 +1,16 @@
 
-include ../Makefile.std
+TESTS = \
+	simple-html \
+	simple-latex
+	
 
-THOT_FILES = \
-	caption.thot \
-	dot.thot \
-	gnuplot.thot \
-	ref.thot \
-	simple.thot
+all: TESTS
 
-DIST_FILES=\
-	$(THOT_FILES) \
-	include.thot \
-	gravure-thot.gif
+simple-html:
+	../thot.py simple.thot
 
-test: test-single test-chapter test-latex
+simple-latex:
+	../thot.py simple.thot -t latex
 
-test-single:
-	for f in *.thot; do ../thot.py $$f || exit 1; done
-
-test-chapter:
-	for f in *.thot; do ../thot.py -D HTML_ONE_FILE_PER=chapter $$f || exit 1; done
-
-test-clean:
-	rm -rf *.html *-imports *.tex *.pdf
-
-test-latex: $(THOT_FILES:.thot=.pdf)
-
-%.pdf: %.tex
-	pdflatex $<
-
-%.tex: %.thot
-	../thot.py -t latex $<
+clean:
+	rm -rf *.html *-imports

@@ -5,3 +5,10 @@ doc/*-imports
 test/*-imports
 test/*.html
 tmp/
+
+css/minima/blue.css
+css/minima/brown.css
+css/minima/gray.css
+css/minima/green.css
+css/minima/pink.css
+css/minima/purple.css

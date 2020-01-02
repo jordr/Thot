@@ -69,9 +69,9 @@ class Generator:
 
 	def friendFiles(self):
 		"""Get the friend files of the document."""
-		print self.from_files
-		print self.to_files
-		return self.to_files
+		print(self.from_files)
+		print(self.to_files)
+		return(self.to_files)
 
 	def getImportDir(self):
 		"""Get the directory containing the imports."""
@@ -123,13 +123,13 @@ class Generator:
 				apath = os.path.abspath(path)
 		else:
 			apath = os.path.normpath(path)
-		if self.from_files.has_key(apath):
+		if apath in self.from_files:
 			return self.from_files[apath]
 		else:
 			return None
 
 	def prepare_friend(self, path):
-		"""Prepare friend file to be created (ensuring uniqueness
+		"""Prepare friend file to be created (ensuring uniqueness)
 		and existence of directories (maintain the same path suffix).
 		Return the actual path."""
 		
@@ -138,14 +138,14 @@ class Generator:
 		if not os.path.exists(dpath):
 			try:
 				os.makedirs(dpath)
-			except os.error, e:
+			except os.error as e:
 				common.onError('cannot create directory "%s": %s' % (dpath, e))
 		
 		# ensure uniqueness
 		file, ext = os.path.splitext(path)
 		cnt = 0
-		while self.to_files.has_key(path):
-			path = "%s-%d.%s" % (file, cnt, ext)
+		while path in self.to_files:
+			path = "%s-%d%s" % (file, cnt, ext)
 			cnt = cnt + 1
 		return path
 
@@ -165,9 +165,9 @@ class Generator:
 		try:
 			shutil.copyfile(spath, tpath)
 			return tpath
-		except shutil.Error, e:
+		except shutil.Error as e:
 			common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
-		except IOError, e:
+		except IOError as e:
 			common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
 
 
@@ -204,7 +204,7 @@ class Generator:
 				tpath = os.path.join(self.getImportDir(), path)
 
 		# need to load?
-		if tpath <> path:
+		if tpath != path:
 			tpath = self.copy_friend(apath, tpath)
 
 		# record all
@@ -291,7 +291,7 @@ class Generator:
 	def genLinkEnd(self, url):
 		pass
 
-	def genImage(self, url, width = None, height = None, caption = None, align = tdoc.ALIGN_NONE, node = None):
+	def genImage(self, url, node, caption):
 		pass
 
 	def genGlyph(self, code):

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # thot -- Thot command
@@ -101,7 +101,7 @@ if args == []:
 	env["THOT_FILE"] = "<stdin>"
 	env["THOT_DOC_DIR"] = "."
 else:
-	input = file(args[0])
+	input = open(args[0])
 	env["THOT_FILE"] = args[0]
 	env["THOT_DOC_DIR"] = os.path.dirname(args[0])
 	if not env["THOT_DOC_DIR"]:
@@ -124,7 +124,7 @@ if not out_driver:
 
 # Parse the file
 man = tparser.Manager(document)
-if out_driver.__dict__.has_key("init"):
+if "init" in out_driver.__dict__:
 	out_driver.init(man)
 if options.uses:
 	for u in options.uses:
@@ -138,49 +138,49 @@ if options.dump:
 
 # list the involved modules
 elif options.list_mods:
-	print "Used modules:"
+	print("Used modules:")
 	for mod in man.used_mods:
 		desc = ""
-		if mod.__dict__.has_key("__short__"):
+		if "__short__" in mod.__dict__:
 			desc = " (%s)" % mod.__short__
-		print "- %s%s" % (mod.__name__, desc)
+		print("- %s%s" % (mod.__name__, desc))
 	sys.exit(0)
 
 # list available modules
 elif options.list_avail:
-	print "Available modules:"
+	print("Available modules:")
 	paths = document.getVar("THOT_USE_PATH")
 	names = set([os.path.splitext(file)[0] for path in paths.split(":") for file in os.listdir(path) if os.path.splitext(file)[1] in { ".py", ".pyc" }])
 	for name in names:
 		mod = common.loadModule(name, paths)
 		desc = ""
-		if mod.__dict__.has_key("__short__"):
+		if "__short__" in mod.__dict__:
 			desc = " (%s)" % mod.__short__
-		print "- %s%s" % (name, desc)
+		print("- %s%s" % (name, desc))
 	sys.exit(0)
 
 # list the syntax
 elif options.list_syntax:
-	print "Available syntax:"
+	print("Available syntax:")
 	for mod in man.used_mods:
-		print "- %s" % mod.__name__
-		if mod.__dict__.has_key("__words__"):
+		print("- %s" % mod.__name__)
+		if "__words__" in mod.__dict__:
 			for (_, word, desc) in mod.__words__:
-				print "\t%s: %s" % (prepare_syntax(word), desc)
-		if mod.__dict__.has_key("__lines__"):
+				print("\t%s: %s" % (prepare_syntax(word), desc))
+		if "__lines__" in mod.__dict_:
 			for (_, line, desc) in mod.__lines__:
-				print "\t%s:\n\t\t%s" % (prepare_syntax(line), desc)	
+				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
 	sys.exit(0)
 
 # list outputs
 elif options.list_output:
-	print "Available outputs:"
+	print("Available outputs:")
 	for mod in man.used_mods:
-		print "- %s" % mod.__name__
+		print("- %s" % mod.__name__)
 		name = "__%s__" % options.list_output
-		if mod.__dict__.has_key(name):
+		if name in mod.__dict__:
 			for (form, desc) in mod.__dict__[name]:
-				print "\t%s\n\t\t%s" % (form, desc)
+				print("\t%s\n\t\t%s" % (form, desc))
 	sys.exit(0)
 
 # list a module
@@ -191,29 +191,29 @@ elif options.list_mod:
 		common.onError("no module named %s" % options.list_mod)
 		sys.exit(1)
 	short = ""
-	if mod.__dict__.has_key("__short__"):
+	if "__short__" in mod.__dict__:
 		short = " (%s)" % mod.__short__
-	print "Module: %s%s" % (options.list_mod, short)
-	if mod.__dict__.has_key("__description__"):
-		print "\n%s\n" % mod.__description__
-	if mod.__dict__.has_key("__words__") or mod.__dict__.has_key("__lines__"):
-		print "\nSyntax:"
-		if mod.__dict__.has_key("__words__"):
+	print("Module: %s%s" % (options.list_mod, short))
+	if "__description__" in mod.__dict__:
+		print("\n%s\n" % mod.__description__)
+	if "__words__" in mod.__dict__ or "__lines__" in mod.__dict__:
+		print("\nSyntax:")
+		if "__words__" in mod.__dict__:
 			for (_, word, desc) in mod.__words__:
-				print "\t%s: %s" % (prepare_syntax(word), desc)
-		if mod.__dict__.has_key("__lines__"):
+				print("\t%s: %s" % (prepare_syntax(word), desc))
+		if "__lines__" in mod.__dict__:
 			for (_, line, desc) in mod.__lines__:
-				print "\t%s:\n\t\t%s" % (prepare_syntax(line), desc)	
+				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
 		has_output = False
 		for out in ["html", "latex", "docbook"]:
 			name = "__%s__" % out
-			if mod.__dict__.has_key(name):
+			if name in mod.__dict__:
 				if not has_output:
 					has_output = True
-					print "\nOutput:"
-				print "\t%s:" % out
+					print("\nOutput:")
+				print("\t%s:" % out)
 				for (form, desc) in mod.__dict__[name]:
-					print "\t%s\n\t\t%s" % (form, desc)
+					print("\t%s\n\t\t%s" % (form, desc))
 	sys.exit(0)
 
 # Output the result

@@ -123,7 +123,7 @@ def loadModule(name, paths):
 				if os.path.exists(path):
 					return imp.load_compiled(name, path)
 		return None
-	except Exception, e:
+	except Exception as e:
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
 AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
@@ -181,7 +181,7 @@ def getLinuxDistrib():
 			elif line.startswith("DISTRIB_RELEASE="):
 				release = line[16:-1]
 		return (id, release)
-	except IOError,e:
+	except IOError as e:
 		return ("", 0)
 
 
@@ -294,7 +294,7 @@ class Options:
 					continue
 				id = opt[:p]
 				val = opt[p+1:]
-				if not self.map.has_key(id):
+				if id not in self.map:
 					self.man.warn("unknown option '%s'" % opt)
 				else:
 					self.map[id] = val

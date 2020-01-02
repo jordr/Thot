@@ -22,7 +22,7 @@ import highlight
 import doc
 import shutil
 import re
-import urlparse
+import urllib.parse as urlparse
 import common
 import back
 import doc as tdoc
@@ -155,11 +155,11 @@ class TemplatePage(Page):
 					try:
 						kw = m.group(1)
 						map[kw](gen)
-					except KeyError, e:
+					except KeyError as e:
 						common.onError("unknown element %s at %d" % (kw, n))					
 				gen.out.write(line[f:])
 			
-		except IOError, e:
+		except IOError as e:
 			common.onError(str(e))
 
 	
@@ -233,7 +233,7 @@ class AllInOne(PagePolicy):
 			# set number
 			if self.gen.doc.getLabelFor(node):
 				if num:
-					if not others.has_key(num):
+					if num not in others:
 						others[num] = 1
 						n = 1
 					else:
@@ -301,7 +301,7 @@ class PerSection(PagePolicy):
 			
 			# set number
 			if num and self.gen.doc.getLabelFor(node):
-				if not others.has_key(num):
+				if num not in others.has_key:
 					others[num] = 1
 					n = 1
 				else:
@@ -322,7 +322,7 @@ class PerSection(PagePolicy):
 		self.gen.openPage(header)
 		self.path = self.path + [header]
 		self.page.apply(self, self.gen)
-		print "generated %s" % (self.gen.getPage(header))
+		print("generated %s" % (self.gen.getPage(header)))
 		
 		# generate the su-headers
 		for child in header.getContent():
@@ -347,7 +347,7 @@ class PerSection(PagePolicy):
 	def gen_content(self, gen):
 		if not self.path:
 			for node in self.gen.doc.getContent():
-				if node.getHeaderLevel() <> 0:
+				if node.getHeaderLevel() != 0:
 					node.gen(gen)
 		else:
 			for h in self.path:
@@ -365,7 +365,7 @@ class PerSection(PagePolicy):
 
 		# generate page
 		self.page.apply(self, self.gen)
-		print "generated %s" % self.gen.path
+		print("generated %s" % self.gen.path)
 
 		# generate chapter pages
 		for node in self.gen.doc.getContent():
@@ -408,7 +408,7 @@ class PerChapter(PagePolicy):
 			
 			# set number
 			if num and self.gen.doc.getLabelFor(node):
-				if not others.has_key(num):
+				if num not in others:
 					others[num] = 1
 					n = 1
 				else:
@@ -436,7 +436,7 @@ class PerChapter(PagePolicy):
 	def gen_content(self, gen):
 		if not self.node:		
 			for node in self.gen.doc.getContent():
-				if node.getHeaderLevel() <> 0:
+				if node.getHeaderLevel() != 0:
 					node.gen(gen)
 		else:
 			self.node.gen(self.gen)
@@ -452,7 +452,7 @@ class PerChapter(PagePolicy):
 			if node.getHeaderLevel() == 0:
 				chapters.append(node)
 		self.page.apply(self, self.gen)
-		print "generated %s" % self.gen.path
+		print("generated %s" % self.gen.path)
 
 		# generate chapter pages
 		for node in chapters:
@@ -460,7 +460,7 @@ class PerChapter(PagePolicy):
 			self.node = node
 			self.page.apply(self, self.gen)
 			self.gen.closePage()
-			print "generated %s" % (self.gen.getPage(node))
+			print("generated %s" % (self.gen.getPage(node)))
 
 
 class Generator(backs.abstract_html.Generator):
@@ -593,7 +593,7 @@ class Generator(backs.abstract_html.Generator):
 		self.out.write('</div>\n')
 
 	def getPage(self, header):
-		if not self.pages.has_key(header):
+		if header not in self.pages:
 			self.pages[header] = "%s-%d.html" % (self.root, self.page_count)
 			self.page_count += 1
 		return self.pages[header]
@@ -630,7 +630,7 @@ class Generator(backs.abstract_html.Generator):
 
 		# generate the document
 		policy.run()
-		print "SUCCESS: result in %s" % self.path
+		print("SUCCESS: result in %s" % self.path)
 
 
 def output(doc):

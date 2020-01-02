@@ -141,7 +141,7 @@ class Generator:
 			# close all
 			out.write("</manifest>\n")		
 			out.close()
-		except IOError,e:
+		except IOError as e:
 			raise common.BackException(str(e))
 	
 	def run(self):
@@ -150,7 +150,7 @@ class Generator:
 		self.genManifest()
 		arc = "%s.zip" % self.html.root
 		ZIP.call([arc] + self.pack_files)
-		print "SUCESS: SCORM archive in %s" % arc 
+		print("SUCESS: SCORM archive in %s" % arc)
 		
 
 def output(doc):

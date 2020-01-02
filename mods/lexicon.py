@@ -111,14 +111,14 @@ class Source:
 		self.lexicon = { }
 
 	def resolve(self, id):
-		if not self.lexicon.has_key(id):
+		if id not in self.lexicon:
 			return None
 		else:
 			return Term(id)
 
 	def exists(self, id):
 		"""Test if an identifier exists."""
-		return self.lexicon.has_key(id)
+		return id in self.lexicon
 
 	def add(self, id, desc):
 		"""Add a new term."""

@@ -22,7 +22,7 @@ import highlight
 import doc
 import shutil
 import re
-import urlparse
+import urllib.parse as urlparse
 import common
 import back
 import doc as tdoc
@@ -34,7 +34,7 @@ LISTS = {
 	'ol': ('<ol %s>', '<li>', '</li>', '</ol>'),
 }
 def getList(list):
-	if LISTS.has_key(list):
+	if list in LISTS:
 		return LISTS[list]
 	else:
 		raise Exception('list ' + list + ' not supported')
@@ -62,17 +62,17 @@ ESCAPE_MAP = {
 }
 def escape(s):
 	r = ""
-	for c in s.decode(common.ENCODING):
+	for c in s:
 		if ord(c) >= 128:
 			r = r + ("&#%d;" % ord(c))
-		elif ESCAPE_MAP.has_key(c):
+		elif c in ESCAPE_MAP:
 			r = r + ESCAPE_MAP[c]
 		else:
 			r = r + c
 	return r
 
 def getStyle(style):
-	if STYLES.has_key(style):
+	if style in STYLES:
 		return STYLES[style]
 	else:
 		raise Exception('style ' + style + ' not supported')
@@ -192,9 +192,9 @@ class Generator(back.Generator):
 		return tpath
 
 	def genFootNote(self, note):
-		if note.kind <> doc.FOOTNOTE_REF:
+		if note.kind != doc.FOOTNOTE_REF:
 			self.footnotes.append(note)
-		if note.kind <> doc.FOOTNOTE_DEF:
+		if note.kind != doc.FOOTNOTE_DEF:
 			if note.ref:
 				id = note.id
 				ref = "#footnote-custom-%s" % note.ref
@@ -363,7 +363,7 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
 
-	def genImage(self, url, caption = None, node = None):
+	def genImage(self, url, node, caption):
 		assert node
 		align = node.getInfo(tdoc.INFO_ALIGN)
 		if align:
@@ -373,12 +373,12 @@ class Generator(back.Generator):
 		new_url = self.use_friend(url)
 		self.out.write('<img src="' + new_url + '"')
 		width = node.getInfo(tdoc.INFO_WIDTH)
-		if width <> None:
+		if width != None:
 			self.out.write(' width="' + str(width) + '"')
 		height = node.getInfo(tdoc.INFO_WIDTH)
-		if height <> None:
+		if height != None:
 			self.out.write(' height="' + str(height) + '"')
-		if caption <> None:
+		if caption != None:
 			self.out.write(' alt="' + cgi.escape(str(caption), True) + '"')
 		if align == tdoc.ALIGN_RIGHT:
 			self.out.write(' align="right"')
@@ -408,7 +408,7 @@ class Generator(back.Generator):
 			else:
 				self.out.write(', ')
 			email = ""
-			if author.has_key('email'):
+			if 'email' in author:
 				email = author['email']
 				self.out.write('<a href="mailto:' + cgi.escape(email) + '">')
 			self.out.write(cgi.escape(author['name']))
@@ -417,9 +417,9 @@ class Generator(back.Generator):
 
 	def genLabel(self, node):
 		caption = node.getCaption()
-		if caption or self.refs.has_key(node):
+		if caption or node in self.refs:
 			self.out.write('<div class="label">')
-			if self.refs.has_key(node):
+			if node in self.refs:
 				r = self.refs[node]
 				self.out.write("<a name=\"%s\" class=\"label-ref\">%s</a>" % (r[1], self.trans.caption(node.numbering(), r[1])))
 			if caption:

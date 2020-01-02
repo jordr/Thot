@@ -203,9 +203,9 @@ def genCode(gen, lang, text, type, line):
 		
 		# other options
 		opts = ""
-		if line <> None:
+		if line != None:
 			opts = opts + " -l"
-			if line <> 1:
+			if line != 1:
 				opts = opts + " -m %s" % line
 		
 		# perform the command
@@ -220,12 +220,12 @@ def genCode(gen, lang, text, type, line):
 				close_fds = cfd,
 				shell = True
 			)
-			res, _ = process.communicate(text)
+			res, _ = process.communicate(text.encode('utf-8'))
 			
 			# generate the source
-			gen.genVerbatim(res)
+			gen.genVerbatim(res.decode('utf-8'))
 			
-		except OSError, e:
+		except OSError as e:
 			sys.stderr.write("ERROR: can not call 'highlight'\n")
 			sys.exit(1)
 	else:
@@ -253,7 +253,7 @@ class Feature(doc.Feature):
 		# parse list of languages
 		try:
 			global LANGS
-			ans = subprocess.check_output("%s -p" % command, shell = True)
+			ans = subprocess.check_output("%s -p" % command, shell = True).decode('utf-8')
 			LANGS = []
 			for line in ans.split("\n"):
 				try:
@@ -263,9 +263,9 @@ class Feature(doc.Feature):
 						for w in line.split():
 							if w != '(' and w != ')':
 								LANGS.append(w)
-				except ValueError, e:
+				except ValueError as e:
 					pass
-		except subprocess.CalledProcessError,e :
+		except subprocess.CalledProcessError as e :
 			common.onWarning("cannot get supported languages from %s, falling back to default list." % command)
 		
 		# build the CSS file
@@ -283,7 +283,7 @@ class Feature(doc.Feature):
 					shell = True
 				)
 				_ = process.communicate("")
-			except OSError, e:
+			except OSError as e:
 				sys.stderr.write("ERROR: can not call 'highlight'\n")
 				sys.exit(1)
 
@@ -306,7 +306,7 @@ class Feature(doc.Feature):
 					shell = True
 				)
 				_ = process.communicate("")
-			except OSError, e:
+			except OSError as e:
 				sys.stderr.write("ERROR: can not call 'highlight'\n")
 				sys.exit(1)
 
@@ -314,7 +314,7 @@ class Feature(doc.Feature):
 			preamble = gen.doc.getVar('LATEX_PREAMBLE')
 			preamble += '\\usepackage{color}\n'
 			preamble += '\\usepackage{alltt}\n'
-			preamble += '\\input {%s}\n' % gen.getFriendRelativePath(css)
+			preamble += '\\input {%s}\n' % css
 			gen.doc.setVar('LATEX_PREAMBLE', preamble)
 
 
@@ -330,14 +330,14 @@ class CodeBlock(doc.Block):
 		man.doc.addFeature(FEATURE)
 
 	def dumpHead(self, tab):
-		print tab + "code(" + self.lang + ","
+		print(tab + "code(" + self.lang + ",")
 
 	def gen(self, gen):
 
 		# aggregate code
 		text = ""
 		for line in self.content:
-			if text <> "":
+			if text != "":
 				text += '\n'
 			text += line
 
@@ -355,7 +355,7 @@ class CodeBlock(doc.Block):
 			gen.genEmbeddedEnd(self)
 		elif type == 'docbook':
 			gen.genVerbatim('<programlisting xml:space="preserve" ')
-			if DOCBOOK_LANGS.has_key(self.lang):
+			if self.lang in DOCBOOK_LANGS:
 				gen.genVerbatim(' language="%s"' % DOCBOOK_LANGS[self.lang])
 			gen.genVerbatim('>\n')
 			gen.genText(self.toText())
