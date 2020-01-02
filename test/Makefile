@@ -11,6 +11,7 @@ simple-html:
 
 simple-latex:
 	../thot.py simple.thot -t latex
+	pdflatex simple.tex
 
 clean:
 	rm -rf *.html *-imports

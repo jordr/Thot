@@ -309,3 +309,27 @@ def parse_options(man, text, defs):
 	opts.parse(text)
 	return opts
 	
+
+STANDARD_VARS = [
+	("AUTHORS",			"authors of the document (',' separated, name <email>)"),
+	("LANG",			"lang of the document"),
+	("LOGO",			"logos of the supporting organization"),
+	("ORGANIZATION",	"organization producing the document"),
+	("SUBTITLE",		"sub-title of the document"),
+	("THOT_FILE",		"used to derivate the THOT_OUT_PATH if not set"),
+	("THOT_OUT_PATH",	"output directory path"),
+	("TITLE",			"title of the document"),
+]
+
+def make_var_doc(custom):
+	"""Generate documentation text for variables (for __description__
+	building). The documented variables includes standard variables
+	and custom variables."""
+	vars = STANDARD_VARS + custom
+	vars.sort()
+	imax = max([len(i) for (i, _) in vars])
+	d = ""
+	for (i, id) in vars:
+		d += "%s:%s %s\n" % (i, " " * (imax - len(i)), id)
+	return d
+

@@ -24,19 +24,6 @@ import doc
 import sys
 
 
-# USED VARIABLES
-#	TITLE: document title
-#	AUTHORS: document authors
-#	LANG: document language
-#	OUTPUT: one of 'latex' or 'pdf'
-#	ENCODING: character encoding
-#	SUBTITLE: sub-title of the document
-#	ORGANIZATION: organization producing the document
-#	LOGO: logos of the supporting organizations
-#	LATEX_CLASS: latex class for document
-#	LATEX_PREAMBLE: insert just after document definition
-#	LATEX_PAPER: latex paper format (a4paper, letter, etc)
-
 KOMA_STYLES = [
 	"scrartcl",
 	"scrreprt",
@@ -584,3 +571,19 @@ class Generator(back.Generator):
 def output(doc):
 	gen = Generator(doc)
 	gen.run()
+
+
+__short__ = "back-end for Latex output"
+__description__ = \
+"""Compile the document DOC.thot (and included documents) in a unique
+file DOC.latex that, then, can be compiled into PDF, for instance,
+using "pdflatex" command.
+
+Following variables are supported:
+""" + common.make_var_doc([
+	("LATEX_CLASS",		"latex class for document (default book)"),
+	("LATEX_PAPER",		"latex paper format (a4paper, letter, etc)"),
+	("LATEX_PREAMBLE",	"to be inserted just after document definition"),
+	("OUTPUT",			"one of 'latex' (latex output) or 'pdf' (latex and PDF output)")
+])
+

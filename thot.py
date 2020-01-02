@@ -122,70 +122,39 @@ out_driver = common.loadModule(out_name,  out_path)
 if not out_driver:
 	common.onError('cannot find %s back-end' % out_name)
 
-# Parse the file
-man = tparser.Manager(document)
-if "init" in out_driver.__dict__:
-	out_driver.init(man)
-if options.uses:
-	for u in options.uses:
-		man.use(u)
-man.parse(input, env['THOT_FILE'])
-
-# dump the parsed document
-if options.dump:
-	document.dump("")
-	sys.exit(0)
-
-# list the involved modules
-elif options.list_mods:
-	print("Used modules:")
-	for mod in man.used_mods:
-		desc = ""
-		if "__short__" in mod.__dict__:
-			desc = " (%s)" % mod.__short__
-		print("- %s%s" % (mod.__name__, desc))
-	sys.exit(0)
-
 # list available modules
-elif options.list_avail:
+if options.list_avail:
+
 	print("Available modules:")
 	paths = document.getVar("THOT_USE_PATH")
-	names = set([os.path.splitext(file)[0] for path in paths.split(":") for file in os.listdir(path) if os.path.splitext(file)[1] in { ".py", ".pyc" }])
+	names = set([os.path.splitext(file)[0]
+		for path in paths.split(":") for file in os.listdir(path)
+			if os.path.splitext(file)[1] in { ".py" }])
 	for name in names:
 		mod = common.loadModule(name, paths)
 		desc = ""
 		if "__short__" in mod.__dict__:
 			desc = " (%s)" % mod.__short__
 		print("- %s%s" % (name, desc))
-	sys.exit(0)
 
-# list the syntax
-elif options.list_syntax:
-	print("Available syntax:")
-	for mod in man.used_mods:
-		print("- %s" % mod.__name__)
-		if "__words__" in mod.__dict__:
-			for (_, word, desc) in mod.__words__:
-				print("\t%s: %s" % (prepare_syntax(word), desc))
-		if "__lines__" in mod.__dict_:
-			for (_, line, desc) in mod.__lines__:
-				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
-	sys.exit(0)
-
-# list outputs
-elif options.list_output:
-	print("Available outputs:")
-	for mod in man.used_mods:
-		print("- %s" % mod.__name__)
-		name = "__%s__" % options.list_output
-		if name in mod.__dict__:
-			for (form, desc) in mod.__dict__[name]:
-				print("\t%s\n\t\t%s" % (form, desc))
+	print("\nAvailable back-ends:")
+	path = os.path.join(document.env["THOT_BASE"], "backs")
+	names = set([os.path.splitext(file)[0]
+		for file in os.listdir(path)
+			if os.path.splitext(file)[1] in { ".py" }
+			and not file.startswith("__")])
+	for name in names:
+		mod = common.loadModule(name, path)
+		desc = ""
+		if "__short__" in mod.__dict__:
+			desc = " (%s)" % mod.__short__
+		print("- %s%s" % (name, desc))
+	
 	sys.exit(0)
 
 # list a module
 elif options.list_mod:
-	paths = document.getVar("THOT_USE_PATH")
+	paths = document.getVar("THOT_USE_PATH") + ":" + os.path.join(document.env["THOT_BASE"], "backs")
 	mod = common.loadModule(options.list_mod, paths)
 	if not mod:
 		common.onError("no module named %s" % options.list_mod)
@@ -214,6 +183,54 @@ elif options.list_mod:
 				print("\t%s:" % out)
 				for (form, desc) in mod.__dict__[name]:
 					print("\t%s\n\t\t%s" % (form, desc))
+	sys.exit(0)
+
+# Parse the file
+man = tparser.Manager(document)
+if "init" in out_driver.__dict__:
+	out_driver.init(man)
+if options.uses:
+	for u in options.uses:
+		man.use(u)
+man.parse(input, env['THOT_FILE'])
+
+# dump the parsed document
+if options.dump:
+	document.dump("")
+	sys.exit(0)
+
+# list the syntax
+elif options.list_syntax:
+	print("Available syntax:")
+	for mod in man.used_mods:
+		print("- %s" % mod.__name__)
+		if "__words__" in mod.__dict__:
+			for (_, word, desc) in mod.__words__:
+				print("\t%s: %s" % (prepare_syntax(word), desc))
+		if "__lines__" in mod.__dict_:
+			for (_, line, desc) in mod.__lines__:
+				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
+	sys.exit(0)
+
+# list outputs
+elif options.list_output:
+	print("Available outputs:")
+	for mod in man.used_mods:
+		print("- %s" % mod.__name__)
+		name = "__%s__" % options.list_output
+		if name in mod.__dict__:
+			for (form, desc) in mod.__dict__[name]:
+				print("\t%s\n\t\t%s" % (form, desc))
+	sys.exit(0)
+
+# list the involved modules
+elif options.list_mods:
+	print("Used modules:")
+	for mod in man.used_mods:
+		desc = ""
+		if "__short__" in mod.__dict__:
+			desc = " (%s)" % mod.__short__
+		print("- %s%s" % (mod.__name__, desc))
 	sys.exit(0)
 
 # Output the result

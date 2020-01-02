@@ -29,18 +29,6 @@ import doc as tdoc
 import backs.abstract_html
 
 
-# supported variables
-#	TITLE: title of the document
-#	AUTHORS: authors of the document
-#	LANG: lang of the document
-#	ENCODING: charset for the document
-#	THOT_OUT_PATH:	HTML out file
-#	THOT_FILE: used to derivate the THOT_OUT_PATH if not set
-#	HTML_STYLES: CSS styles to use (':' separated)
-#	HTML_SHORT_ICON: short icon for HTML file
-#	HTML_ONE_FILE_PER: one of document (default), chapter, section.
-#	HTML_TEMPLATE:  template used to generate pages.
-
 def makeRef(nums):
 	"""Generate a reference from an header number array."""
 	return ".".join([str(i) for i in nums])
@@ -636,3 +624,17 @@ class Generator(backs.abstract_html.Generator):
 def output(doc):
 	gen = Generator(doc)
 	gen.run()
+
+__short__ = "back-end for HTML output"
+__description__ = \
+"""Produces one or several HTML files. Auxiliary files (images, CSS, etc)
+are stored in a directory named DOC-imports where DOC corresponds to the
+the processed document DOC.thot.
+
+Following variables are supported:
+""" + common.make_var_doc([
+	("HTML_ONE_FILE_PER",	"generated files: one of document (default), chapter, section"),
+	("HTML_SHORT_ICON",		"short icon path for HTML file"),
+	("HTML_STYLES",			"CSS styles to use (':' separated)"),
+	("HTML_TEMPLATE",		"template used to generate pages")
+])
