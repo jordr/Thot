@@ -293,6 +293,10 @@ class Generator:
 
 	def genImage(self, url, node, caption):
 		pass
+	
+	def genFigure(self, url, node, caption):
+		"""Generate a figure made of an image."""
+		pass
 
 	def genGlyph(self, code):
 		pass

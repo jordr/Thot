@@ -363,34 +363,36 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</a>')
 
-	def genImage(self, url, node, caption):
-		assert node
-		align = node.getInfo(tdoc.INFO_ALIGN)
-		if align:
-			self.out.write("<div class=\"figure\">")
-		if align == tdoc.ALIGN_CENTER:
-			self.out.write('<center>')
-		new_url = self.use_friend(url)
-		self.out.write('<img src="' + new_url + '"')
-		width = node.getInfo(tdoc.INFO_WIDTH)
-		if width != None:
-			self.out.write(' width="' + str(width) + '"')
-		height = node.getInfo(tdoc.INFO_WIDTH)
-		if height != None:
-			self.out.write(' height="' + str(height) + '"')
+	def genImageTag(self, url, node, caption):
+		self.out.write('<img src="' + url + '"')
+		if node.get_width() != None:
+			self.out.write(' width="%d"' % node.get_width())
+		if node.get_height() != None:
+			self.out.write(' height="%d"' % node.get_height())
 		if caption != None:
-			self.out.write(' alt="' + cgi.escape(str(caption), True) + '"')
-		if align == tdoc.ALIGN_RIGHT:
-			self.out.write(' align="right"')
-		elif align == tdoc.ALIGN_LEFT:
-			self.out.write(' align="left"')
+			self.out.write(' alt="' + cgi.escape(caption.toText(), True) + '"')
+		
 		self.out.write('/>')
-		if node:
-			self.genLabel(node)
-		if align == tdoc.ALIGN_CENTER:
-			self.out.write('</center>')
-		if align:
-			self.out.write("</div>")
+		
+
+	def genImage(self, url, node, caption):
+		new_url = self.use_friend(url)
+		self.genImageTag(new_url, node, caption)
+
+	def genFigure(self, url, node, caption):
+		align = node.getInfo(tdoc.INFO_ALIGN)
+		self.out.write('<div class="figure"')
+		if align == tdoc.ALIGN_LEFT:
+			self.out.write(' style="text-align:center;float:left"')
+		elif align == tdoc.ALIGN_RIGHT:
+			self.out.write(' style="text-align:center;float:right"')
+		else:
+			self.out.write(' style="text-align:center"')
+		self.out.write('>\n')
+		new_url = self.use_friend(url)
+		self.genImageTag(new_url, node, caption)
+		self.genLabel(node)
+		self.out.write("</div>\n")
 
 	def genGlyph(self, code):
 		self.out.write('&#' + str(code) + ';')
@@ -416,7 +418,7 @@ class Generator(back.Generator):
 				self.out.write('</a>')		
 
 	def genLabel(self, node):
-		caption = node.getCaption()
+		caption = node.get_caption()
 		if caption or node in self.refs:
 			self.out.write('<div class="label">')
 			if node in self.refs:

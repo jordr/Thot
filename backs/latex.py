@@ -520,11 +520,15 @@ class Generator(back.Generator):
 			args += 'height=%dpx' % node.get_height()
 		if args:
 			args = "[%s]" % args
-		if node.get_align() != doc.ALIGN_NONE:
+		if caption:
 			self.out.write("\\begin{figure}[htbp]\n")
 		self.out.write('\includegraphics%s{%s}' % (args, link))
-		if node.get_align() != doc.ALIGN_NONE:
+		if caption:
 			self.genLabel(node)
+			self.out.write("\n\\caption{")
+			print("DEBUG: %s %s\n" % (node, caption))
+			caption.gen(self)
+			self.out.write("}")
 			self.out.write("\n\\end{figure}\n")
 
 	def genLabel(self, node):

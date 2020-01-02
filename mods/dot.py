@@ -61,9 +61,7 @@ class DotBlock(doc.Block):
 				self.onError('error during dot call on %s' % text)
 			if err:
 				self.onError('error during dot call: %son %s' % (err, text))
-			gen.genEmbeddedBegin(self)
-			gen.genImage(path, self, self.caption)
-			gen.genEmbeddedEnd(self)
+			gen.genFigure(path, self, self.caption)
 		except OSError as e:
 			self.onError('can not process dot graph: %s' % str(e))
 

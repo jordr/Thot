@@ -72,29 +72,30 @@ Et simple flêche ? <->
 
 And the french quote ? >>
 
-Un smiley :-) ???
+A smiley :-) ???
 
-Ume image !!!
-
+A simple image:
 {{@(THOT_BASE)/pix/thot5.gif}}
 
-{{@(THOT_BASE)/pix/thot5.gif?16|16xN}}		16 x N
+A 16xN image: {{@(THOT_BASE)/pix/thot5.gif?16|16xN}} 16 x N
 
+A Nx16 image:
 {{@(THOT_BASE)/pix/thot5.gif?x16|Nx16}}	N x 16
 
+A 16x16 image:
 {{@(THOT_BASE)/pix/thot5.gif?16x16|16x16}}	16 x 16
 
 Image with relative name:
 {{gravure-thot.gif}}
 
 Image to left:
-{{gravure-thot.gif  }}
+{{gravure-thot.gif  |left}}
 
 Image to right:
-{{  gravure-thot.gif}}
+{{  gravure-thot.gif|right}}
 
 Image centered:
-{{  gravure-thot.gif  }}
+{{  gravure-thot.gif  |center}}
 
 
 ====== tables ======

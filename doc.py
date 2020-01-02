@@ -1,4 +1,4 @@
-# doc -- Thot document escription module
+# doc -- Thot document description module
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -279,15 +279,6 @@ class Info:
 			for k in info.info.keys():
 				self.setInfo(k, info.info[k])
 
-	def get_width(self):
-		return self.get_info(INFO_WIDTH)
-	
-	def get_height(self):
-		return self.get_info(INFO_HEIGHT)
-
-	def get_align(self):
-		return self.get_info(INFO_ALIGN)
-
 
 # nodes
 class Node(Info):
@@ -350,15 +341,6 @@ class Node(Info):
 		gen -- used generator."""
 		pass
 
-	def setCaption(self, text):
-		"""Method called when a caption is found after the current element.
-		Return True if the caption is accepted. """
-		return False
-		
-	def getCaption(self):
-		"""Return the associated caption. return none if there is no caption."""
-		return None
-
 	def acceptLabel(self):
 		"""Method called called when a label is found. Nodes not supporting
 		just return False (default behaviour) else node return True."""
@@ -379,6 +361,27 @@ class Node(Info):
 	def toText(self):
 		"""Produce only the raw text of the node."""
 		return ""
+
+	def get_width(self):
+		return self.get_info(INFO_WIDTH)
+	
+	def get_height(self):
+		return self.get_info(INFO_HEIGHT)
+
+	def get_align(self):
+		return self.get_info(INFO_ALIGN)
+
+	def get_caption(self):
+		"""Return the associated caption. return none if there is no caption."""
+		return self.get_info(INFO_CAPTION)
+
+	def set_caption(self, caption):
+		"""Set the caption of the node."""
+		self.set_info(INFO_CAPTION, caption)
+
+	def accepts_caption(self):
+		"""Test if the node accepts caption (default return False)."""
+		return False
 
 
 class Container(Node):
@@ -508,70 +511,28 @@ class Tag(Node):
 
 class Image(Node):
 	path = None
-	caption = None
 
 	def __init__(self, path, width = None, height = None, caption = None):
 		Node.__init__(self)
 		self.path = path
-		self.caption = caption
 		if width:
-			self.setInfo(INFO_WIDTH, width)
+			self.set_info(INFO_WIDTH, width)
 		if height:
-			self.setInfo(INFO_HEIGHT, height)
+			self.set_info(INFO_HEIGHT, height)
+		if caption:
+			self.set_caption(caption)
 
-	def get_caption(self):
-		return self.caption
-	
 	def dump(self, tab):
 		print("%simage(%s, %s, %s, %s)" % \
-			(tab, self.path, self.get_width(), self.get_height(), self.caption))
+			(tab, self.path, self.get_width(), self.get_height(), self.get_caption()))
 
 	def gen(self, gen):
-		gen.genImage(self.path, self, self.caption)
+		gen.genImage(self.path, self, self.get_caption())
 
 	def visit(self, visitor):
 		visitor.onImage(self)
 
-
-class EmbeddedImage(Node):
-	path = None
-
-	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
-		Node.__init__(self)
-		self.path = path
-		if caption:
-			self.caption = Par()
-			self.caption.content.append(Word(caption))
-		else:
-			self.caption = None
-		if width:
-			self.setInfo(INFO_WIDTH, width)
-		if height:
-			self.setInfo(INFO_HEIGHT, height)
-		if align:
-			self.setInfo(INFO_ALIGN, align)
-
-	def dump(self, tab):
-		print("%sembedded-image(%s, %s)" % \
-			(tab, self.path, self.caption))
-
-	def gen(self, gen):
-		gen.genImage(self.path, self, self.caption)
-
-	def visit(self, visitor):
-		visitor.onEmbeddedImage(self)
-
-	def numbering(self):
-		return "figure"
-
-	def getCaption(self):
-		return self.caption
-
-	def acceptLabel(self):
-		return True
-	
-	def setCaption(self, caption):
-		self.caption = caption
+	def accepts_caption(self):
 		return True
 
 
@@ -796,13 +757,6 @@ class Embedded(Node):
 	def __init__(self):
 		Node.__init__(self)
 
-	def setCaption(self, caption):
-		self.caption = caption
-		return True
-
-	def getCaption(self):
-		return self.caption
-
 	def acceptLabel(self):
 		return True
 
@@ -842,6 +796,44 @@ class Block(Embedded):
 		for line in self.content:
 			text += line + '\n'
 		return text
+
+	def accepts_caption(self):
+		return True
+		
+
+class Figure(Block):
+	path = None
+
+	def __init__(self, path, width = None, height = None, caption = None, align = ALIGN_NONE):
+		Node.__init__(self)
+		self.path = path
+		if width:
+			self.setInfo(INFO_WIDTH, width)
+		if height:
+			self.setInfo(INFO_HEIGHT, height)
+		if align:
+			self.setInfo(INFO_ALIGN, align)
+		if caption:
+			self.set_caption(caption)
+
+	def dump(self, tab):
+		print("%figure(%s, %s)" % \
+			(tab, self.path, self.get_caption().toText()))
+
+	def gen(self, gen):
+		gen.genFigure(self.path, self, self.get_caption())
+
+	def visit(self, visitor):
+		visitor.onEmbeddedImage(self)
+
+	def numbering(self):
+		return "figure"
+
+	def acceptLabel(self):
+		return True
+	
+	def accepts_caption(self):
+		return True
 
 
 # List family
@@ -1054,7 +1046,6 @@ class Table(Container):
 	"""Repreentation of a table, that is composed or Rows that are
 	composed, in turn, of cells."""
 	width = None
-	caption = None
 
 	def __init__(self):
 		Container.__init__(self)
@@ -1095,12 +1086,8 @@ class Table(Container):
 	def acceptLabel(self):
 		return True
 
-	def setCaption(self, caption):
-		self.caption = caption
+	def accepts_caption(self):
 		return True
-	
-	def getCaption(self):
-		return self.caption
 
 
 # main family

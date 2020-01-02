@@ -226,7 +226,7 @@ def handleLink(man, match):
 		label = target
 	processLink(man, target, doc.Word(label))
 
-def handleImage(man, match):
+def handleFigure(man, match):
 	image = match.group("image")
 	width = match.group("image_width")
 	if width != None:
@@ -235,24 +235,41 @@ def handleImage(man, match):
 	if height != None:
 		height = int(height)
 	label = match.group("image_label")
+	if label == None:
+		caption = None
+	else:
+		caption = doc.Par()
+		caption.append(doc.Word(label))
 	left = len(match.group("left"))
 	right = len(match.group("right"))
 	if left == right:
-		if not left:
-			align = doc.ALIGN_NONE
-		else:
-			align = doc.ALIGN_CENTER
-			cls = doc.L_PAR
+		align = doc.ALIGN_CENTER
 	elif left > right:
 		align = doc.ALIGN_RIGHT
 	else:
 		align = doc.ALIGN_LEFT
-	if align == doc.ALIGN_NONE:
-		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW,
-			doc.Image(image, width, height, label)))
+	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW,
+		doc.Figure(image, width, height, caption, align)))
+
+def handleImage(man, match):
+	if match.group("left") or match.group("right"):
+		handleFigure(man, match)
 	else:
-		man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_NEW,
-			doc.EmbeddedImage(image, width, height, label, align)))
+		image = match.group("image")
+		width = match.group("image_width")
+		if width != None:
+			width = int(width)
+		height = match.group("image_height")
+		if height != None:
+			height = int(height)
+		label = match.group("image_label")
+		if label == None:
+			caption = None
+		else:
+			caption = doc.Par()
+			caption.append(doc.Word(label))
+		man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW,
+			doc.Image(image, width, height, caption)))
 
 
 def handleNonParsed(man, match):
@@ -284,7 +301,7 @@ WORDS = [
 	(handleSmiley, SMILEYS_RE),
 	(handleEntity, ENTITIES_RE),
 	(handleLineBreak, "\\\\\\\\"),
-	(handleNonParsed, "%%(?P<nonparsed>([^%]*%)*)%")
+	(handleNonParsed, "%%(?P<nonparsed>([^%]*%)*)%"),
 ]
 
 ### lines processing ###
@@ -430,7 +447,7 @@ LINES = [
 	(handleHLine, re.compile("^-----*\s*$")),
 	(handleIndent, INDENT_RE),
 	(handleQuote, re.compile("^(>+)(.*)$")),
-	(handleImage, re.compile("\s*{{(?P<left>\s*)(?P<image>[^}?\s]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}\s*"))
+	(handleFigure, re.compile("^\s*{{(?P<left>\s*)(?P<image>[^}?\s|]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}\s*$"))
 ]
 
 def init(man):
