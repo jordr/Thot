@@ -240,6 +240,8 @@ class Generator(back.Generator):
 		self.out.write('\\usepackage{hyperref}\n')
 		self.out.write('\\usepackage{verbatim}\n')
 		#self.out.write('\\usepackage{fancyhdr}\n')
+		self.out.write('\\usepackage[export]{adjustbox}\n')
+
 		self.out.write(preamble)
 		if lang:
 			self.out.write('\\usepackage[%s]{babel}\n' % lang)
@@ -349,7 +351,7 @@ class Generator(back.Generator):
 		self.out.write('\\end{quote}\n')
 
 	def genTable(self, table):
-		floatting = self.doc.getLabelFor(table) or table.getCaption()
+		floatting = self.doc.getLabelFor(table) or table.get_caption()
 
 		# output prolog
 		if floatting:
@@ -476,15 +478,12 @@ class Generator(back.Generator):
 		self.out.write('}')
 
 	def genHeader(self, header):
-		self.out.write(SECTIONS[header.level])
+		self.out.write(SECTIONS[header.getHeaderLevel()])
 		header.genTitle(self)
 		self.out.write('}\n')
 		self.genLabel(header)
 		header.genBody(self)
 		return True
-
-	def genHeaderEnd(self, level):
-		pass
 
 	def genLinkBegin(self, url):
 		self.out.write('\href{%s}{' % self.escape(url))
@@ -492,7 +491,7 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('}')
 
-	def genImage(self, url, node, caption):
+	def include_graphics(self, url, node, align = None):
 
 		# It should download the image if the URL is external
 		# !!TODO!!
@@ -518,30 +517,36 @@ class Generator(back.Generator):
 			if args:
 				args += ','
 			args += 'height=%dpx' % node.get_height()
+		if align != None:
+			if args:
+				args += ','
+			if align == doc.ALIGN_LEFT:
+				args += "left"
+			elif align == doc.ALIGN_RIGHT:
+				args += "right"
+			else:
+				args += "center"
 		if args:
 			args = "[%s]" % args
-		if caption:
-			self.out.write("\\begin{figure}[htbp]\n")
 		self.out.write('\includegraphics%s{%s}' % (args, link))
-		if caption:
-			self.genLabel(node)
-			self.out.write("\n\\caption{")
-			print("DEBUG: %s %s\n" % (node, caption))
-			caption.gen(self)
-			self.out.write("}")
-			self.out.write("\n\\end{figure}\n")
+
+	def genFigure(self, url, node, caption):
+		self.out.write("\\begin{figure}[htbp!]\n")
+		self.include_graphics(url, node, node.get_align())
+		self.genLabel(node)
+		self.out.write("\n\\end{figure}\n")
+
+	def genImage(self, url, node, caption):
+		self.include_graphics(url, node)
 
 	def genLabel(self, node):
-		label = None
-		caption = None
-		if node:
-			label = self.doc.getLabelFor(node)
-			caption = node.getCaption()
+		label = self.doc.getLabelFor(node)
 		if label:
 			pref = node.numbering()
 			if pref in REF_PREFIXES:
 				pref = REF_PREFIXES[pref]
 			self.out.write("\\label{%s:%s}\n" % (pref, label))
+		caption = node.get_caption()
 		if caption:
 			self.out.write("\\caption{")
 			for item in caption.getContent():
@@ -549,12 +554,12 @@ class Generator(back.Generator):
 			self.out.write("}")
 
 	def genEmbeddedBegin(self, node):
-		floatting = node.getCaption() or self.doc.getLabelFor(self)
+		floatting = node.get_caption() or self.doc.getLabelFor(self)
 		if floatting:
 			self.out.write("\\begin{figure}[htbp]\n")
 
 	def genEmbeddedEnd(self, node):
-		floatting = node.getCaption() or self.doc.getLabelFor(self)
+		floatting = node.get_caption() or self.doc.getLabelFor(self)
 		if floatting:
 			self.genLabel(node)
 			self.out.write("\\end{figure}\n")

@@ -343,11 +343,11 @@ class Generator(back.Generator):
 	def genHeaderTitle(self, header):
 		"""Generate the title of a header."""
 		number = self.refs[header][1]
-		self.out.write('<h' + str(header.getLevel() + 1) + '>')
+		self.out.write('<h' + str(header.getHeaderLevel() + 1) + '>')
 		self.out.write('<a name="' + number + '"></a>')
 		self.out.write(number)
 		header.genTitle(self)
-		self.out.write('</h' + str(header.getLevel() + 1) + '>\n')
+		self.out.write('</h' + str(header.getHeaderLevel() + 1) + '>\n')
 
 	def genHeader(self, header):
 		"""Generate a whole header element (title + content)."""
