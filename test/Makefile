@@ -1,7 +1,9 @@
 
 TESTS = \
 	simple-html \
-	simple-latex
+	simple-latex \
+	simple-docbook \
+	textile-html
 	
 
 all: TESTS
@@ -15,6 +17,9 @@ simple-latex:
 
 simple-docbook:
 	../thot.py simple.thot -t docbook
+
+textile-html:
+	../thot.py textile.thot
 
 clean:
 	rm -rf *.html *-imports

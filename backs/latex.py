@@ -573,7 +573,7 @@ def output(doc):
 	gen.run()
 
 
-__short__ = "back-end for Latex output"
+__short__ = "back-end for Latex output and PDF"
 __description__ = \
 """Compile the document DOC.thot (and included documents) in a unique
 file DOC.latex that, then, can be compiled into PDF, for instance,

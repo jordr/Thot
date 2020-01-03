@@ -343,7 +343,9 @@ def new_image(man, match):
 	if image[-1] == ')':
 		i = image.rfind('(')
 		if i >= 0:
-			alt = image[i + 1:-1]
+			label = image[i + 1:-1]
+			alt = doc.Par()
+			alt.append(doc.Word(label))
 			image = image[:i]
 	
 	# style pealing
@@ -377,7 +379,7 @@ def new_image(man, match):
 	if info.getInfo(doc.INFO_ALIGN):
 		node = doc.Image(image, None, None, alt)
 	else:
-		node = doc.EmbeddedImage(image, None, None, alt)
+		node = doc.Figure(image, None, None, alt)
 	node.mergeInfo(info)
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, node))
 	
@@ -446,59 +448,6 @@ def new_squote(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(t.get(i18n.GLYPH_CLOSE_SQUOTE))))
 	
 	
-WORDS = [
-	(lambda man, match: new_style(man, match, doc.STYLE_BOLD, "t1"),
-		'\*\*(?P<t1>\S([^*]|\*[^*])*\S)\*\*'),
-	(lambda man, match: new_style(man, match, doc.STYLE_STRONG, "t2"),
-		'\*(?P<t2>\S([^*]*)*\S)\*'),
-	(lambda man, match: new_style(man, match, doc.STYLE_ITALIC, "t3"),
-		'__(?P<t3>\S([^_]|_[^_])*\S)__'),
-	(lambda man, match: new_style(man, match, doc.STYLE_EMPHASIZED, "t4"),
-	 	'_(?P<t4>\S[^_]*\S)_'),
-	(lambda man, match: new_style(man, match, doc.STYLE_SMALLER, "t5"),
-	 	'--(?P<t5>\S([^-]|-[^-])*\S)--'),
-	(lambda man, match: new_style(man, match, doc.STYLE_STRIKE, "t6"),
-		'-(?P<t6>\S[^-]*\S)-'),
-	(lambda man, match: new_style(man, match, doc.STYLE_BIGGER, "t7"),
-	 	'\+\+(?P<t7>\S([^+]|\+[^+])*\S)\+\+'),
-	(lambda man, match: new_style(man, match, doc.STYLE_UNDERLINE, "t8"),
-	 	'\+(?P<t8>\S[^+]*\S)\+'),
-	(lambda man, match: new_style(man, match, doc.STYLE_SUBSCRIPT, "t9"),
-	 	'~(?P<t9>\S[^~]*\S)~'),
-	(lambda man, match: new_style(man, match, doc.STYLE_CITE, "t10"),
-	 	'\?\?(?P<t10>\S([^?]|\?[^?])*\S)\?\?'),
-	(lambda man, match: new_style(man, match, doc.STYLE_SUPERSCRIPT, "t11"),
-	 	'\^(?P<t11>\S[^^]*\S)\^'),
-	(lambda man, match: new_style(man, match, doc.STYLE_CODE, "t12"),
-	 	'@(?P<t12>\S[^@]*\S)@'),
-	(lambda man, match: new_style(man, match, None, "t13"),
-	 	'%(?P<t13>\S[^%]*\S)%'),
-	(new_escape,
-		'==(?P<esc>\S([^=]|=[^=])*\S)=='),
-	(new_image,
-		'!(?P<image>[^!]+)!(:(?P<iurl>\S+))?'),
-	(new_spec,
-		SPEC_RE),
-	(lambda man, match: new_link(man, match, 'qtext', 'qurl'),
-		'"(?P<qtext>[^"]*)":(?P<qurl>%s)' % URL),
-	(lambda man, match: new_link(man, match, 'atext', 'aurl'),
-		'\'(?P<atext>[^\']*)\':(?P<aurl>%s)' % URL),
-	(lambda man, match: new_link(man, match, 'btext', 'burl'),
-		'\["(?P<btext>[^"]*)":(?P<burl>%s)\]' % URL),
-	(lambda man, match: new_link(man, match, 'batext', 'baurl'),
-		'\[\'(?P<batext>[^\']*)\':(?P<baurl>%s)\]' % URL),
-	(lambda man, match: new_link(man, match, 'bstext', 'bsurl'),
-		'\[(?P<bstext>[^\']*)\](?P<bsurl>%s)' % URL),
-	(lambda man, match: new_footnote_ref(man, match, 'fnref'),
-		'\[(?P<fnref>[0-9]+)\]'),
-	(lambda man, match: new_footnote_ref(man, match, 'fndref'),
-		'\[#(?P<fndref>[^\]]+)\]'),
-	(new_glyph, "&#(?P<gcode>[0-9]+);"),
-	(new_size, "(?P<sw>[0-9.]+)\s*[xX]\s*(?P<sh>[0-9.]+)"),
-	(new_dquote, "\"(?P<dqtext>[^\"]+)\""),
-	(new_squote, "\'(?P<sqtext>[^\']+)\'")
-]
-
 def new_header(man, match):
 	level = int(match.group(1))
 	header = doc.Header(level)
@@ -642,24 +591,150 @@ def new_multi_code(man, match):
 	tparser.BlockParser(man, block, END_CODE)
 
 
-LINES = [
-	(new_par, re.compile("^\s*$")),
-	(new_header, re.compile("^h([1-6])" + PS_DEF + "\.(?P<text>.*)")),
-	(new_par_ext, re.compile("^p" + PS_DEF + "\.(?P<text>.*)")),
-	(new_multi_blockquote, re.compile("^bq" + PS_DEF + "\.\.(?P<text>.*)")),
-	(new_single_blockquote, re.compile("^bq" + PS_DEF + "\.(?P<text>.*)")),
-	(new_list_item, re.compile("^" + PS_DEF + "(?P<dots>[#\*]+)(?P<text>.*)")),	
-	(new_definition, re.compile("^-(([^:]|:[^=])*):=(.*)")),
-	(new_multi_def, re.compile("^;(.*)")),
-	(new_row, re.compile("^" + PS_DEF + "\|(?P<row>.*)\|\s*")),
-	(new_footnote_multi, re.compile("^fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)")),
-	(new_footnote_multi, re.compile("^fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)")),
-	(new_footnote_def, re.compile("^fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)")),
-	(new_footnote_def, re.compile("^fn#([^.]+)" + PS_DEF + "\.(?P<text>.*)")),
-	(new_styled_table, re.compile("^table" + PS_DEF + "\.$")),
-	(new_multi_code, re.compile("^bc\.\.(.*)")),
-	(new_single_code, re.compile("^bc\.(.*)"))
+__short__ = "syntax for Textile wiki format"
+__description__ = \
+"""This modules provides syntax for Textile wiki format
+(http://txstyle.org/).
+
+The syntax below is supported.
+"""
+__syntax__ = True
+
+__words__ = [
+	(lambda man, match: new_style(man, match, doc.STYLE_BOLD, "text_t1"),
+		'\*\*(?P<text_t1>\S([^*]|\*[^*])*\S)\*\*',
+		"""bold style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_STRONG, "text_t2"),
+		'\*(?P<text_t2>\S([^*]*)*\S)\*',
+		"""strong style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_ITALIC, "text_t3"),
+		'__(?P<text_t3>\S([^_]|_[^_])*\S)__',
+		"""italic style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_EMPHASIZED, "text_t4"),
+	 	'_(?P<text_t4>\S[^_]*\S)_',
+	 	"""emphasized style text.""",),
+	(lambda man, match: new_style(man, match, doc.STYLE_SMALLER, "text_t5"),
+	 	'--(?P<text_t5>\S([^-]|-[^-])*\S)--',
+	 	"""smaller style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_STRIKE, "text_t6"),
+		'-(?P<text_t6>\S[^-]*\S)-',
+		"""strike style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_BIGGER, "text_t7"),
+	 	'\+\+(?P<text_t7>\S([^+]|\+[^+])*\S)\+\+',
+	 	"""bigger style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_UNDERLINE, "text_t8"),
+	 	'\+(?P<text_t8>\S[^+]*\S)\+',
+	 	"""underline style text"""),
+	(lambda man, match: new_style(man, match, doc.STYLE_SUBSCRIPT, "text_t9"),
+	 	'~(?P<text_t9>\S[^~]*\S)~',
+	 	"""subscript style text"""),
+	(lambda man, match: new_style(man, match, doc.STYLE_CITE, "text_t10"),
+	 	'\?\?(?P<text_t10>\S([^?]|\?[^?])*\S)\?\?',
+	 	"""cite style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_SUPERSCRIPT, "text_t11"),
+	 	'\^(?P<text_t11>\S[^^]*\S)\^',
+	 	"""superscript style text."""),
+	(lambda man, match: new_style(man, match, doc.STYLE_CODE, "text_t12"),
+	 	'@(?P<text_t12>\S[^@]*\S)@',
+	 	"""code style text."""),
+	(lambda man, match: new_style(man, match, None, "text_t13"),
+	 	'%(?P<text_t13>\S[^%]*\S)%',
+	 	"""raw style text."""),
+	(new_escape,
+		'==(?P<esc>\S([^=]|=[^=])*\S)==',
+		"""no-format text."""),
+	(new_image,
+		'!(?P<image>[^!]+)!(:(?P<iurl>\S+))?',
+		"""image insertion."""),
+	(new_spec,
+		SPEC_RE,
+		"""special symbols."""),
+	(lambda man, match: new_link(man, match, 'qtext', 'qurl'),
+		'"(?P<qtext>[^"]*)":(?P<qurl>%s)' % URL,
+		"""link to the URL with the given text as label."""),
+	(lambda man, match: new_link(man, match, 'atext', 'aurl'),
+		'\'(?P<atext>[^\']*)\':(?P<aurl>%s)' % URL,
+		"""link to the URL with the given text as label."""),
+	(lambda man, match: new_link(man, match, 'btext', 'burl'),
+		'\["(?P<btext>[^"]*)":(?P<burl>%s)\]' % URL,
+		"""link to the URL with the given text as label."""),
+	(lambda man, match: new_link(man, match, 'batext', 'baurl'),
+		'\[\'(?P<batext>[^\']*)\':(?P<baurl>%s)\]' % URL,
+		"""link to the URL with the given text as label."""),
+	(lambda man, match: new_link(man, match, 'bstext', 'bsurl'),
+		'\[(?P<bstext>[^\']*)\](?P<bsurl>%s)' % URL,
+		"""link to the URL with the given text as label."""),
+	(lambda man, match: new_footnote_ref(man, match, 'fnref'),
+		'\[(?P<fnref>[0-9]+)\]',
+		"""number reference to a footnote."""),
+	(lambda man, match: new_footnote_ref(man, match, 'fndref'),
+		'\[#(?P<fndref>[^\]]+)\]',
+		"""symbolic reference to a footnote."""),
+	(new_glyph,
+		"&#(?P<gcode>[0-9]+);",
+		"""insertion of a glyph by its Unicode decimal code."""),
+	(new_size,
+		"(?P<sw>[0-9.]+)\s*[xX]\s*(?P<sh>[0-9.]+)",
+		"""width x height syntax."""),
+	(new_dquote,
+		"\"(?P<dqtext>[^\"]+)\"",
+		"""double-quoted text."""),
+	(new_squote,
+		"\'(?P<sqtext>[^\']+)\'",
+		"""single-quoted text.""")
+]
+
+__lines__ = [
+	(new_par,
+		"^\s*$",
+		""""beginning of a new paragraph."""),
+	(new_header,
+		"^h([1-6])" + PS_DEF + "\.(?P<text>.*)",
+		"""new header with title."""),
+	(new_par_ext, 
+		"^p" + PS_DEF + "\.(?P<text>.*)",
+		"""new paragraph."""),
+	(new_multi_blockquote,
+		"^bq" + PS_DEF + "\.\.(?P<text>.*)",
+		"""multi-line blockquote paragraph."""),
+	(new_single_blockquote,
+		"^bq" + PS_DEF + "\.(?P<text>.*)",
+		"""single-line blockquote paragraph."""),
+	(new_list_item,
+		"^" + PS_DEF + "(?P<dots>[#\*]+)(?P<text>.*)",
+		"""list item (number of '#' or '*' defines the depth)."""),
+	(new_definition,
+		"^-(([^:]|:[^=])*):=(.*)",
+		"""definition term item."""),
+	(new_multi_def,
+		"^;(.*)",
+		"""definition item text."""),
+	(new_row,
+		"^" + PS_DEF + "\|(?P<row>.*)\|\s*",
+		"""row of an array."""),
+	(new_footnote_multi,
+		"^fn([0-9]+)" + PS_DEF + "\.\.(?P<text>.*)",
+		"""footnote definition."""),
+	(new_footnote_multi,
+		"^fn#([^.]+)" + PS_DEF + "\.\.(?P<text>.*)",
+		"""footnote definition."""),
+	(new_footnote_def,
+		"^fn([0-9]+)" + PS_DEF + "\.(?P<text>.*)",
+		"""footnote definition."""),
+	(new_footnote_def,
+		"^fn#([^.]+)" + PS_DEF + "\.(?P<text>.*)",
+		"""footnote definition."""),
+	(new_styled_table,
+		"^table" + PS_DEF + "\.$",
+		"""styled table heading."""),
+	(new_multi_code,
+		"^bc\.\.(.*)",
+		"""multi-line code area."""),
+	(new_single_code,
+		"^bc\.(.*)",
+		"""single-line code area.""")
 ]
 
 def init(man):
-	man.setSyntax(LINES, WORDS)
+	man.defs = { }
+

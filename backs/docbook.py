@@ -266,7 +266,7 @@ def output(doc):
 	gen.run()
 
 
-__short__ = "back-end for DocBook output"
+__short__ = "back-end for DocBook output and PDF"
 __description__ = \
 """This back-end generates at least DOC.docbook XML file from a DOC.thot
 file and, depending on the configuration variables, can convert it

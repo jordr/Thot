@@ -131,7 +131,15 @@ def init(man):
 	man.defs = { }
 
 
-__short__ = "Syntax for MarkDown format (https://daringfireball.net/projects/markdown/)."
+__short__ = "syntax for MarkDown format"
+
+__description__ = \
+"""This modules provides syntax for Markdown wiki format
+(https://daringfireball.net/projects/markdown/).
+
+A summary of the supported syntax is described below:
+"""
+
 __syntax__ = True
 
 __words__ = [

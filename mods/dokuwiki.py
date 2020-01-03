@@ -280,30 +280,6 @@ def handlePercent(man, match):
 	man.send(doc.ObjectEvent(doc.L_WORD, doc.ID_NEW, doc.Word(match.group('percent'))))
 
 
-WORDS = [
-	(lambda man, match: handleStyle(man, "bold"), "\*\*"),
-	(lambda man, match: handleStyle(man, "italic"), "\/\/"),
-	(lambda man, match: handleStyle(man, "underline"), "__"),
-	(lambda man, match: handleStyle(man, "monospace"), "''"),
-	(lambda man, match: handleOpenStyle(man, "subscript"), "<sub>"),
-	(lambda man, match: handleCloseStyle(man, "subscript"), "<\/sub>"),
-	(lambda man, match: handleOpenStyle(man, "superscript"), "<sup>"),
-	(lambda man, match: handleCloseStyle(man, "superscript"), "<\/sup>"),
-	(lambda man, match: handleOpenStyle(man, "deleted"), "<del>"),
-	(lambda man, match: handleCloseStyle(man, "deleted"), "<\/del>"),
-	(handleFootNote, '\(\('),
-	(handlePercent, '%%(?P<percent>([^%]|%[^%])*)%%'),
-	(lambda man, match: handleCloseStyle(man, "footnote"), "\)\)"),
-	(handleURL, "(http|ftp|mailto|sftp|https):\S+"),
-	(handleEMail, "([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])"),
-	(handleLink, "\[\[(?P<target>[^\]|]*)(\|(?P<label>[^\]]*))?\]\]"),
-	(handleImage, "{{(?P<left>\s*)(?P<image>[^}?\s]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}"),
-	(handleSmiley, SMILEYS_RE),
-	(handleEntity, ENTITIES_RE),
-	(handleLineBreak, "\\\\\\\\"),
-	(handleNonParsed, "%%(?P<nonparsed>([^%]*%)*)%"),
-]
-
 ### lines processing ###
 def handleNewPar(man, match):
 	man.send(doc.ObjectEvent(doc.L_PAR, doc.ID_END, doc.Par()))
@@ -434,22 +410,123 @@ def handleQuote(man, match):
 	man.send(doc.QuoteEvent(len(match.group(1))))
 	tparser.handleText(man, match.group(2))
 
-LINES = [
-	(handleHeader, re.compile("^(?P<pref>={1,6})(.*)(?P=pref)")),
-	(handleNewPar, re.compile("^$")),
-	(lambda man, match: handleList(man, "ul", match), re.compile("^((  |\t)\s*)\*(.*)")),
-	(lambda man, match: handleList(man, "ol", match), re.compile("^((  |\t)\s*)-(.*)")),
-	(handle_def, re.compile("^((  |\t)\s*)\?([^:]*):(.*)")),
-	(handleCode, re.compile("^\s*<code(\s+(\S+))?\s*>\s*")),
-	(handleFile, re.compile("^\s*<file>\s*")),
-	(handleNoWiki, re.compile("^\s*<nowiki>\s*")),
-	(handleRow, re.compile("^((\^|\|)(.*))(\^|\|)\s*$")),
-	(handleHLine, re.compile("^-----*\s*$")),
-	(handleIndent, INDENT_RE),
-	(handleQuote, re.compile("^(>+)(.*)$")),
-	(handleFigure, re.compile("^\s*{{(?P<left>\s*)(?P<image>[^}?\s|]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}\s*$"))
+__short__ = "syntax for Dokuwiki format"
+__description__ = \
+"""This module provides syntax for Dokuwiki format (https://www.dokuwiki.org/wiki:syntax).
+
+The syntax below is supported:
+"""
+__syntax__ = True
+
+__words__ = [
+	(lambda man, match: handleStyle(man, "bold"),
+		"\*\*",
+		"""open and close bold text."""),
+	(lambda man, match: handleStyle(man, "italic"),
+		"\/\/",
+		"""open and close italic text."""),
+	(lambda man, match: handleStyle(man, "underline"),
+		"__",
+		"""open and close underlined text."""),
+	(lambda man, match: handleStyle(man, "monospace"),
+		"''",
+		"""open and close monospaced text."""),
+	(lambda man, match: handleOpenStyle(man, "subscript"),
+		"<sub>",
+		"""open subscript text."""),
+	(lambda man, match: handleCloseStyle(man, "subscript"),
+		"<\/sub>",
+		"""close subscript text."""),
+	(lambda man, match: handleOpenStyle(man, "superscript"),
+		"<sup>",
+		"""open superscript text."""),
+	(lambda man, match: handleCloseStyle(man, "superscript"),
+		"<\/sup>",
+		"""close superscript text."""),
+	(lambda man, match: handleOpenStyle(man, "deleted"),
+		"<del>",
+		"""open deleted text."""),
+	(lambda man, match: handleCloseStyle(man, "deleted"),
+		"<\/del>",
+		"""close deleted text."""),
+	(handleFootNote,
+		'\(\(',
+		"""open footnote."""),
+	(lambda man, match: handleCloseStyle(man, "footnote"),
+		"\)\)",
+		"""close footnote;"""),
+	(handlePercent,
+		'%%(?P<percent>([^%]|%[^%])*)%%',
+		"""text area without formatting."""),
+	(handleURL,
+		"(http|ftp|mailto|sftp|https):\S+",
+		"""URL inserted in the text (producing an hyper-reference)."""),
+	(handleEMail,
+		"([a-zA-Z0-9!#$%&'*+-/=?^_`{|}~.]+@[-a-zA-Z0-9.]+[-a-zA-Z0-9])",
+		"""EMail address inserted in the text (producing an hyper-reference)."""),
+	(handleLink,
+		"\[\[(?P<target>[^\]|]*)(\|(?P<label>[^\]]*))?\]\]",
+		"""link to the given target displaying the given label (if any)."""),
+	(handleImage,
+		"{{(?P<left>\s*)(?P<image>[^}?\s]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}",
+		"""insertion of an image with possible width, height, label and aligned according spaces at left or at right."""),
+	(handleSmiley,
+		SMILEYS_RE,
+		"""insertion of smileys."""),
+	(handleEntity,
+		ENTITIES_RE,
+		"""insertion of special characters."""),
+	(handleLineBreak,
+		"\\\\\\\\",
+		"""insertion of linebrak."""),
+	(handleNonParsed,
+		"%%(?P<nonparsed>([^%]*%)*)%",
+		"""non-parsed text area"""),
+]
+
+__lines__ = [
+	(handleHeader,
+		"^(?P<pref>={1,6})(.*)(?P=pref)",
+		"""section header which level is inversely proportional to the number of '='."""),
+	(handleNewPar,
+		"^$",
+		"""begin of a new paragraph."""),
+	(lambda man, match: handleList(man, "ul", match),
+		"^((  |\t)\s*)\*(.*)",
+		"""bulleted list item (number of blank characters gives the depth)."""),
+	(lambda man, match: handleList(man, "ol", match),
+		"^((  |\t)\s*)-(.*)",
+		"""numbered list item (number of blank characters gives the depth)."""),
+	(handle_def,
+		"^((  |\t)\s*)\?([^:]*):(.*)",
+		"""definition item."""),
+	(handleCode,
+		"^\s*<code(\s+(\S+))?\s*>\s*",
+		"""code area (ended by </code>)."""),
+	(handleFile,
+		"^\s*<file>\s*",
+		"""file content area (ended by </file>)."""),
+	(handleNoWiki,
+		"^\s*<nowiki>\s*",
+		"""area without markup (ended by </nowiki>)"""),
+	(handleRow,
+		"^((\^|\|)(.*))(\^|\|)\s*$",
+		"""row of a table (cells introduced by '^' are considered as headers)."""),
+	(handleHLine,
+		"^-----*\s*$",
+		"""horizontal bar."""),
+	(handleIndent,
+		"  \s*(.*)$",
+		"""text considered as excerpt."""),
+	(handleQuote,
+		"^(>+)(.*)$",
+		"""quoted text."""),
+	(handleFigure,
+		"^\s*{{(?P<left>\s*)(?P<image>[^}?\s|]+)(\?(?P<image_width>[0-9]+)?(x(?P<image_height>[0-9]+))?)?(?P<right>\s*)(\|(?P<image_label>[^}]*))?}}\s*$",
+		"""insertion of an image as a a figure with possible width, height, label and aligned according spaces at left or at right.""")
 ]
 
 def init(man):
-	man.setSyntax(LINES, WORDS)
+	man.defs = { }
+
 
