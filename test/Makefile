@@ -3,7 +3,8 @@ TESTS = \
 	simple-html \
 	simple-latex \
 	simple-docbook \
-	textile-html
+	textile-html \
+	markdown-html
 	
 
 all: TESTS
@@ -21,5 +22,9 @@ simple-docbook:
 textile-html:
 	../thot.py textile.thot
 
+markdown-html:
+	../thot.py markdown.thot
+
+
 clean:
-	rm -rf *.html *-imports
+	rm -rf *.html *-imports *.pdf *.docbook *.fot *.pdf *.out *.aux *.tex *.log *.toc
