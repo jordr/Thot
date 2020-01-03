@@ -23,14 +23,6 @@ import shutil
 import cgi
 import re
 
-# USED VARIABLES
-#	TITLE: document title
-#	AUTHORS: document authors
-#	LANG: document language
-#	ENCODING: character encoding
-#	OUTPUT: the kind of output (pdf only supported for now)
-#	DOCBOOK_BACKEND: may be openjade or dblatex
-#
 # NOTES
 #	highlight col/row headers not implemented (impossible for col)
 
@@ -77,16 +69,16 @@ class Generator(back.Generator):
 
 		# generate document header
 		self.doc.pregen(self)
-		self.out.write('<?xml version="1.0" encoding="%s" standalone="yes"?>\n' % self.doc.getVar('ENCODING'))
+		self.out.write('<?xml version="1.0" encoding="%s"?>\n' % self.doc.getVar('ENCODING'))
 		self.out.write('<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">\n')
 		if self.sgml:
 			self.out.write('<book>\n')
 		else:
 			self.out.write('<book xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink">\n')
 		self.out.write('<title>%s</title>\n' % cgi.escape(self.doc.getVar('TITLE')))
-		self.out.write('<info>\n')
 		
 		# generator author 
+		self.out.write('<bookinfo>\n')
 		authors = self.doc.getVar('AUTHORS')
 		if authors:
 			for author in authors.split(','):
@@ -98,11 +90,11 @@ class Generator(back.Generator):
 				else:
 					name = ''
 					email = ''
-				self.out.write('<personname>%s</personname>' % cgi.escape(name))
+				self.out.write('<personname><surname>%s</surname></personname>' % cgi.escape(name))
 				if email:
 					self.out.write('<email>%s</email>' % cgi.escape(email))
 				self.out.write('</author>\n')
-		self.out.write('</info>\n')
+		self.out.write('</bookinfo>\n')
 		
 		# generate body
 		self.doc.gen(self)
@@ -136,7 +128,7 @@ class Generator(back.Generator):
 
 	def genFootNote(self, note):
 		self.out.write('<footnote>')
-		for item in note:
+		for item in note.getContent():
 			item.gen(self)
 		self.out.write('</footnote>')
 
@@ -150,7 +142,7 @@ class Generator(back.Generator):
 
 		# table prolog
 		self.out.write('<table><tgroup cols="%d">"\n' % table.getWidth())
-		for i in xrange(0, table.getWidth()):
+		for i in range(0, table.getWidth()):
 			self.out.write('<colspec colname="%d"/>' % i)
 		self.out.write('<tbody>\n')
 
@@ -162,11 +154,11 @@ class Generator(back.Generator):
 			# output columns
 			for cell in row.getCells():
 				self.out.write('<entry')
-				if cell.align != doc.TAB_LEFT:
-					self.out.write(' align="%s"' % TAB_ALIGN[cell.align + 1])
-				if cell.span != 1:
-					self.out.write(' namest="%d" nameend="%d"' % (icol, icol + cell.span - 1))
-				icol += cell.span
+				if cell.get_align() != doc.TAB_LEFT:
+					self.out.write(' align="%s"' % TAB_ALIGN[cell.get_align() + 1])
+				if cell.get_hspan() != 1:
+					self.out.write(' namest="%d" nameend="%d"' % (icol, icol + cell.get_hspan() - 1))
+				icol += cell.get_hspan()
 				self.out.write('>')
 				cell.gen(self)
 				self.out.write('</entry>')
@@ -248,18 +240,18 @@ class Generator(back.Generator):
 	def genLinkEnd(self, url):
 		self.out.write('</link>')
 	
-	def genImage(self, url, width = None, height = None, caption = None):
+	def genImage(self, url, node, caption = None):
 		name, ext = os.path.splitext(url)
-		fpath = self.loadFriendFile(url)
+		fpath = self.new_friend(url)
 		self.out.write('<inlinemediaobject>')
 		if caption:
-			self.out.write('<alt>%s</alt>' % cgi.escape(caption))
+			self.out.write('<alt>%s</alt>' % cgi.escape(caption.toText()))
 		self.out.write('<imageobject>')
 		self.out.write('<imagedata format="%s" fileref="%s"' % (ext.upper(), cgi.escape(fpath, True)))
-		if width:
-			self.out.write(' width="%dpt"' % width)
-		if height:
-			self.out.write(' depth="%dpt"' % height)
+		if node.get_width():
+			self.out.write(' width="%dpt"' % node.get_width())
+		if node.get_height():
+			self.out.write(' depth="%dpt"' % node.get_height())
 		self.out.write('/>')
 		self.out.write('</imageobject></inlinemediaobject>')
 	
@@ -272,3 +264,17 @@ class Generator(back.Generator):
 def output(doc):
 	gen = Generator(doc)
 	gen.run()
+
+
+__short__ = "back-end for DocBook output"
+__description__ = \
+"""This back-end generates at least DOC.docbook XML file from a DOC.thot
+file and, depending on the configuration variables, can convert it
+automatically to PDF.
+
+Supported variables:
+""" + common.make_var_doc([
+	("DOCBOOK_BACKEND",	"may be openjade or dblatex (default)"),
+	("OUTPUT",			"additional output (pdf only supported for now)")
+])
+
