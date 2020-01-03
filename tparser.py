@@ -36,13 +36,24 @@ def handleParent(man, match):
 	handle_term(man, match.group("pterm"))
 
 
-INITIAL_WORDS = [
-	(handleVar,		doc.VAR_RE),
-	(handleRef, 	"@ref:(?P<ref>[^@]+)@"),
-	(handleDouble,	"##"), 						# "generate a single #"
-	(handleParent,	"#\((?P<pterm>[^)\s]+)\)"),	# "generate a back link to the definition of word"),
-	(handleSharp,	"#(?P<term>\w+)")			# "generate a back link to the definition of word")
+__words__ = [
+	(handleVar,
+		doc.VAR_RE,
+		"""use of a variable (replaced by the variable value)."""),
+	(handleRef,
+		"@ref:(?P<ref>[^@]+)@",
+		"""reference to a labeled element."""),
+	(handleDouble,
+		"##",
+		"""single '#'."""),
+	(handleParent,
+		"#\((?P<pterm>[^)\s]+)\)",
+		"""definition of a term."""),
+	(handleSharp,
+		"#(?P<term>\w+)",
+		"""reference to a defined term.""")
 ]
+INITIAL_WORDS = [(f, e) for (f, e, _) in __words__]
 
 def handleText(man, line, suffix = ' '):
 
@@ -116,14 +127,28 @@ def handleLabel(man, match):
 	common.onWarning(man.message("label %s out of any container" % match.group(1)))
 
 
-INITIAL_LINES = [
-	(handleComment, re.compile("^@@.*")),
-	(handleAssign, re.compile("^@([a-zA-Z_0-9]+)\s*=(.*)")),
-	(handleUse, re.compile("^@use\s+(\S+)")),
-	(handleInclude, re.compile('^@include\s+(.*)')),
-	(handleCaption, re.compile('^@caption\s+(.*)')),
-	(handleLabel, re.compile('^@label\s+(.*)'))
+__lines__ = [
+	(handleComment,
+		"^@@.*",
+		"""comment."""),
+	(handleAssign,
+		"^@([a-zA-Z_0-9]+)\s*=(.*)",
+		"""definition of a variable."""),
+	(handleUse,
+		"^@use\s+(\S+)",
+		"""use of a module."""),
+	(handleInclude,
+		'^@include\s+(.*)',
+		"""inclusion of a THOT file."""),
+	(handleCaption,
+		'^@caption\s+(.*)',
+		"""assignment of a caption to the previous element."""),
+	(handleLabel,
+		'^@label\s+(.*)',
+		"""assignment of a label for references to the previous element.""")
 ]
+INITIAL_LINES = [(f, re.compile(e)) for (f, e, _) in __lines__]
+
 
 class DefaultParser:
 
@@ -160,8 +185,8 @@ class Manager:
 		self.doc = document
 		self.parser = DefaultParser()
 		self.items = []
-		self.lines = INITIAL_LINES[:]
-		self.words = INITIAL_WORDS[:]
+		self.lines = INITIAL_LINES
+		self.words = INITIAL_WORDS
 		self.added_lines = []
 		self.added_words = []
 		self.used_mods = []

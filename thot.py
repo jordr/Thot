@@ -202,12 +202,12 @@ if options.dump:
 # list the syntax
 elif options.list_syntax:
 	print("Available syntax:")
-	for mod in man.used_mods:
-		print("- %s" % mod.__name__)
+	for mod in man.used_mods + [tparser]:
+		print("- %s" % ("thot" if mod == tparser else mod.__name__))
 		if "__words__" in mod.__dict__:
 			for (_, word, desc) in mod.__words__:
 				print("\t%s: %s" % (prepare_syntax(word), desc))
-		if "__lines__" in mod.__dict_:
+		if "__lines__" in mod.__dict__:
 			for (_, line, desc) in mod.__lines__:
 				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
 	sys.exit(0)
