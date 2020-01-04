@@ -1,0 +1,24 @@
+@use dokuwiki
+@TITLE=Unicode module test
+@AUTHORS=H. Cassé <hug.casse@gmail.com>
+@VERSION=0.1
+@LANG=en_EN
+
+@use unicode
+
+<unicode>
+0x25A1:|_|
+9651:/\
+∫:\int
+</unicode>
+
+A square here: |_|!
+
+And two quares: |_||_|!
+
+And a triangle: /\
+
+\int (x + 1)dx
+
+
+

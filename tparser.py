@@ -149,6 +149,24 @@ __lines__ = [
 ]
 INITIAL_LINES = [(f, re.compile(e)) for (f, e, _) in __lines__]
 
+class Syntax:
+	"""Base class of all syntaxes added to the parser."""
+	
+	def get_doc(self):
+		"""Get the documentation for the syntax, a sequence of pairs
+		(RE, description) where RE is a pseudo-regular expression
+		describing the syntax and description is the descritpion of the
+		syntax (possibly multi-line)."""
+		return [("", "")]
+
+	def get_lines(self):
+		"""Get the pairs (function, RE) to parse lines."""
+		return []
+	
+	def get_words(self):
+		"""Get the pairs (function, RE) to parse words."""
+		return []
+
 
 class DefaultParser:
 
@@ -327,6 +345,10 @@ class Manager:
 					lines = mod.__lines__
 				if "__words__" in mod.__dict__:
 					words = mod.__words__
+				if "__syntaxes__" in mod.__dict__:
+					for s in mod.__syntaxes__:
+						lines = lines + s.get_lines()
+						words = words + s.get_words()
 				self.setSyntax(
 					[(l[0], re.compile(l[1])) for l in lines],
 					[(w[0], w[1]) for w in words])
@@ -339,6 +361,12 @@ class Manager:
 				if "__words__" in mod.__dict__:
 					for word in mod.__words__:
 						self.addWord((word[0], word[1]))
+				if "__syntaxes__" in mod.__dict__:
+					for s in mod.__syntaxes__:
+						for (f, r) in s.get_lines():
+							self.addLine((f, re.compile(r)))
+						for w in s.get_words():
+							self.addWord(w)
 		else:
 			common.onError('cannot load module %s' % name)
 

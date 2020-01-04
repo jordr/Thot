@@ -4,7 +4,8 @@ TESTS = \
 	simple-latex \
 	simple-docbook \
 	textile-html \
-	markdown-html
+	markdown-html \
+	unicode-html
 	
 
 all: TESTS
@@ -25,6 +26,8 @@ textile-html:
 markdown-html:
 	../thot.py markdown.thot
 
+unicode-html:
+	../thot.py unicode.thot
 
 clean:
 	rm -rf *.html *-imports *.pdf *.docbook *.fot *.pdf *.out *.aux *.tex *.log *.toc

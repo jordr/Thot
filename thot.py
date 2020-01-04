@@ -29,26 +29,6 @@ import common
 import re
 import glob
 
-arg_re = re.compile("\(\?P<([a-zA-Z0-9]+)(_[a-zA-Z0-9_]*)?>(%s|%s)*\)" %
-	("[^)[]", "\[[^\]]*\]"))
-REPS = [
-	(" ", 		u"␣"	),
-	("\t", 		u"⭾"	),	
-	("\\s+",	" "		),
-	("\\s*", 	" "		),
-	("\\s", 	" "		),
-	("\(", 		"("		),
-	("\)", 		")"		),
-	("^", 		""		),
-	("$", 		""		)
-]
-def prepare_syntax(t):
-	"""Prepare a regular expression to be displayed to human user."""
-	t = arg_re.sub('/\\1/', t)
-	for (p, r) in REPS:
-		t = t.replace(p, r)
-	return t
-
 # Prepare environment
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.8"
@@ -164,25 +144,30 @@ elif options.list_mod:
 		short = " (%s)" % mod.__short__
 	print("Module: %s%s" % (options.list_mod, short))
 	if "__description__" in mod.__dict__:
-		print("\n%s\n" % mod.__description__)
-	if "__words__" in mod.__dict__ or "__lines__" in mod.__dict__:
-		print("\nSyntax:")
-		if "__words__" in mod.__dict__:
-			for (_, word, desc) in mod.__words__:
-				print("\t%s: %s" % (prepare_syntax(word), desc))
-		if "__lines__" in mod.__dict__:
-			for (_, line, desc) in mod.__lines__:
-				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
-		has_output = False
-		for out in ["html", "latex", "docbook"]:
-			name = "__%s__" % out
-			if name in mod.__dict__:
-				if not has_output:
-					has_output = True
-					print("\nOutput:")
-				print("\t%s:" % out)
-				for (form, desc) in mod.__dict__[name]:
-					print("\t%s\n\t\t%s" % (form, desc))
+		print("\n%s" % mod.__description__)
+	syn = []
+	if "__words__" in mod.__dict__:
+		for (_, word, desc) in mod.__words__:
+			syn.append((common.prepare_syntax(word), desc))
+	if "__lines__" in mod.__dict__:
+		for (_, line, desc) in mod.__lines__:
+			syn.append((common.prepare_syntax(line), desc))
+	if "__syntaxes__" in mod.__dict__:
+		for m in mod.__syntaxes__:
+			syn = syn + m.get_doc()
+	if syn != []:
+		print("Syntax:")
+		common.display_syntax(syn)
+	has_output = False
+	for out in ["html", "latex", "docbook"]:
+		name = "__%s__" % out
+		if name in mod.__dict__:
+			if not has_output:
+				has_output = True
+				print("\nOutput:")
+			print("\t%s:" % out)
+			for (form, desc) in mod.__dict__[name]:
+				print("\t%s\n\t\t%s" % (form, desc))
 	sys.exit(0)
 
 # Parse the file
@@ -202,14 +187,18 @@ if options.dump:
 # list the syntax
 elif options.list_syntax:
 	print("Available syntax:")
+	syn = []
 	for mod in man.used_mods + [tparser]:
-		print("- %s" % ("thot" if mod == tparser else mod.__name__))
+		#print("- %s" % ("thot" if mod == tparser else mod.__name__))
 		if "__words__" in mod.__dict__:
-			for (_, word, desc) in mod.__words__:
-				print("\t%s: %s" % (prepare_syntax(word), desc))
+			syn = syn + [(common.prepare_syntax(w), d) for (_, w, d) in mod.__words__] 
 		if "__lines__" in mod.__dict__:
-			for (_, line, desc) in mod.__lines__:
-				print("\t%s:\n\t\t%s" % (prepare_syntax(line), desc))
+			syn = syn + [(common.prepare_syntax(l), d) for (_, l, d) in mod.__words__]
+		if "__syntaxes__" in mod.__dict__:
+			for s in mod.__syntaxes__:
+				syn = syn + s.get_doc()
+	if syn != []:
+		common.display_syntax(syn)
 	sys.exit(0)
 
 # list outputs

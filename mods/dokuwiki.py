@@ -413,8 +413,6 @@ def handleQuote(man, match):
 __short__ = "syntax for Dokuwiki format"
 __description__ = \
 """This module provides syntax for Dokuwiki format (https://www.dokuwiki.org/wiki:syntax).
-
-The syntax below is supported:
 """
 __syntax__ = True
 

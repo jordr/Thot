@@ -29,13 +29,19 @@ class AafigBlock(extern.ExternalBlock):
 		input.append(self.toText())
 		
 
-def init(man):
-	extern.ExternalModule(man,
+__short__ = """integration of AAFig figures"""
+__description__ = \
+"""This modules makes easier the integration of figures described in
+ASCII text and converted to images by AAfig. The complete documentation
+of AAFig can be found here: https://launchpad.net/aafigure."""
+
+__syntaxes__ = [
+	extern.ExternalModule(None,
 		name = "aafig",
-		ext=".png",
-		cmds=['aafigure'],
+		ext = ".png",
+		cmds = ['aafigure'],
 		maker = AafigBlock,
-		options=[
+		options = [
 			extern.SwitchOption("wide-chars", "-w"),
 			extern.SwitchOption("textual", "-T"),
 			extern.Option("scale", "-s"),
@@ -46,4 +52,6 @@ def init(man):
 			extern.Option("fill", "-x"),
 			extern.Option("background", "-n"),
 			extern.Option("option", "-O")
-		])
+		],
+		doc = """AAFig figure""")
+]

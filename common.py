@@ -14,13 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
+import imp
 import os
 import os.path
-import imp
 import re
-import traceback
+import shutil
 import subprocess
+import sys
+import traceback
 
 
 class ThotException(Exception):
@@ -333,3 +334,81 @@ def make_var_doc(custom):
 		d += "%s:%s %s\n" % (i, " " * (imax - len(i)), id)
 	return d
 
+
+arg_re = re.compile("\(\?P<([a-zA-Z0-9]+)(_[a-zA-Z0-9_]*)?>(%s|%s)*\)" %
+	("[^)[]", "\[[^\]]*\]"))
+REPS = [
+	(" ", 		u"␣"	),
+	("\t", 		u"⭾"	),	
+	("\\s+",	" "		),
+	("\\s*", 	" "		),
+	("\\s", 	" "		),
+	("\(", 		"("		),
+	("\)", 		")"		),
+	("^", 		""		),
+	("$", 		""		)
+]
+def prepare_syntax(t):
+	"""Prepare a regular expression to be displayed to human user."""
+	if t == "^$" or t == "^\s+$":
+		return "\\n"
+	t = arg_re.sub('/\\1/', t)
+	for (p, r) in REPS:
+		t = t.replace(p, r)
+	return t.strip()
+
+
+def supports_ansi():
+	plat = sys.platform
+	supported_platform = plat != 'Pocket PC' and \
+		(plat != 'win32' or 'ANSICON' in os.environ)
+	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+	return supported_platform and is_a_tty
+
+IS_ANSI = supports_ansi()
+NORMAL = "\033[0m"
+SLASH_COLOR = "\033[4m"
+VAR_COLOR = "\033[3m"
+
+slash_re = re.compile("\\\\(.)")
+slash_rep = SLASH_COLOR + "\\1" + NORMAL
+var_re = re.compile("\\/([a-zA-Z][a-zA-Z0-9]*)\\/")
+var_rep = VAR_COLOR + "\\1" + NORMAL
+def decorate_syntax(t):
+	"""Colorize, if available, escaped special characters."""
+	l = len(t)
+	if not IS_ANSI:
+		return (l, t)
+	else:
+		(t, cs) = slash_re.subn(slash_rep, t)
+		(t, cv) = var_re.subn(var_rep, t)
+		return (l - cs - 2 * cv, t)
+
+def display_syntax(syn):
+	"""Display list of syntax items. syn is a sequence of pairs (s, d)
+	where s is the syntax and d is the documentation. The documentation
+	may be split in several lines."""
+	
+	# find row size
+	(w, _) = os.get_terminal_size()
+	
+	# prepare the strings
+	syn = [(decorate_syntax(s), d) for (s, d) in syn]
+	
+	# display the strings
+	m = min(16, 1 + max([l for ((l, _), _) in syn]))
+	for ((l, r), d) in syn:
+		ls = d.split("\n")
+		if l > m:
+			print("%s:" % r)
+		else:
+			print("%s:%s%s" % (r, " " * (m - l), ls[0][0:min(w, len(ls[0]))]))
+			if len(ls[0]) > w:
+				ls[0] = ls[0][w:]
+			else:
+				ls = ls[1:]
+		for l in ls:
+			while len(l) > w:
+				print("%s %s" % (" " * m, l[:w]))
+				l = l[w:]
+			print("%s %s" % (" " * m, l))

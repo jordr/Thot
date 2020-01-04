@@ -260,7 +260,7 @@ class ExternalBlock(doc.Block):
 					raise ExternalException("unknown option \"%s\"" % key)
 
 
-class ExternalModule:
+class ExternalModule(tparser.Syntax):
 	"""Descriptor of an external module. Supports different aspects of external modules:
 		* option support,
 		* command building, call and existence check."""
@@ -272,8 +272,10 @@ class ExternalModule:
 	close = None
 	ext = None
 	maker = None
+	doc = None
 	
-	def __init__(self, man, name, ext="", options=[], cmds=[], maker = ExternalBlock):
+	def __init__(self, man, name, ext="", options=[], cmds=[],
+		maker = ExternalBlock, doc = ""):
 		"""Build an external module with the given name
 		and given options.
 		man: Thot manager.
@@ -289,10 +291,22 @@ class ExternalModule:
 		self.options = { }
 		for option in options:
 			self.options[option.name] = option
+		self.doc = doc
 
 		# install in Thot
 		self.close = re.compile("^</%s>" % name)
-		man.addLine((lambda man, match: self.handle(man, match), re.compile("^<%s[\s]*([^>]*)>" % name))) 
+		self.re = "^<%s[\s]*([^>]*)>" % name
+		if man != None:
+			man.addLine((lambda man, match: self.handle(man, match), re.compile(self.re)))
+
+	def get_doc(self):
+		return [(
+			"<%s [options]>...</%s>" % (self.name, self.name),
+			"%s\nOptions includes: %s" % (self.doc, ", ".join(self.options))
+		)]
+
+	def get_lines(self):
+		return [(lambda man, match: self.handle(man, match), self.re)]
 
 	def handle(self, man, match):
 		try:
