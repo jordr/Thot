@@ -3,7 +3,7 @@
 @VERSION=0.8
 @LANG=en_EN
 @THOT=//**Thot**//
-@HTML_STYLES=@(THOT_BASE)/css/minima/style_green.css
+@HTML_STYLES=@(THOT_BASE)/css/minima/green.css
 @HTML_ONE_FILE_PER=chapter
 @LATEX_CLASS=amsbook
 

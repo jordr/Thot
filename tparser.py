@@ -316,8 +316,9 @@ class Manager:
 		mod = common.loadModule(name, path)
 		if mod:
 			self.used_mods.append(mod)
-			mod.init(self)
-			
+			if "init" in mod.__dict__:
+				mod.init(self)
+
 			# new syntax?
 			if "__syntax__" in mod.__dict__:
 				lines = []
