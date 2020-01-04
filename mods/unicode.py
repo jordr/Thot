@@ -29,7 +29,6 @@ esc_re = re.compile("([+*./()|\\\\])")
 
 def escape(t):
 	r = esc_re.sub("\\\\\\1", t)
-	print("DEBUG: %s" % r)
 	return r
 
 class UnicodeParser:
