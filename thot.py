@@ -31,7 +31,7 @@ import glob
 
 # Prepare environment
 env = { } # os.environ.copy()
-env["THOT_VERSION"] = "0.8"
+env["THOT_VERSION"] = "0.9"
 env["ENCODING"] = locale.getpreferredencoding()
 base = os.path.realpath(os.path.abspath(__file__))
 env["THOT_BASE"] = os.path.dirname(base) + '/'
