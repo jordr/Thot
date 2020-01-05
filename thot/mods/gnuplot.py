@@ -14,13 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import doc
-import tparser
-import subprocess
-import common
 import re
+import subprocess
 import sys
 
+import thot.common as common
+import thot.doc as doc
+import thot.tparser as tparser
 
 count = 0
 has_gnuplot = True

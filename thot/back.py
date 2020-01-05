@@ -22,12 +22,13 @@ The following variables are supported:
   files, "all": relocate all files)
 """
 
-import i18n
 import os.path
 import shutil
-import common
-import doc as tdoc
 import sys
+
+import thot.common as common
+import thot.doc as tdoc
+import thot.i18n as i18n
 
 class Generator:
 	"""Abstract back-end generator."""

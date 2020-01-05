@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os.path
 import locale
+import os.path
 import string
-import common
+import sys
+
+import thot.common as common
 
 ID_CONTENT = "Content"
 ID_INTRODUCTION = "Introduction"

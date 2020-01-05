@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
 import subprocess
 import sys
-import doc
-import os.path
-import common
+
+import thot.doc as doc
+import thot.common as common
 
 LANGS=[
   '4gl',

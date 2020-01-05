@@ -14,18 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os
 import cgi
-import i18n
-import highlight
-import doc
-import shutil
+import os
 import re
+import shutil
+import sys
 import urllib.parse as urlparse
-import common
-import back
-import doc as tdoc
+
+import thot.back as back
+import thot.common as common
+import thot.doc as doc
+import thot.doc as tdoc
+import thot.highlight as highlight
+import thot.i18n as i18n
 
 CSS_URL_RE = re.compile('url\(([^)]*)\)')
 

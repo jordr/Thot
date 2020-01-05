@@ -14,10 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import common
-import doc
 import os.path
 import xml.etree.ElementTree as ET
+
+import thot.common as common
+import thot.doc as doc
 
 
 def read_tags(name, map, sep, ref):

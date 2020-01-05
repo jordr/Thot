@@ -14,14 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import common
-import back
 import codecs
-import unicodedata
-import subprocess
 import os.path
-import doc
+import subprocess
 import sys
+import unicodedata
+
+import thot.back as back
+import thot.common as common
+import thot.doc as doc
 
 
 KOMA_STYLES = [

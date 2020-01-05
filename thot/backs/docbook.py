@@ -14,14 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import common
-import back
-import doc
-import subprocess
-import os.path
-import shutil
 import cgi
+import os.path
 import re
+import shutil
+import subprocess
+
+import thot.back as back
+import thot.common as common
+import thot.doc as doc
+
 
 # NOTES
 #	highlight col/row headers not implemented (impossible for col)

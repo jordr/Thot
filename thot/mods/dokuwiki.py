@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import tparser
-import doc
 import re
-import highlight
-import common
+
+import thot.common as common
+import thot.doc as doc
+import thot.highlight as highlight
+import thot.tparser as tparser
 
 def computeDepth(text):
 	depth = 0

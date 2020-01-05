@@ -21,12 +21,12 @@ PLANTUML_JAR, or the environment variable PLANTUML_JAR  to retrieve
 the .jar of PlantUML.
 """
 
-import common
-import extern
 import glob
 import os
 import shutil
 
+import thot.common as common
+import thot.extern as extern
 
 class PlantUMLBlock(extern.ExternalBlock):
 	

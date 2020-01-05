@@ -17,7 +17,7 @@
 """A block containing aafig diagram.
 See https://launchpad.net/aafigure for more details."""
 
-import extern
+import thot.extern as extern
 
 class AafigBlock(extern.ExternalBlock):
 	

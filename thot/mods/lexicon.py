@@ -26,10 +26,11 @@
 #
 #	Normal text is modified when a terml is used.
 
-import common
-import doc
 import re
 import sys
+
+import thot.common as common
+import thot.doc as doc
 
 def label(s):
 	"""Computes a label for the given term."""
@@ -59,8 +60,8 @@ class Lexicon(doc.Node):
 
 	def gen_html(self, gen):
 		gen.genOpenTag("dl", self, [("class", "thot-lexicon")])
-		terms = self.map.values()
-		terms.sort(lambda x, y: cmp(x.id, y.id))
+		terms = list(self.map.values())
+		terms.sort(key = lambda x: x.id)
 		for term in terms:
 			gen.genOpenTag("dt", term)
 			gen.genOpenTag("a", term,

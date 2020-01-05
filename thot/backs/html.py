@@ -14,19 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os
 import cgi
-import i18n
-import highlight
-import doc
-import shutil
+import os
 import re
+import shutil
+import sys
 import urllib.parse as urlparse
-import common
-import back
-import doc as tdoc
-import backs.abstract_html
+
+import thot.back as back
+import thot.backs.abstract_html as abstract_html
+import thot.common as common
+import thot.doc as doc
+import thot.doc as tdoc
+import thot.highlight as highlight
+import thot.i18n as i18n
 
 
 def makeRef(nums):
@@ -451,7 +452,7 @@ class PerChapter(PagePolicy):
 			print("generated %s" % (self.gen.getPage(node)))
 
 
-class Generator(backs.abstract_html.Generator):
+class Generator(abstract_html.Generator):
 	"""Generator for HTML output."""
 	trans = None
 	doc = None
@@ -468,7 +469,7 @@ class Generator(backs.abstract_html.Generator):
 	refs = None
 
 	def __init__(self, doc):
-		backs.abstract_html.Generator.__init__(self, doc)
+		abstract_html.Generator.__init__(self, doc)
 		self.footnotes = []
 		self.pages = { }
 		self.pages = { }

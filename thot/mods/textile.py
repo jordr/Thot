@@ -150,12 +150,13 @@
 #	[ ]	UC+(text)	acronym on selection
 #
 
-import tparser
-import doc
 import re
-import highlight
-import common
-import i18n
+
+import thot.common as common
+import thot.doc as doc
+import thot.highlight as highlight
+import thot.i18n as i18n
+import thot.tparser as tparser
 
 URL='[a-z]+:[a-zA-Z0-9_/?*@;%+.\-&#]+'
 

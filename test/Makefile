@@ -1,3 +1,5 @@
+export PYTHONPATH:=$(PYTHONPATH):..
+THOT=../bin/thot
 
 TESTS = \
 	simple-html \
@@ -5,29 +7,37 @@ TESTS = \
 	simple-docbook \
 	textile-html \
 	markdown-html \
-	unicode-html
+	unicode-html \
+	lexicon-html \
+	doxygen-html
 	
 
-all: TESTS
+all: $(TESTS)
 
 simple-html:
-	../thot.py simple.thot
+	$(THOT) simple.thot
 
 simple-latex:
-	../thot.py simple.thot -t latex
+	$(THOT) simple.thot -t latex
 	pdflatex simple.tex
 
 simple-docbook:
-	../thot.py simple.thot -t docbook
+	$(THOT) simple.thot -t docbook
 
 textile-html:
-	../thot.py textile.thot
+	$(THOT) textile.thot
 
 markdown-html:
-	../thot.py markdown.thot
+	$(THOT) markdown.thot
 
 unicode-html:
-	../thot.py unicode.thot
+	$(THOT) unicode.thot
+
+lexicon-html:
+	$(THOT) lexicon.thot
+
+doxygen-html:
+	$(THOT) doxygen.thot
 
 clean:
 	rm -rf *.html *-imports *.pdf *.docbook *.fot *.pdf *.out *.aux *.tex *.log *.toc

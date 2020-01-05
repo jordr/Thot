@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-# thot.py -- Deprecated Thot entry point.
+# thot -- Thot library
 # Copyright (C) 2020  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,13 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import os.path
-import sys
-
-dir = os.path.abspath(os.path.dirname(__file__))
-os.putenv("PYTHONPATH",
-	os.getenv("PYTHONPATH", "") + ":" + dir)
-cmd = os.path.join(dir, "bin/thot")
-os.execv(cmd, sys.argv)
-
+"""Thot a is a tool and library dedicated to the generation of documents
+(HTML, PDF, Tex, DocBook) from wiki-like description of document.
+In fact, Thot is able to use several wiki syntaxes (Dokuwiki, Textile,
+Markdown) and to enrich them with different extended syntaxes like
+Math Latex, GraphViz dot graphs, GnuPlot, code, etc."""

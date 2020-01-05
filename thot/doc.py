@@ -1,4 +1,4 @@
-# doc -- Thot document description module
+# thot.doc -- Thot document description module
 # Copyright (C) 2009  <hugues.casse@laposte.net>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import common
+
+import thot.common as common
 
 # levels
 L_DOC=0

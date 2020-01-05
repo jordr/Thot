@@ -16,12 +16,12 @@
 
 import re
 import subprocess
+import sys
 import tempfile
 
-import common
-import doc
-import sys
-import tparser
+import thot.common as common
+import thot.doc as doc
+import thot.tparser as tparser
 
 ARG_RE = re.compile("[\s]*([\S]+)[\s]*=(.*)")
 

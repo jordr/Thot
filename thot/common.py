@@ -23,7 +23,6 @@ import subprocess
 import sys
 import traceback
 
-
 class ThotException(Exception):
 	"""Exception of the Thot system.
 	Any back-passed to the Thot system must inherit this exception.
@@ -125,6 +124,8 @@ def loadModule(name, paths):
 					return imp.load_compiled(name, path)
 		return None
 	except Exception as e:
+		tb = sys.exc_info()[2]
+		traceback.print_tb(tb)
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
 AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
