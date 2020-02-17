@@ -168,7 +168,10 @@ class Generator(back.Generator):
 		spath = os.path.join(base, spath)
 
 		# open files
-		input = open(spath)
+		try:
+			input = open(spath)
+		except FileNotFoundError as e:
+			raise common.BackException(str(e))
 		output = open(tpath, "w")
 		rbase = os.path.dirname(spath)
 

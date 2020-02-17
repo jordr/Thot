@@ -26,6 +26,7 @@ import os.path
 import re
 import sys
 
+import thot
 import thot.common as common
 import thot.doc as doc
 import thot.tparser as tparser
@@ -34,9 +35,9 @@ import thot.tparser as tparser
 env = { } # os.environ.copy()
 env["THOT_VERSION"] = "0.9"
 env["ENCODING"] = locale.getpreferredencoding()
-base = os.path.realpath(os.path.abspath(__file__))
-env["THOT_BASE"] = os.path.dirname(os.path.dirname(base)) + '/'
-env["THOT_USE_PATH"] = env["THOT_BASE"] + "thot/mods/"
+env["THOT_BASE"] = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'share/thot') + '/'
+env["THOT_LIB"] = os.path.abspath(os.path.dirname(thot.__file__))
+env["THOT_USE_PATH"] = env["THOT_LIB"] + "/mods/"
 env["THOT_DATE"] = str(datetime.datetime.today())
 
 # Prepare arguments
@@ -98,7 +99,7 @@ if options.defines:
 # open the output
 document = doc.Document(env)
 out_name = env["THOT_OUT_TYPE"]
-out_path = os.path.join(document.env["THOT_BASE"], "thot/backs")
+out_path = os.path.join(document.env["THOT_LIB"], "backs")
 out_driver = common.loadModule(out_name,  out_path)
 if not out_driver:
 	common.onError('cannot find %s back-end' % out_name)
@@ -225,5 +226,9 @@ elif options.list_mods:
 
 # Output the result
 else:
-	out_driver.output(document)
+	try:
+		out_driver.output(document)
+	except common.BackException as e:
+		common.onError(str(e))
+
 

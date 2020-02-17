@@ -244,7 +244,7 @@ class Generator(back.Generator):
 	
 	def genImage(self, url, node, caption = None):
 		name, ext = os.path.splitext(url)
-		fpath = self.new_friend(url)
+		fpath = self.use_friend(url)
 		self.out.write('<inlinemediaobject>')
 		if caption:
 			self.out.write('<alt>%s</alt>' % cgi.escape(caption.toText()))

@@ -74,16 +74,12 @@ def onVerbose(f):
 
 def show_stack():
 	"""Show the stack (for debugging purpose)."""
-	#exc_type, exc_obj, exc_tb = sys.exc_info()
-	#traceback.print_tb(exc_tb)
-	#traceback.print_stack()
 	traceback.print_exc()
 	return ""
 
 
 def onParseError(msg):
 	raise ParseException(msg)
-
 
 def onError(text):
 	"""Display the given error and stop the application."""
