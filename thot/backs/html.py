@@ -135,7 +135,7 @@ class TemplatePage(Page):
 		try:
 			tpl = open(self.path, "r")
 			n = 0
-			for line in tpl.xreadlines():
+			for line in tpl.readlines():
 				n = n + 1
 				f = 0
 				for m in template_re.finditer(line):
