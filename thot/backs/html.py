@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cgi
+import html as my_html
 import os
 import re
 import shutil
@@ -29,6 +29,8 @@ import thot.doc as tdoc
 import thot.highlight as highlight
 import thot.i18n as i18n
 
+from thot.backs.abstract_html import escape_cdata
+from thot.backs.abstract_html import escape_attr
 
 def makeRef(nums):
 	"""Generate a reference from an header number array."""
@@ -79,9 +81,9 @@ class PlainPage(Page):
 		out.write("	<title>")
 		handle.gen_title(gen)
 		out.write("</title>\n")
-		out.write('	<meta name="AUTHOR" content="' + cgi.escape(gen.doc.getVar('AUTHORS'), True) + '">\n')
+		out.write('	<meta name="AUTHOR" content="' + escape_attr(gen.doc.getVar('AUTHORS')) + '">\n')
 		out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
-		out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(gen.doc.getVar('ENCODING'), True) + '">\n')
+		out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + escape_attr(gen.doc.getVar('ENCODING')) + '">\n')
 		handle.gen_header(gen)
 		out.write('</head>\n<body>\n<div class="main">\n')
 		
@@ -484,10 +486,10 @@ class Generator(abstract_html.Generator):
 		self.out.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
 		self.out.write('<html>\n')
 		self.out.write('<head>\n')
-		self.out.write("	<title>" + cgi.escape(self.doc.getVar('TITLE')) + "</title>\n")
-		self.out.write('	<meta name="AUTHOR" content="' + cgi.escape(self.doc.getVar('AUTHORS'), True) + '">\n')
+		self.out.write("	<title>" + escape_cdata(self.doc.getVar('TITLE')) + "</title>\n")
+		self.out.write('	<meta name="AUTHOR" content="' + escape_attr(self.doc.getVar('AUTHORS'), True) + '">\n')
 		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
-		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + cgi.escape(self.doc.getVar('ENCODING'), True) + '">\n')
+		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + escape_attr(self.doc.getVar('ENCODING'), True) + '">\n')
 		styles = self.doc.getVar("HTML_STYLES")
 		if styles:
 			for style in styles.split(':'):
@@ -500,7 +502,7 @@ class Generator(abstract_html.Generator):
 
 	def genTitleText(self):
 		"""Generate the text of the title."""
-		self.out.write(cgi.escape(self.doc.getVar('TITLE')))
+		self.out.write(escape_cdata(self.doc.getVar('TITLE')))
 	
 	def genTitle(self):
 		self.out.write('<div class="header">\n')
@@ -577,7 +579,7 @@ class Generator(abstract_html.Generator):
 		(of headers) with an expanding maximum level.
 		"""
 		self.out.write('<div class="toc">\n')
-		self.out.write('<h1><a name="toc">' + cgi.escape(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
+		self.out.write('<h1><a name="toc">' + escape_cdata(self.trans.get(i18n.ID_CONTENT)) + '</name></h1>\n')
 		self.expandContentTo(self.doc, path, level, '  ')
 		self.out.write('</div>\n')
 

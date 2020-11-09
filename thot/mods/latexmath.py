@@ -127,7 +127,7 @@ class MathJAXBuilder(Builder):
 		if gen.getType() == "html":
 			gen.doc.setVar("LATEXMATH_SCRIPT", "yes")
 			s = gen.newScript()
-			s.async = True
+			s.do_async = True
 			s.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"
 			s = gen.newScript()
 			s.content = MATHJAX_SELECTOR

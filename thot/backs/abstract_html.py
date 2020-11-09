@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cgi
 import os
 import re
 import shutil
@@ -27,6 +26,16 @@ import thot.doc as doc
 import thot.doc as tdoc
 import thot.highlight as highlight
 import thot.i18n as i18n
+
+def escape_cdata(s):
+	"""Escape in the string s characters that are invalid in CDATA
+	of XML text."""
+	return common.escape(s)
+
+def escape_attr(s):
+	"""Escape in the string s characters that are invalid in attribute
+	of XML elements."""
+	return common.escape(s, True)
 
 CSS_URL_RE = re.compile('url\(([^)]*)\)')
 
@@ -84,7 +93,7 @@ class Script:
 	def __init__(self):
 		self.content = None
 		self.src = None
-		self.async = None
+		self.do_async = None
 		self.charset = None
 		self.defer = None
 		self.type = None
@@ -92,15 +101,15 @@ class Script:
 	def gen(self, out):
 		out.write("\t<script")
 		if self.src != None:
-			out.write(" src=\"%s\"" % cgi.escape(self.src, True))
-		if self.async != None and self.async:
+			out.write(" src=\"%s\"" % escape_attr(self.src))
+		if self.do_async != None and self.do_async:
 			out.write(" async=\"async\"")
 		if self.defer != None and self.defer:
 			out.write(" defer=\"defer\"")
 		if self.charset != None:
-			out.write(" charset=\"%s\"" % cgi.escape(self.charset, True))
+			out.write(" charset=\"%s\"" % escape_attr(self.charset))
 		if self.type != None:
-			out.write(" type=\"%s\"" % cgi.escape(self.type, True))
+			out.write(" type=\"%s\"" % escape_attr(self.type))
 		out.write(">")
 		if self.content != None:
 			out.write("\n")
@@ -374,7 +383,7 @@ class Generator(back.Generator):
 		if node.get_height() != None:
 			self.out.write(' height="%d"' % node.get_height())
 		if caption != None:
-			self.out.write(' alt="' + cgi.escape(caption.toText(), True) + '"')
+			self.out.write(' alt="' + escape_attr(caption.toText()) + '"')
 		
 		self.out.write('/>')
 		
@@ -416,8 +425,8 @@ class Generator(back.Generator):
 			email = ""
 			if 'email' in author:
 				email = author['email']
-				self.out.write('<a href="mailto:' + cgi.escape(email) + '">')
-			self.out.write(cgi.escape(author['name']))
+				self.out.write('<a href="mailto:' + escape_attr(email) + '">')
+			self.out.write(escape_cdata(author['name']))
 			if email:
 				self.out.write('</a>')		
 

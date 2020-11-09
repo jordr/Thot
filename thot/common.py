@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import html
 import imp
 import os
 import os.path
@@ -22,6 +23,8 @@ import shutil
 import subprocess
 import sys
 import traceback
+
+from html import escape
 
 class ThotException(Exception):
 	"""Exception of the Thot system.
