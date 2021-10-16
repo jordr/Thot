@@ -111,7 +111,7 @@ if options.list_avail:
 	paths = document.getVar("THOT_USE_PATH")
 	names = set([os.path.splitext(file)[0]
 		for path in paths.split(":") for file in os.listdir(path)
-			if os.path.splitext(file)[1] in { ".py" }])
+			if os.path.splitext(file)[1] in { ".py" } and not file.startswith("__")])
 	for name in names:
 		mod = common.loadModule(name, paths)
 		desc = ""
@@ -120,7 +120,7 @@ if options.list_avail:
 		print("- %s%s" % (name, desc))
 
 	print("\nAvailable back-ends:")
-	path = os.path.join(document.env["THOT_BASE"], "backs")
+	path = os.path.join(document.env["THOT_LIB"], "backs")
 	names = set([os.path.splitext(file)[0]
 		for file in os.listdir(path)
 			if os.path.splitext(file)[1] in { ".py" }

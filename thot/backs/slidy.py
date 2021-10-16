@@ -32,10 +32,10 @@ scripts. The following variables are used:
   with top-level entries (default).
 """
 
-import backs.abstract_html
-import common
-import doc
-import i18n
+import thot.backs.abstract_html as  abstract_html
+import thot.common as common
+import thot.doc as doc
+import thot.i18n as i18n
 import os
 import os.path
 import re
@@ -95,10 +95,10 @@ class Marker(doc.Node):
 		print("%smaker(%s)" % (tab, self.type))
 
 
-class Generator(backs.abstract_html.Generator):
+class Generator(abstract_html.Generator):
 	
 	def __init__(self, doc):
-		backs.abstract_html.Generator.__init__(self, doc)
+		abstract_html.Generator.__init__(self, doc)
 		self.inc = False
 		self.trans = i18n.getTranslator(doc)
 		self.outline = doc.getVar("OUTLINE", "top")

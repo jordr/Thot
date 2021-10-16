@@ -16,8 +16,8 @@
 
 import os
 import os.path
-import back
-import common
+import thot.backs as back
+import thot.common as common
 import cgi
 
 ZIP = common.Command("zip", "unzip unavaible to build the final archive", common.ERROR_FAIL)

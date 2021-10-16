@@ -471,3 +471,7 @@ class Generator(back.Generator):
 	def get_number(self, node):
 		"""Get the reference number corresponding to the given node."""
 		return self.refs[node][1]
+
+
+__short__ = "common facilties by HTML back-end"
+__description__ = """Cannot be used as a back-end per se."""
