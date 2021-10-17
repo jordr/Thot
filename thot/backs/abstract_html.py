@@ -118,6 +118,129 @@ class Script:
 		out.write("</script>\n")
 
 
+# pages
+class PageHandler:
+	"""Provide support for generating pages."""
+
+	def gen_header(self, gen):
+		"""Called to generate header part of HTML file."""
+		pass
+
+	def gen_title(self, gen):
+		"""Called to generate the title."""
+		pass
+	
+	def gen_authors(self, gen):
+		"""Called to generate list of authors."""
+		pass
+		
+	def gen_menu(self, gen):
+		"""Called to generate the menu."""
+		pass
+	
+	def gen_content(self, gen):
+		"""Called to generate the content."""
+		pass
+
+
+class Page:
+	"""Abstract class for page generation."""
+
+	def apply(self, handler, gen):
+		"""Called to generate a page."""
+		pass
+
+
+# PlainPage class
+class PlainPage(Page):
+	"""Simple plain page."""
+	
+	def apply(self, handle, gen):
+		out = gen.out
+		
+		# output header
+		out.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
+		out.write('<html>\n')
+		out.write('<head>\n')
+		out.write("	<title>")
+		handle.gen_title(gen)
+		out.write("</title>\n")
+		out.write('	<meta name="AUTHOR" content="' + escape_attr(gen.doc.getVar('AUTHORS')) + '">\n')
+		out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
+		out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + escape_attr(gen.doc.getVar('ENCODING')) + '">\n')
+		handle.gen_header(gen)
+		out.write('</head>\n<body>\n<div class="main">\n')
+		
+		# output the title
+		out.write('<div class="header">\n')
+		out.write('	<div class="title">')
+		handle.gen_title(gen)
+		out.write('</div>\n')
+		out.write('	<div class="authors">')
+		handle.gen_authors(gen)
+		out.write('</div>\n')
+		out.write('</div>')
+		
+		# output the menu
+		handle.gen_menu(gen)
+		
+		# output the content
+		out.write('<div class="page">\n')
+		handle.gen_content(gen)
+		gen.genFootNotes()
+		out.write('</div>\n')		
+
+		# output the footer
+		out.write("</div>\n</body>\n</html>\n")
+
+
+
+# TemplatePage class
+template_re = re.compile("<thot:([^/]+)\/>")
+
+class TemplatePage(Page):
+	"""Page supporting template in HTML. The template may contain
+	the following special elements:
+	* <thot:title> -- document title,
+	* <thot:authors> -- list of authors,
+	* <thot:menu> -- table of content of the document,
+	* <thot:content> -- content of the document.
+	"""
+	path = None
+	
+	def __init__(self, path):
+		self.path = path
+	
+	def apply(self, handler, gen):
+		map = {
+			"authors": handler.gen_authors,
+			"content": handler.gen_content,
+			"header":  handler.gen_header,
+			"title":   handler.gen_title,
+			"toc":    handler.gen_menu
+		}
+		global template_re
+
+		try:
+			tpl = open(self.path, "r")
+			n = 0
+			for line in tpl.readlines():
+				n = n + 1
+				f = 0
+				for m in template_re.finditer(line):
+					gen.out.write(line[f:m.start()])
+					f = m.end()
+					try:
+						kw = m.group(1)
+						map[kw](gen)
+					except KeyError as e:
+						common.onError("unknown element %s at %d" % (kw, n))					
+				gen.out.write(line[f:])
+			
+		except IOError as e:
+			common.onError(str(e))
+
+
 class Generator(back.Generator):
 	"""Generator for HTML output."""
 	trans = None
@@ -134,9 +257,12 @@ class Generator(back.Generator):
 	label = None
 	refs = None
 	scripts = None
+	template = None
 
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
+
+		# data initialization
 		self.footnotes = []
 		self.pages = { }
 		self.pages = { }
@@ -144,6 +270,16 @@ class Generator(back.Generator):
 		self.stack = []
 		self.refs = { }
 		self.scripts = []
+
+	def getTemplate(self):
+		"""Get the template of page."""
+		if self.template == None:
+			self.template = self.doc.getVar('HTML_TEMPLATE')
+			if self.template:
+				self.template = TemplatePage(self.template)
+			else:
+				self.template = PlainPage()
+		return self.template
 
 	def getType(self):
 		return "html"
@@ -473,5 +609,6 @@ class Generator(back.Generator):
 		return self.refs[node][1]
 
 
+# module description
 __short__ = "common facilties by HTML back-end"
 __description__ = """Cannot be used as a back-end per se."""

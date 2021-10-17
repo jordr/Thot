@@ -136,7 +136,7 @@ if options.list_avail:
 
 # list a module
 elif options.list_mod:
-	paths = document.getVar("THOT_USE_PATH") + ":" + os.path.join(document.env["THOT_BASE"], "backs")
+	paths = document.getVar("THOT_USE_PATH") + ":" + os.path.join(document.env["THOT_LIB"], "backs")
 	mod = common.loadModule(options.list_mod, paths)
 	if not mod:
 		common.onError("no module named %s" % options.list_mod)
