@@ -2,8 +2,6 @@
 *~
 doc/*.html
 doc/*-imports
-test/*-imports
-test/*.html
 tmp/
 
 css/minima/blue.css
@@ -12,3 +10,19 @@ css/minima/gray.css
 css/minima/green.css
 css/minima/pink.css
 css/minima/purple.css
+
+test/*-imports
+test/*.html
+test/*.log
+test/simple.aux
+test/simple.docbook
+test/simple.out
+test/simple.pdf
+test/simple.tex
+test/simple.toc
+
+build
+dist
+thot.egg-info
+MANIFEST*
+

@@ -14,11 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cgi
 import os.path
 import re
 import shutil
 import subprocess
+import xml.sax.saxutils
 
 import thot.back as back
 import thot.common as common
@@ -37,6 +37,13 @@ STYLES = {
 	'superscript': 'superscript',
 	'monospace': 'literal'
 }
+
+def escape_text(t):
+	return xml.sax.saxutils.escape(t)
+
+def escape_attr(t):
+	return xml.sax.saxutils.quoteattr(t)
+
 
 TAB_ALIGN = ['left', 'center', 'right']
 
@@ -77,7 +84,7 @@ class Generator(back.Generator):
 			self.out.write('<book>\n')
 		else:
 			self.out.write('<book xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink">\n')
-		self.out.write('<title>%s</title>\n' % cgi.escape(self.doc.getVar('TITLE')))
+		self.out.write('<title>%s</title>\n' % escape_text(self.doc.getVar('TITLE')))
 		
 		# generator author 
 		self.out.write('<bookinfo>\n')
@@ -92,9 +99,9 @@ class Generator(back.Generator):
 				else:
 					name = ''
 					email = ''
-				self.out.write('<personname><surname>%s</surname></personname>' % cgi.escape(name))
+				self.out.write('<personname><surname>%s</surname></personname>' % escape_text(name))
 				if email:
-					self.out.write('<email>%s</email>' % cgi.escape(email))
+					self.out.write('<email>%s</email>' % escape_text(email))
 				self.out.write('</author>\n')
 		self.out.write('</bookinfo>\n')
 		
@@ -178,7 +185,7 @@ class Generator(back.Generator):
 		self.out.write(line)
 	
 	def genText(self, text):
-		self.out.write(cgi.escape(text))
+		self.out.write(escape_text(text))
 
 	def genParBegin(self):
 		self.out.write('<para>')
@@ -237,7 +244,7 @@ class Generator(back.Generator):
 			self.out.write('</section>\n')
 
 	def genLinkBegin(self, url):
-		self.out.write('<link xlink:href="%s">' % cgi.escape(url, True))
+		self.out.write('<link xlink:href="%s">' % escape_attr(url))
 	
 	def genLinkEnd(self, url):
 		self.out.write('</link>')
@@ -247,9 +254,9 @@ class Generator(back.Generator):
 		fpath = self.use_friend(url)
 		self.out.write('<inlinemediaobject>')
 		if caption:
-			self.out.write('<alt>%s</alt>' % cgi.escape(caption.toText()))
+			self.out.write('<alt>%s</alt>' % escape_text(caption.toText()))
 		self.out.write('<imageobject>')
-		self.out.write('<imagedata format="%s" fileref="%s"' % (ext.upper(), cgi.escape(fpath, True)))
+		self.out.write('<imagedata format="%s" fileref="%s"' % (ext.upper(), escape_attr(fpath)))
 		if node.get_width():
 			self.out.write(' width="%dpt"' % node.get_width())
 		if node.get_height():
