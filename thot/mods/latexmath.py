@@ -302,12 +302,26 @@ def handleBlock(man, match):
 	man.doc.addFeature(BUILDER)
 	tparser.BlockParser(man, MathBlock(BUILDER), END_BLOCK)
 
-MATH_WORD = (handleMath, "\$(?P<latexmath>[^$]*)\$")
-MATH_BLOCK = (handleBlock, re.compile("^\s*<eq\s*>\s*$"))
+# module declaration
+__short__ = "Use of Latex math formuilae in Thot."
+__description__ = __short__ + """
+
+A quick summary of Latex math syntax is available at https://en.wikibooks.org/wiki/LaTeX/Mathematics .
+
+Variable LATEXMATH select one of the back-end among:
+%s
+""" % ("\n").join(["- %s" % k for k in BUILDERS.keys()])
+__version__ = "1.3"
+__words__ = [
+	(handleMath, "\$(?P<latexmath>[^$]*)\$",
+		"Insert the given formula in the text.")
+]
+__lines__ = [
+	(handleBlock, "^\s*<eq\s*>\s*$",
+		"Insert the given formula as a stand-aline equation (ended by </eq>.")
+]
 
 def init(man):
-	global BUILDER
 	selectBuilder(man)
-	man.addWord(MATH_WORD)
-	man.addLine(MATH_BLOCK)
+
 
