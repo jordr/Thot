@@ -82,10 +82,23 @@ def handleDotOld(man, match):
 	common.onDeprecated("@<dot> form is now deprecated. Use <dot> instead.")
 	tparser.BlockParser(man, DotBlock(match.group(2)), DOT_CLOSE_OLD)
 
-DOT_LINE = (handleDot, re.compile("^<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
+#DOT_LINE = (handleDot, re.compile("^<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
 DOT_LINE_OLD = (handleDotOld, re.compile("^@<dot(\s+(dot|neato|twopi|circo|fdp))?>"))
 
+__short__ = "Import GrahViz Dot in THOT output."
+__desdcription__ = __short__ + """
 
-def init(man):
-	man.addLine(DOT_LINE)
-	man.addLine(DOT_LINE_OLD)
+GraphViz at https://www.graphviz.org/.
+Dot syntax available at https://www.graphviz.org/doc/info/lang.html.
+"""
+__version__ = "1.1"
+__lines__ = [
+	(handleDot, "^<dot(\s+(dot|neato|twopi|circo|fdp))?>",
+		"Insert the provided Dot graph (ended by </dot>)."),
+	(handleDotOld, "^@<dot(\s+(dot|neato|twopi|circo|fdp))?>",
+		"Insert the provided Dot graph (ended by @</dot>.")
+]
+
+#def init(man):
+#	man.addLine(DOT_LINE)
+#	man.addLine(DOT_LINE_OLD)
