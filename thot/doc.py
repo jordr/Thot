@@ -442,7 +442,7 @@ class Container(Node):
 		for item in self.content:
 			r = r + item.toText()
 		return r
-	
+
 
 # Word family
 class Word(Node):
@@ -1190,6 +1190,10 @@ class Header(Container):
 	def set_title(self, title):
 		"""Set the title of the header."""
 		self.title = title
+
+	def titleText(self):
+		"""Return the title as raw text."""
+		return self.title.toText()
 
 
 class Feature:

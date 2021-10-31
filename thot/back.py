@@ -30,6 +30,7 @@ import thot.common as common
 import thot.doc as tdoc
 import thot.i18n as i18n
 
+
 class Generator:
 	"""Abstract back-end generator."""
 	doc = None
@@ -45,7 +46,7 @@ class Generator:
 		"""Build the abstract generator.
 		doc -- document to generate."""
 		self.doc = doc
-		self.trans  = i18n.getTranslator(self.doc)
+		self.trans = i18n.getTranslator(self.doc)
 		self.from_files = { }
 		self.to_files = { }
 		self.added_files = []

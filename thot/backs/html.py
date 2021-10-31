@@ -338,49 +338,12 @@ class PerChapter(PagePolicy):
 
 class Generator(abstract_html.Generator):
 	"""Generator for HTML output."""
-	trans = None
-	doc = None
-	path = None
-	root = None
-	from_files = None
-	to_files = None
-	footnotes = None
-	struct = None
-	pages = None
-	page_count = None
-	stack = None
-	label = None
-	refs = None
 
 	def __init__(self, doc):
 		abstract_html.Generator.__init__(self, doc)
-		self.footnotes = []
-		self.pages = { }
-		self.pages = { }
-		self.page_count = 0
-		self.stack = []
-		self.refs = { }
 
 	def getType(self):
 		return 'html'
-
-	def genDocHeader(self):
-		self.out.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">\n')
-		self.out.write('<html>\n')
-		self.out.write('<head>\n')
-		self.out.write("	<title>" + escape_cdata(self.doc.getVar('TITLE')) + "</title>\n")
-		self.out.write('	<meta name="AUTHOR" content="' + escape_attr(self.doc.getVar('AUTHORS'), True) + '">\n')
-		self.out.write('	<meta name="GENERATOR" content="Thot - HTML">\n');
-		self.out.write('	<meta http-equiv="Content-Type" content="text/html; charset=' + escape_attr(self.doc.getVar('ENCODING'), True) + '">\n')
-		styles = self.doc.getVar("HTML_STYLES")
-		if styles:
-			for style in styles.split(':'):
-				new_style = self.importCSS(style)
-				self.out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '">\n')
-		short_icon = self.doc.getVar('HTML_SHORT_ICON')
-		if short_icon:
-			self.out.write('<link rel="shortcut icon" href="%s"/>' % short_icon)
-		self.out.write('</head>\n<body>\n<div class="main">\n')
 
 	def genTitleText(self):
 		"""Generate the text of the title."""

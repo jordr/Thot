@@ -65,21 +65,21 @@ STYLES = {
 	doc.STYLE_CODE:			('<code>', '</code>')
 }
 
-ESCAPE_MAP = {
-	'<'	: "&lt;",	
-	'>'	: "&gt;",
-	'&'	: "&amp;"
-}
-def escape(s):
-	r = ""
-	for c in s:
-		if ord(c) >= 128:
-			r = r + ("&#%d;" % ord(c))
-		elif c in ESCAPE_MAP:
-			r = r + ESCAPE_MAP[c]
-		else:
-			r = r + c
-	return r
+# ESCAPE_MAP = {
+	# '<'	: "&lt;",	
+	# '>'	: "&gt;",
+	# '&'	: "&amp;"
+# }
+# def escape(s):
+	# r = ""
+	# for c in s:
+		# if ord(c) >= 128:
+			# r = r + ("&#%d;" % ord(c))
+		# elif c in ESCAPE_MAP:
+			# r = r + ESCAPE_MAP[c]
+		# else:
+			# r = r + c
+	# return r
 
 def getStyle(style):
 	if style in STYLES:
@@ -241,6 +241,44 @@ class TemplatePage(Page):
 			common.onError(str(e))
 
 
+# Ref classes
+class Ref:
+	"""Abstract class representing a reference inside a document or
+	a set of documents."""
+
+	def label(self):
+		"""Return the label associated with reference: for example,
+		for a chapter, this is the title of the chapter."""
+		return ""
+
+	def number(self):
+		"""Return the number associated with the referenced: chapter
+		number for a chapter."""
+		return ""
+
+	def link(self, relative=None):
+		"""Return the URL link corresponding to the reference:
+		the link absolute (relatively to the project root) or
+		relative to the given file."""
+		return ""
+
+class HeaderRef:
+	"""A reference for header."""
+
+	def __init__(self, file, node):
+		self.file = file
+		self.node = node
+
+	def label(self):
+
+	def number(self):
+
+	def link(self, relative):
+		
+
+
+
+# Generator class
 class Generator(back.Generator):
 	"""Generator for HTML output."""
 	trans = None
@@ -261,15 +299,15 @@ class Generator(back.Generator):
 
 	def __init__(self, doc):
 		back.Generator.__init__(self, doc)
-
-		# data initialization
 		self.footnotes = []
-		self.pages = { }
 		self.pages = { }
 		self.page_count = 0
 		self.stack = []
 		self.refs = { }
 		self.scripts = []
+
+	def getType(self):
+		return "html"
 
 	def getTemplate(self):
 		"""Get the template of page."""
@@ -280,9 +318,6 @@ class Generator(back.Generator):
 			else:
 				self.template = PlainPage()
 		return self.template
-
-	def getType(self):
-		return "html"
 
 	def newScript(self):
 		"""Create and record a new script for the header generation."""
@@ -425,7 +460,7 @@ class Generator(back.Generator):
 		self.out.write(line)
 
 	def genText(self, text):
-		self.out.write(escape(text))
+		self.out.write(escape_cdata(text))
 
 	def genRaw(self, text):
 		"""Generate raw text."""
@@ -520,10 +555,8 @@ class Generator(back.Generator):
 			self.out.write(' height="%d"' % node.get_height())
 		if caption != None:
 			self.out.write(' alt="' + escape_attr(caption.toText()) + '"')
-		
 		self.out.write('/>')
 		
-
 	def genImage(self, url, node, caption):
 		new_url = self.use_friend(url)
 		self.genImageTag(new_url, node, caption)
@@ -610,5 +643,5 @@ class Generator(back.Generator):
 
 
 # module description
-__short__ = "common facilties by HTML back-end"
+__short__ = "common facilities by HTML back-end"
 __description__ = """Cannot be used as a back-end per se."""
