@@ -96,3 +96,5 @@ __lines__ = [
 		"Insert the provided Dot graph (ended by @</dot>.")
 ]
 
+__words__ = []
+

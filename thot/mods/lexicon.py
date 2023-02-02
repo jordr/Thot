@@ -65,7 +65,7 @@ class Lexicon(doc.Node):
 		for term in terms:
 			gen.genOpenTag("dt", term)
 			gen.genOpenTag("a", term,
-				[("id", gen.get_href(term))])
+				[("id", gen.get_href(term).split("#")[1])])
 			gen.genText(term.id)
 			gen.genCloseTag("a")
 			gen.genCloseTag("dt")
