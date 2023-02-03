@@ -63,6 +63,8 @@ class PagePolicy:
 		styles = gen.doc.getVar("HTML_STYLES")
 		if styles:
 			for style in styles.split(':'):
+				if style == "":
+					continue
 				new_style = gen.importCSS(style)
 				out.write('	<link rel="stylesheet" type="text/css" href="' + new_style + '">\n')
 		short_icon = gen.doc.getVar('HTML_SHORT_ICON')

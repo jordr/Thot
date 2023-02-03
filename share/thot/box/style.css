@@ -1,0 +1,76 @@
+
+div.box {
+	padding: 1em 1em .5em 70px;
+	margin-bottom: 1.5em;
+	min-height: 68px;
+	overflow: hidden;
+	background-position: 10px 50%;
+	background-repeat: no-repeat;
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+div.box-rounded {
+	border-radius: 1em;
+}
+
+div.box div.title {
+	margin-bottom: 1.4em;
+	font-weight: bold;
+}
+
+div.box div.body {	
+}
+
+div.box-content {
+	padding: 0 0 0 0;
+	background-color: white;
+	border: 4px solid #888888;
+}
+
+div.box-content div.title {
+	padding: .5em 1em .5em 1em;
+	background-color: #888888;
+	color: white;
+	margin: 0;
+}
+
+div.box-content div.body {
+	padding: .5em 1em .5em 1em;
+	background-color: #88888880;
+}
+
+div.box-info {
+	background-color: #D1D7DF;
+	background-image: url(info.png);
+}
+
+div.box-help {
+	background-color: #DCC2EF;
+	background-image: url(help.png);
+}
+
+div.box-tip {
+	background-color: #FFF79F;
+	background-image: url(tip.png);
+}
+
+div.box-important {
+	background-color: #FFD39F;
+	background-image: url(important.png);
+}
+
+div.box-alert {
+	background-color: #FFBCAF;
+	background-image: url(alert.png);
+}
+
+div.box-download {
+	background-color: #D6EFC2;
+	background-image: url(download.png);
+}
+
+div.box-todo {
+	background-color: #C2EFDD;
+	background-image: url(todo.png);
+}

@@ -1,0 +1,66 @@
+@use dokuwiki
+@TITLE=Box Test
+@AUTHORS=H. Cassé <hugues.casse@laposte.net>
+@VERSION=0.1
+@LANG=en_EN
+
+@use box
+
+This is the test for **box** plug-in.
+
+====== Initial test ======
+
+<box info rounded>
+This is an information.
+
+Several paragraph inside.
+</box>
+
+Now the text go-on.
+
+With specialized title:
+
+<box alert |This an alert!>
+An alert!
+</box>
+
+Case of content:
+
+<box content | My content!>
+This is my content!
+</box>
+
+With my own color:
+<box info rounded color=#FF7F50 text=white icon=tree.png|My own Box!>
+My box!
+</box>
+
+===== All the types =====
+
+<box info rounded>
+This is an information.
+</box>
+
+<box help rounded>
+This is an help.
+</box>
+
+<box alert rounded>
+This is an alert.
+</box>
+
+<box important rounded>
+This is important!
+</box>
+
+<box tip rounded>
+This is a tip..
+</box>
+
+<box download rounded>
+This is a download!
+</box>
+
+<box todo rounded>
+This is a TODO!
+</box>

@@ -384,7 +384,7 @@ class Manager:
 						for w in s.get_words():
 							self.addWord(w)
 		else:
-			common.onError('cannot load module %s' % name)
+			common.onError('cannot find module %s' % name)
 
 
 class BlockParser:
