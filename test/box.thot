@@ -35,6 +35,11 @@ With my own color:
 My box!
 </box>
 
+Content customized:
+<box content color=#FF7F50|My customized content!>
+It is!
+</box>
+
 ===== All the types =====
 
 <box info rounded>

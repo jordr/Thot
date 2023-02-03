@@ -54,7 +54,7 @@ class BoxFeature(doc.Feature):
 			base = gen.doc.getVar("THOT_BASE")
 			css = path.join(base, "box", "style.css")
 			gen.doc.setVar("HTML_STYLES",
-				"%s:%s" % (gen.doc.getVar("HTML_STYLES"), css))
+				"%s:%s" % (css, gen.doc.getVar("HTML_STYLES")))
 
 FEATURE = BoxFeature()
 
@@ -102,7 +102,10 @@ class BoxBlock(doc.Container):
 
 		styles = []
 		if self.color != None:
-			styles.append("background-color: %s;" % self.color)
+			if self.type == "content":
+				styles.append("border-color: %s;" % self.color)
+			else:
+				styles.append("background-color: %s;" % self.color)
 		if self.icon != None:
 			styles.append("background-image: url(%s);"
 				% gen.use_friend(self.icon))
@@ -111,7 +114,10 @@ class BoxBlock(doc.Container):
 		gen.genOpenTag("div", self, atts)
 
 		# generate the title
-		gen.genOpenTag("div", self, [("class", "title")])
+		atts = [("class", "title")]
+		if self.type == "content" and self.color != None:
+			atts.append(("style", "background-color: %s;" % self.color))
+		gen.genOpenTag("div", self, atts)
 		if self.title:
 			gen.genText(self.title[1:])
 		else:
@@ -120,8 +126,16 @@ class BoxBlock(doc.Container):
 
 		# generate the body
 		atts = [("class", "body")]
+		styles = []
 		if self.text != None:
-			atts.append(("style", "color: %s;" % self.text))
+			styles.append("color: %s;" % self.text)
+		if self.color != None and self.type == "content":
+			if self.color.startswith('#'):
+				styles.append("background-color: %s80;" % self.color)
+			else:
+				styles.append("background-color: white;")
+		if styles != []:
+			atts.append(("style", " ".join(styles)))
 		gen.genOpenTag("div", self, atts)
 		doc.Container.gen(self, gen)
 		gen.genCloseTag("div")

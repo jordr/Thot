@@ -18,6 +18,7 @@ setuptools.setup(
 	scripts = ['bin/thot'],
 	package_data = {
 		"share/thot/css/minima/": glob.glob("css/minima/*.css"),
-		"share/thot/css/minima/": glob.glob("css/minima/*.css")
+		"share/thot/css/minima/": glob.glob("css/minima/*.css"),
+		"share/thot/box": glob.glob("share/thot/box/*")
 	}
 )

@@ -1,6 +1,6 @@
 
 div.box {
-	padding: 1em 1em .5em 70px;
+	padding: 1em 1em .75em 70px;
 	margin-bottom: 1.5em;
 	min-height: 68px;
 	overflow: hidden;
@@ -15,11 +15,11 @@ div.box-rounded {
 }
 
 div.box div.title {
-	margin-bottom: 1.4em;
+	margin-bottom: 1em;
 	font-weight: bold;
 }
 
-div.box div.body {	
+div.box div.body {
 }
 
 div.box-content {

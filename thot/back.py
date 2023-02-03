@@ -172,6 +172,9 @@ class Generator:
 		except IOError as e:
 			common.onError('can not copy "%s" to "%s": %s' % (spath, tpath, str(e)))
 
+	def is_local(self, path):
+		"""Test if a path is local to the current document."""
+		return True
 
 	def use_friend(self, path, base = ''):
 		"""Ensure that a friend is available. If not, get it from
