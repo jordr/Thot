@@ -174,6 +174,8 @@ __lines__ = [
 	(handleBoxEnd, "^</box>.*", "Box end.")
 ]
 
+__words__ = []
+
 __html__ = [
 	(
 """<div class=\"box-TYPE, (box-rounded)\">

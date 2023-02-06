@@ -22,6 +22,10 @@ import sys
 dir = os.path.abspath(os.path.dirname(__file__))
 os.putenv("PYTHONPATH",
 	os.getenv("PYTHONPATH", "") + ":" + dir)
-cmd = os.path.join(dir, "bin/thot")
-os.execv(cmd, sys.argv)
+#cmd = os.path.join(dir, "bin/thot")
+#os.execv(cmd, sys.argv)
+import thot.command
+thot.command.main()
+
+
 
