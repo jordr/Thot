@@ -1,0 +1,8 @@
+include thot/data/box/*.css
+include thot/data/box/*.png
+include thot/data/smileys/*.gif
+include thot/data/doc-styles/*.css
+include thot/data/doc-styles/images/*.gif
+include thot/data/doc-styles/images/*.jpg
+include thot/data/doc-styles/images/*.png
+include thot/data/doc-styles/images/*.ico

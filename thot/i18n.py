@@ -90,7 +90,7 @@ def getTranslator(doc):
 	nlang = lang.lower().replace('-', '_')
 	
 	# look for the local version
-	path = os.path.join(doc.getVar('THOT_BASE'), "langs")
+	path = os.path.join(doc.getVar('THOT_LIB'), "langs")
 	mod = common.loadModule(nlang, path)
 	if mod:
 		return mod.getTranslator(doc, nlang)
