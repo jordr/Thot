@@ -361,6 +361,10 @@ class CodeBlock(doc.Block):
 			gen.genVerbatim('>\n')
 			gen.genText(self.toText())
 			gen.genVerbatim('</programlisting>\n')
+		elif type == 'md':
+			gen.genVerbatim('```%s\n' % self.lang)
+			gen.genText(self.toText())
+			gen.genVerbatim('```\n')
 		else:
 			common.onWarning('backend %s unsupported for code block' % type)
 
