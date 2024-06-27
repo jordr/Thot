@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import html
-import imp
+import importlib.util
 import os
 import os.path
 import re
@@ -116,18 +116,22 @@ def loadModule(name, paths):
 		for path in paths.split(":"):
 			path = os.path.join(path, name + ".py")
 			if os.path.exists(path):
-				return imp.load_source(name, path)
+				spec = importlib.util.spec_from_file_location(name, path)
+				module = importlib.util.module_from_spec(spec)
+				spec.loader.exec_module(module)
+				return module
 			else:
 				path = path + "c"
 				if os.path.exists(path):
-					return imp.load_compiled(name, path)
+					raise Exception('imp->importlib', 'Python 3.12 removes imp module. Need to find the correct API calls to load_compiled')
+					#return imp.load_compiled(name, path)
 		return None
 	except Exception as e:
 		tb = sys.exc_info()[2]
 		traceback.print_tb(tb)
 		onError("cannot open module '%s': %s" % (path, str(e)))
 
-AUTHOR_RE = re.compile('(.*)\<([^>]*)\>\s*')
+AUTHOR_RE = re.compile(r'(.*)\<([^>]*)\>\s*')
 def scanAuthors(text):
 	"""Scan the author text to get structured representation of authors.
 	text -- text containing author declaration separated by ','
@@ -335,24 +339,24 @@ def make_var_doc(custom):
 	return d
 
 
-arg_re = re.compile("\(\?P<([a-zA-Z0-9]+)(_[a-zA-Z0-9_]*)?>(%s|%s)*\)" %
-	("[^)[]", "\[[^\]]*\]"))
+arg_re = re.compile(r"\(\?P<([a-zA-Z0-9]+)(_[a-zA-Z0-9_]*)?>(%s|%s)*\)" %
+	(r"[^)[]", r"\[[^\]]*\]"))
 REPS = [
-	(" ", 		u"␣"	),
-	("\t", 		u"⭾"	),	
-	("\\s+",	" "		),
-	("\\s*", 	" "		),
-	("\\s", 	" "		),
-	("\(", 		"("		),
-	("\)", 		")"		),
-	("^", 		""		),
-	("$", 		""		)
+	(r" ", 		u"␣"	),
+	(r"\t", 		u"⭾"	),	
+	(r"\\s+",	" "		),
+	(r"\\s*", 	" "		),
+	(r"\\s", 	" "		),
+	(r"\(", 		"("		),
+	(r"\)", 		")"		),
+	(r"^", 		""		),
+	(r"$", 		""		)
 ]
 def prepare_syntax(t):
 	"""Prepare a regular expression to be displayed to human user."""
-	if t == "^$" or t == "^\s+$":
+	if t == r"^$" or t == r"^\s+$":
 		return "\\n"
-	t = arg_re.sub('/\\1/', t)
+	t = arg_re.sub(r'/\\1/', t)
 	for (p, r) in REPS:
 		t = t.replace(p, r)
 	return t.strip()
