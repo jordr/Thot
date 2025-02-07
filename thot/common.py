@@ -15,10 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import html
-<<<<<<< HEAD
-=======
 import importlib.machinery
->>>>>>> 37bb9a5 (Fix for python3.13)
 import importlib.util
 import os
 import os.path
