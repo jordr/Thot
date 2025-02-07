@@ -15,6 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import html
+<<<<<<< HEAD
+=======
+import importlib.machinery
+>>>>>>> 37bb9a5 (Fix for python3.13)
 import importlib.util
 import os
 import os.path
@@ -109,6 +113,16 @@ def onDeprecated(msg):
 		DEPRECATED.append(msg)
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
 def loadModule(name, paths):
 	"""Load a module by its name and a collection of paths to look in
 	and return its object."""
@@ -116,15 +130,12 @@ def loadModule(name, paths):
 		for path in paths.split(":"):
 			path = os.path.join(path, name + ".py")
 			if os.path.exists(path):
-				spec = importlib.util.spec_from_file_location(name, path)
-				module = importlib.util.module_from_spec(spec)
-				spec.loader.exec_module(module)
-				return module
+				return load_source(name, path)
 			else:
 				path = path + "c"
 				if os.path.exists(path):
-					raise Exception('imp->importlib', 'Python 3.12 removes imp module. Need to find the correct API calls to load_compiled')
-					#return imp.load_compiled(name, path)
+					raise Exception("No can do")
+					# return imp.load_compiled(name, path)
 		return None
 	except Exception as e:
 		tb = sys.exc_info()[2]
